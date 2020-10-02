@@ -1,0 +1,121 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-visor-indexer
+  labels:
+    app: visor
+    role: indexer
+    suite: sentinel
+spec:
+  replicas: {{ .Values.indexer.replicaCount }}
+  selector:
+    matchLabels:
+      app: visor
+      role: indexer
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: visor
+        role: indexer
+        suite: sentinel
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+    spec:
+      initContainers:
+      - name: setup-postgresql
+        image: "postgres:12"
+        env:
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: password
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: user
+          - name: PGHOST
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: host
+          - name: PGPORT
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: port
+          - name: PGDATABASE
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: database
+          - name: POSTGRES_DB
+          {{- if .Values.database }}
+            value: {{ .Values.database }}
+          {{- else }}
+            value: {{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel
+          {{- end }}
+        command: ["/bin/bash", "-c"]
+        args: ["echo \"SELECT 'CREATE DATABASE $(POSTGRES_DB)' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$(POSTGRES_DB)'); \\gexec\" | psql --set=sslmode=require"]
+      containers:
+      - name: visor
+        image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        args: ["--tracing={{ .Values.jaeger.enabled }}", "index"]
+        ports:
+          - containerPort: 9991
+            name: metrics
+        env:
+          - name: LOTUS_API_MULTIADDR
+          {{- if .Values.lotusAPIMultiaddr }}
+            value: "{{ .Values.lotusAPIMultiaddr }}"
+          {{- else }}
+            value: "/dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234"
+          {{- end }}
+          - name: LOTUS_API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-jwt-secrets
+                key: jwt-ro-privs-token
+          - name: FULLNODE_API_INFO
+            value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: password
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: user
+          - name: PGHOST
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: host
+          - name: PGPORT
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: port
+          - name: PGDATABASE
+            value: "{{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel"
+          - name: GOLOG_LOG_LEVEL
+            value: "{{ .Values.indexer.logLevel }}"
+          - name: LOTUS_DB
+            value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode=require"
+          - name: LOTUS_DB_POOL_SIZE
+            value: "{{ .Values.indexer.pgPoolSize }}"
+          - name: VISOR_REDIS_ADDRESS
+          {{- if .Values.redisAddress }}
+            value: "{{ .Values.redisAddress }}"
+          {{- else }}
+            value: "{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.local:6379"
+          {{- end }}
+        resources:
+{{ toYaml .Values.indexer.resources | indent 10 }}

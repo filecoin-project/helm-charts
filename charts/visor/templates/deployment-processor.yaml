@@ -1,0 +1,77 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-visor-processor
+  labels:
+    app: visor
+    role: processor
+    suite: sentinel
+spec:
+  replicas: {{ .Values.processor.replicaCount }}
+  selector:
+    matchLabels:
+      app: visor
+      role: processor
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: visor
+        role: processor
+        suite: sentinel
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: visor
+        image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        args: ["--tracing={{ .Values.jaeger.enabled }}", "process"]
+        env:
+          - name: LOTUS_API_MULTIADDR
+          {{- if .Values.lotusAPIMultiaddr }}
+            value: "{{ .Values.lotusAPIMultiaddr }}"
+          {{- else }}
+            value: "/dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234"
+          {{- end }}
+          - name: LOTUS_API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Release.Name }}-jwt-secrets"
+                key: jwt-ro-privs-token
+          - name: FULLNODE_API_INFO
+            value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: password
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: user
+          - name: PGHOST
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: host
+          - name: PGPORT
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: port
+          - name: PGDATABASE
+            value: "{{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel"
+          - name: GOLOG_LOG_LEVEL
+            value: {{ .Values.processor.logLevel }}
+          - name: LOTUS_DB
+            value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode=require"
+          - name: LOTUS_DB_POOL_SIZE
+            value: "{{ .Values.processor.pgPoolSize }}"
+          - name: VISOR_REDIS_ADDRESS
+            value: "{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.local:6379"
+        resources:
+{{ toYaml .Values.processor.resources | indent 10 }}
