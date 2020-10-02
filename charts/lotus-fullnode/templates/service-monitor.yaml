@@ -1,0 +1,20 @@
+{{- if .Values.prometheusOperatorServiceMonitor }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-lotus-service-monitor
+  namespace: {{ .Release.Namespace }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app: lotus-fullnode-app
+      release: {{ .Release.Name }}
+  endpoints:
+  - port: api
+    path: /debug/metrics
+    interval: 30s
+{{- end }}

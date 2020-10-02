@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-lotus-daemon
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: lotus-fullnode-app
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: lotus-fullnode-app
+    release: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.ports.api }}
+      targetPort: 1234
+      name: api
+    - protocol: TCP
+      port: {{ .Values.ports.libp2p }}
+      targetPort: 1347
+      name: libp2p
