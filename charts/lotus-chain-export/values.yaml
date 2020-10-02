@@ -1,0 +1,18 @@
+image:
+  repository: travisperson/lotus-shed
+  pullPolicy: Always
+  tag: ntwk-butterfly-9.22.0
+
+schedule: "* */4 * * *"
+# how many tipsets back from the head to export
+lookback: 30
+# how many recent stateroots to export
+recentStateroots: 1800
+# when true, do not export messages
+skipOldMsgs: false
+# when set, this cronjob will act as the network level chain exporter
+network: ""
+
+# this is the claimName of a pvc that will be used for chain exporting
+# this must support ReadWriteMany
+claimName: chain-exports

@@ -1,0 +1,159 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-chain-exporter
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-chain-exporter
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-chain-exporter
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ .Release.Name }}-chain-exporter
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-chain-exporter
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-chain-exporter
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ .Release.Name }}-chain-exporter
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 532
+            runAsNonRoot: true
+            runAsUser: 532
+            runAsGroup: 532
+          initContainers:
+          - name: lock
+            image: busybox
+            command: ["sh", "-c"]
+            args:
+              - |
+                if [ -e /chain-exports/{{ .Release.Name }}-write.lock ]; then
+                  echo "Job already running"
+                  exit 1
+                else
+                  echo "No job found running"
+                fi
+                # take the write lock so that no other chain imports can start
+                # we export to a intermediate volume, so we don't have to wait
+                # for other reads to finish yet, before we copy the new export
+                # we perform the wait for all reads to finish
+                touch /chain-exports/{{ .Release.Name }}-write.lock
+            volumeMounts:
+            - name: scratch
+              mountPath: "/scratch"
+            - name: chain-exports
+              mountPath: "/chain-exports"
+              {{- if .Values.network }}
+              subPath: chain-exports/by-network/{{ .Values.network }}/
+              {{- else }}
+              subPath: chain-exports/by-namespace/{{ .Release.Namespace }}/
+              {{- end }}
+          - name: find-nodes
+            image: bitnami/kubectl
+            command: ["bash", "-c"]
+            args:
+              - |
+                kubectl get service -l app=lotus-fullnode-app -o jsonpath='{range .items[*]}/ip4/{.spec.clusterIP}/tcp/{.spec.ports[?(@.name=="api")].port}/http{"\n"}{end}' | tee -a /scratch/multiaddrs
+            volumeMounts:
+            - name: scratch
+              mountPath: "/scratch"
+          containers:
+          - name: export
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            command: ["bash", "-c"]
+            args:
+              - |
+                set -xe
+
+                finish() {
+                  rm -f /chain-exports/{{ .Release.Name }}-write.lock
+                }
+
+                trap finish EXIT
+
+                pushd /scratch
+
+                # dump the multiaddrs for logging purposes
+                cat multiaddrs
+
+                export LOTUS_PATH=$(pwd)
+
+                # probe each service and determine if it responds to api requests
+                for addr in $(cat multiaddrs); do
+                  echo $addr > api
+                  if ! lotus net id; then
+                    sed -ie "s|$addr||g" multiaddrs
+                  fi
+                done
+
+                # remove blank lines
+                sed -i '/^$/d' multiaddrs
+
+                # dump the multiaddrs for logging purposes
+                cat multiaddrs
+
+                # check that all nodes are in consensus
+                lotus-shed consensus check --height @expected --lookback 30 multiaddrs
+
+                # pick a random node to export from
+                shuf -n1 multiaddrs -o api
+
+                head_height=$(lotus chain list --count 1 --format "<height>")
+
+                lotus chain export --tipset @$(($head_height - {{ .Values.lookback }})) --recent-stateroots {{ .Values.recentStateroots }} --skip-old-msgs={{ .Values.skipOldMsgs }} /chain-exports/{{ .Release.Name }}.car.part
+
+                # wait for all current read exports to finish
+                while [ "$(find /chain-exports/ -type f -name '{{ .Release.Name }}-read-*.lock' | wc -l)" -gt "0" ]; do
+                  echo $(date -Iseconds) " - waiting for read locks to be removed"
+                  sleep 60
+                done
+
+                rm -f /chain-exports/{{ .Release.Name }}.car
+                mv /chain-exports/{{ .Release.Name }}.car.part /chain-exports/{{ .Release.Name }}.car
+
+                popd
+                exit 0
+            volumeMounts:
+            - name: scratch
+              mountPath: "/scratch"
+            - name: chain-exports
+              mountPath: "/chain-exports"
+              {{- if .Values.network }}
+              subPath: chain-exports/by-network/{{ .Values.network }}/
+              {{- else }}
+              subPath: chain-exports/by-namespace/{{ .Release.Namespace }}/
+              {{- end }}
+          volumes:
+          - name: scratch
+            emptyDir:
+              medium: Memory
+          - name: chain-exports
+            persistentVolumeClaim:
+              claimName: {{ .Values.claimName }}
