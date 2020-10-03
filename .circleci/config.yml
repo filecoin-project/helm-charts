@@ -1,24 +1,35 @@
 version: 2.1
 
 workflows:
-  codecheck:
+  publish:
     jobs:
       - lint
-      - release
-
+      - release:
+          requires:
+            - lint
+          filters:
+            branches:
+              only:
+                - master
+                - /.*-master$/
 jobs:
   lint:
     docker:
       - image: alpine/helm:3.3.1
     steps:
       - checkout
-      - run: helm lint
+      - run: |
+          apk --no-cache add bash
+          chmod +x scripts/lint.sh
+      - run: ./scripts/lint.sh
   release:
     docker:
       - image: alpine/helm:3.3.1
     steps:
       - checkout
       - run: |
+          apk --no-cache add curl bash git
           curl -sL https://github.com/helm/chart-releaser/releases/download/v1.0.0/chart-releaser_1.0.0_linux_amd64.tar.gz | tar xz
           mv cr /usr/local/bin/cr
+          chmod +x ./scripts/helm-releases.sh
       - run: ./scripts/helm-releases.sh
