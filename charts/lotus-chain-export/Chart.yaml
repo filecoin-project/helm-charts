@@ -1,6 +1,0 @@
-apiVersion: v2
-name: lotus-chain-export
-description: A CronJob tool to export lotus chains
-type: application
-version: 0.1.0
-appVersion: 0.8.0

@@ -1,8 +1,0 @@
-image:
-  repository: travisperson/lotus-shed
-  pullPolicy: Always
-  tag: latest
-
-schedule: "*/15 * * * *"
-lookback: 30
-height: "@common"
