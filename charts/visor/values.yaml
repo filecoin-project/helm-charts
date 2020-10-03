@@ -18,10 +18,6 @@ prometheusOperatorServiceMonitor: false
 # if unset uses default value of:
 # /dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234
 lotusAPIMultiaddr: ""
-# redis address
-# if unset uses default value of:
-# {{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.local:6379
-redisAddress: ""
 # indexer config
 indexer:
   replicaCount: 1

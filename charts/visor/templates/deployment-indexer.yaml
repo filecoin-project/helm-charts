@@ -111,11 +111,5 @@ spec:
             value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode=require"
           - name: LOTUS_DB_POOL_SIZE
             value: "{{ .Values.indexer.pgPoolSize }}"
-          - name: VISOR_REDIS_ADDRESS
-          {{- if .Values.redisAddress }}
-            value: "{{ .Values.redisAddress }}"
-          {{- else }}
-            value: "{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.local:6379"
-          {{- end }}
         resources:
 {{ toYaml .Values.indexer.resources | indent 10 }}

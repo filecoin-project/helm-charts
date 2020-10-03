@@ -71,7 +71,5 @@ spec:
             value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode=require"
           - name: LOTUS_DB_POOL_SIZE
             value: "{{ .Values.processor.pgPoolSize }}"
-          - name: VISOR_REDIS_ADDRESS
-            value: "{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.local:6379"
         resources:
 {{ toYaml .Values.processor.resources | indent 10 }}
