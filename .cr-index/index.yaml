@@ -1,0 +1,36 @@
+apiVersion: v1
+entries:
+  lotus-chain-export:
+  - apiVersion: v2
+    appVersion: 0.8.0
+    created: "2020-10-02T22:08:00.395492803-04:00"
+    description: A CronJob tool to export lotus chains
+    digest: ebd030d8fa382d0046f0ad1e91c37d35056a448fa1a10e08d0d9b2319b123e45
+    name: lotus-chain-export
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-chain-export-0.1.0/lotus-chain-export-0.1.0.tgz
+    version: 0.1.0
+  lotus-consensus-check:
+  - apiVersion: v2
+    appVersion: 0.7.0
+    created: "2020-10-02T22:08:00.39592591-04:00"
+    description: Provision a consensus monitoring cronjob
+    digest: be92386b8a61830721bcb13f44d909bc9fb8af09fa4c8ec4ef54c16ed4b9df86
+    name: lotus-consensus-check
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-consensus-check-0.1.0/lotus-consensus-check-0.1.0.tgz
+    version: 0.1.0
+  lotus-fullnode:
+  - apiVersion: v2
+    appVersion: 0.8.0
+    created: "2020-10-02T22:08:00.397674043-04:00"
+    description: Provision a fullnode lotus node
+    digest: fe53e3eb449ca0d2966216f29debb68b56817e659d2a50be64ced9f29b78188f
+    name: lotus-fullnode
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-fullnode-0.1.0/lotus-fullnode-0.1.0.tgz
+    version: 0.1.0
+generated: "2020-10-02T22:08:00.394722568-04:00"
