@@ -2,23 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-visor-indexer
+  name: {{ .Release.Name }}-visor
   labels:
     app: visor
-    role: indexer
     suite: sentinel
 spec:
-  replicas: {{ .Values.indexer.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: visor
-      role: indexer
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
         app: visor
-        role: indexer
         suite: sentinel
         chart: {{ .Chart.Name }}-{{ .Chart.Version }}
         heritage: {{ .Release.Service }}
@@ -65,7 +62,7 @@ spec:
       - name: visor
         image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        args: ["--tracing={{ .Values.jaeger.enabled }}", "index"]
+        args: ["--tracing={{ .Values.jaeger.enabled }}", "run"]
         ports:
           - containerPort: 9991
             name: metrics
@@ -106,10 +103,10 @@ spec:
           - name: PGDATABASE
             value: "{{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel"
           - name: GOLOG_LOG_LEVEL
-            value: "{{ .Values.indexer.logLevel }}"
+            value: "{{ .Values.logLevel }}"
           - name: LOTUS_DB
             value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode=require"
           - name: LOTUS_DB_POOL_SIZE
-            value: "{{ .Values.indexer.pgPoolSize }}"
+            value: "{{ .Values.pgPoolSize }}"
         resources:
-{{ toYaml .Values.indexer.resources | indent 10 }}
+{{ toYaml .Values.resources | indent 10 }}

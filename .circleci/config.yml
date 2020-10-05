@@ -12,7 +12,6 @@ workflows:
               only:
                 - master
                 - /.*-master$/
-                - feat/new-visor-scheduler
 jobs:
   lint:
     docker:

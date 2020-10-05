@@ -1,44 +1,30 @@
 # Default values for fil-sentinel.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+replicaCount: 1
+pgPoolSize: 45
+logLevel: info
 image:
   repo: filecoin/sentinel-visor
   tag: master-latest
   pullPolicy: IfNotPresent
-# tracing
-jaeger:
-  enabled: false
+# lotus api multiaddr
+# if unset uses default value of:
+# /dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234
+lotusAPIMultiaddr: ""
 # postgresql database
 # if left empty, a database will be created with the following convention:
 # <namespace>-<release>-sentinel
 database: ""
 # prometheus service monitor
 prometheusOperatorServiceMonitor: false
-# lotus api multiaddr
-# if unset uses default value of:
-# /dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234
-lotusAPIMultiaddr: ""
-# indexer config
-indexer:
-  replicaCount: 1
-  pgPoolSize: 45
-  logLevel: info
-  resources:
-    requests:
-      cpu: 2000m
-      memory: 2Gi
-    limits:
-      cpu: 4000m
-      memory: 8Gi
-# processor config
-processor:
-  replicaCount: 1
-  pgPoolSize: 50
-  logLevel: info
-  resources:
-    requests:
-      cpu: 8000m
-      memory: 32Gi
-    limits:
-      cpu: 16000m
-      memory: 64Gi
+# tracing
+jaeger:
+  enabled: false
+resources:
+  requests:
+    cpu: 8000m
+    memory: 32Gi
+  limits:
+    cpu: 16000m
+    memory: 64Gi
