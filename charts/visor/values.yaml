@@ -18,6 +18,38 @@ lotusAPIMultiaddr: ""
 database: ""
 # prometheus service monitor
 prometheusOperatorServiceMonitor: false
+
+#
+# Args
+#
+
+tasks:
+  indexLatest:
+    enabled: true
+    cacheLength: 25
+  indexHistory:
+    enabled: true
+  processTipSets:
+    workers: 15
+    batch: 10
+    lease: "15m"
+  processActors:
+    workers: 15
+    batch: 10
+    lease: "15m"
+#   includeActorType:
+#   excludeActorType:
+  processMessages:
+    workers: 15
+    batch: 10
+    lease: "15m"
+  processGasOutputs:
+    workers: 15
+    batch: 10
+    lease: "15m"
+# heightFrom: 0
+# heightTo: 100
+
 # tracing
 jaeger:
   enabled: false
