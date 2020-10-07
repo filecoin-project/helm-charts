@@ -109,6 +109,10 @@ spec:
           - name: LOTUS_DB_POOL_SIZE
             value: "{{ .Values.pgPoolSize }}"
 
+        {{- if eq .Values.allowAutomaticMigration true }}
+          - name: VISOR_ALLOW_SCHEMA_MIGRATION
+            value: "true"
+        {{- end }}
 
         {{- if .Values.tasks.heightFrom }}
           - name: VISOR_HEIGHT_FROM

@@ -23,6 +23,8 @@ prometheusOperatorServiceMonitor: false
 # Args
 #
 
+allowAutomaticMigration: true
+
 tasks:
   indexLatest:
     enabled: true
@@ -50,9 +52,12 @@ tasks:
 # heightFrom: 0
 # heightTo: 100
 
-# tracing
+#
+# Tracing
+#
 jaeger:
   enabled: false
+
 resources:
   requests:
     cpu: 8000m
