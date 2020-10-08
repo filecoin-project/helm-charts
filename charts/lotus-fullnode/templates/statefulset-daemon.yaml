@@ -298,6 +298,10 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/usr/local/bin/lotus","daemon"]
+        {{- with .Values.daemonArgs }}
+        args:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         volumeMounts:
           - name: config-volume
             mountPath: /var/lib/lotus/config.toml
