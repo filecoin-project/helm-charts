@@ -23,6 +23,13 @@ importSnapshot:
   # when set, the network level chain export will be used instead of a namespaced one
   network: ""
 
+# pass additional arguments to the lotus daemon, these values will be passed as container
+# arguments to the daemon container.
+# eg: 
+# daemonArgs:
+# - --profile=bootstrap
+daemonArgs: []
+
 ports:
   api: 1234
   libp2p: 1347
