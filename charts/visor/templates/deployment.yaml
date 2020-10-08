@@ -1,0 +1,200 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-visor
+  labels:
+    app: visor
+    suite: sentinel
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: visor
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: visor
+        suite: sentinel
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+    spec:
+      initContainers:
+      - name: setup-postgresql
+        image: "postgres:12"
+        env:
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: password
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: user
+          - name: PGHOST
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: host
+          - name: PGPORT
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: port
+          - name: PGDATABASE
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: database
+          - name: POSTGRES_DB
+          {{- if .Values.database }}
+            value: {{ .Values.database }}
+          {{- else }}
+            value: {{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel
+          {{- end }}
+        command: ["/bin/bash", "-c"]
+        args: ["echo \"SELECT 'CREATE DATABASE $(POSTGRES_DB)' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$(POSTGRES_DB)'); \\gexec\" | psql --set=sslmode=require"]
+      containers:
+      - name: visor
+        image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        args: ["--tracing={{ .Values.jaeger.enabled }}", "run"]
+        ports:
+          - containerPort: 9991
+            name: metrics
+        env:
+          - name: LOTUS_API_MULTIADDR
+          {{- if .Values.lotusAPIMultiaddr }}
+            value: "{{ .Values.lotusAPIMultiaddr }}"
+          {{- else }}
+            value: "/dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234"
+          {{- end }}
+          - name: LOTUS_API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-jwt-secrets
+                key: jwt-ro-privs-token
+          - name: FULLNODE_API_INFO
+            value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: password
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: user
+          - name: PGHOST
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: host
+          - name: PGPORT
+            valueFrom:
+              secretKeyRef:
+                name: postgresql-secrets
+                key: port
+          - name: PGDATABASE
+            value: "{{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel"
+          - name: GOLOG_LOG_LEVEL
+            value: "{{ .Values.logLevel }}"
+          - name: LOTUS_DB
+            value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode=require"
+          - name: LOTUS_DB_POOL_SIZE
+            value: "{{ .Values.pgPoolSize }}"
+
+        {{- if eq .Values.allowAutomaticMigration true }}
+          - name: VISOR_ALLOW_SCHEMA_MIGRATION
+            value: "true"
+        {{- end }}
+
+        {{- if .Values.tasks.heightFrom }}
+          - name: VISOR_HEIGHT_FROM
+            value: "{{ .Values.tasks.heightFrom }}"
+        {{- end }}
+        {{- if .Values.tasks.heightTo }}
+          - name: VISOR_HEIGHT_TO
+            value: "{{ .Values.tasks.heightTo }}"
+        {{- end }}
+
+        {{- if eq .Values.tasks.indexLatest.enabled false }}
+          - name: VISOR_INDEXHEAD
+            value: "false"
+        {{- else }}
+          - name: VISOR_INDEXHEAD_CONFIDENCE
+            value: "{{ .Values.tasks.indexLatest.cacheLength }}"
+        {{- end }}
+
+        {{- if eq .Values.tasks.indexHistory.enabled false }}
+          - name: VISOR_INDEXHISTORY
+            value: "false"
+        {{- end }}
+
+        {{- if and .Values.tasks.processTipSets .Values.tasks.processTipSets.workers }}
+          - name: VISOR_STATECHANGE_WORKERS
+            value: "{{ .Values.tasks.processTipSets.workers }}"
+        {{- end }}
+        {{- if and .Values.tasks.processTipSets .Values.tasks.processTipSets.batch }}
+          - name: VISOR_STATECHANGE_BATCH
+            value: "{{ .Values.tasks.processTipSets.batch }}"
+        {{- end }}
+        {{- if and .Values.tasks.processTipSets .Values.tasks.processTipSets.lease }}
+          - name: VISOR_STATECHANGE_LEASE
+            value: "{{ .Values.tasks.processTipSets.lease }}"
+        {{- end }}
+
+        {{- if and .Values.tasks.processActors .Values.tasks.processActors.workers }}
+          - name: VISOR_ACTORSTATE_WORKERS
+            value: "{{ .Values.tasks.processActors.workers }}"
+        {{- end }}
+        {{- if and .Values.tasks.processActors .Values.tasks.processActors.batch }}
+          - name: VISOR_ACTORSTATE_BATCH
+            value: "{{ .Values.tasks.processActors.batch }}"
+        {{- end }}
+        {{- if and .Values.tasks.processActors .Values.tasks.processActors.lease }}
+          - name: VISOR_ACTORSTATE_LEASE
+            value: "{{ .Values.tasks.processActors.lease }}"
+        {{- end }}
+        {{- if and .Values.tasks.processActors .Values.tasks.processActors.includeActorType }}
+          - name: VISOR_ACTORSTATE_INCLUDE
+            value: "{{ .Values.tasks.processActors.includeActorType }}"
+        {{- end }}
+        {{- if and .Values.tasks.processActors .Values.tasks.processActors.excludeActorType }}
+          - name: VISOR_ACTORSTATE_EXCLUDE
+            value: "{{ .Values.tasks.processActors.excludeActorType }}"
+        {{- end }}
+
+
+        {{- if and .Values.tasks.processMessages .Values.tasks.processMessages.workers }}
+          - name: VISOR_MESSAGE_WORKERS
+            value: "{{ .Values.tasks.processMessages.workers }}"
+        {{- end }}
+        {{- if and .Values.tasks.processMessages .Values.tasks.processMessages.batch }}
+          - name: VISOR_MESSAGE_BATCH
+            value: "{{ .Values.tasks.processMessages.batch }}"
+        {{- end }}
+        {{- if and .Values.tasks.processMessages .Values.tasks.processMessages.lease }}
+          - name: VISOR_MESSAGE_LEASE
+            value: "{{ .Values.tasks.processMessages.lease }}"
+        {{- end }}
+
+        {{- if and .Values.tasks.processGasOutputs .Values.tasks.processGasOutputs.workers }}
+          - name: VISOR_GASOUTPUTS_WORKERS
+            value: "{{ .Values.tasks.processGasOutputs.workers }}"
+        {{- end }}
+        {{- if and .Values.tasks.processGasOutputs .Values.tasks.processGasOutputs.batch }}
+          - name: VISOR_GASOUTPUTS_BATCH
+            value: "{{ .Values.tasks.processGasOutputs.batch }}"
+        {{- end }}
+        {{- if and .Values.tasks.processGasOutputs .Values.tasks.processGasOutputs.lease }}
+          - name: VISOR_GASOUTPUTS_LEASE
+            value: "{{ .Values.tasks.processGasOutputs.lease }}"
+        {{- end }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
