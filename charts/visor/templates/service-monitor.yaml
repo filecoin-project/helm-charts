@@ -15,6 +15,6 @@ spec:
       release: {{ .Release.Name }}
   endpoints:
   - port: metrics
-    path: /debug/metrics
+    path: /metrics
     interval: 30s
 {{- end }}
