@@ -35,7 +35,7 @@ spec:
         chart: {{ .Chart.Name }}-{{ .Chart.Version }}
         release: {{ .Release.Name }}
 {{- with .Values.additionalLabels }}
-{{ toYaml .Values.additionalLabels | indent 8 }}
+{{ toYaml . | indent 8 }}
 {{- end }}
     spec:
       securityContext:
