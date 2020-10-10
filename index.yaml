@@ -25,6 +25,16 @@ entries:
   lotus-fullnode:
   - apiVersion: v2
     appVersion: 0.8.0
+    created: "2020-10-10T00:41:48.507749715Z"
+    description: Provision a fullnode lotus node
+    digest: 8dfad081ffd3d43566d0e4feb23166c31a67de5962ca7cfed827f71a5a8ea375
+    name: lotus-fullnode
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-fullnode-0.1.5/lotus-fullnode-0.1.5.tgz
+    version: 0.1.5
+  - apiVersion: v2
+    appVersion: 0.8.0
     created: "2020-10-10T00:01:51.553500703Z"
     description: Provision a fullnode lotus node
     digest: de89c0646d573395fe56a86f8d50a19b173a2668dab9d34d2a9c7a18148d8f56
