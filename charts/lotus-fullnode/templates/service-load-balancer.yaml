@@ -1,0 +1,28 @@
+{{- if .Values.loadBalancer.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-lotus-daemon-lb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: lotus-fullnode-app
+    release: {{ .Release.Name }}
+{{- with .Values.additionalLabels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+  annotations:
+{{- with .Values.loadBalancer.annotations }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: lotus-fullnode-app
+    release: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.ports.libp2p }}
+      targetPort: 1347
+      name: libp2p
+{{- end }}

@@ -101,6 +101,10 @@ persistence:
       - ReadWriteOnce
     storageClassName: "gp2"
 
+loadBalancer:
+  enabled: false
+  annotations: {}
+
 resources: {}
 
 nodeSelector: {}
