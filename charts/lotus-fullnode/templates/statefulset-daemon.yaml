@@ -381,10 +381,10 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.datastore.size | quote }}
-  {{- if .Values.persistence.datastore.dataSource }}
+        {{- with .Values.persistence.datastore.dataSource }}
         dataSource:
-          {{- toYaml .Values.persistence.datastore.dataSource | indent 10 }}
-  {{- end }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
   {{- end }}
   {{- if .Values.persistence.journal.enabled }}
     - metadata:
