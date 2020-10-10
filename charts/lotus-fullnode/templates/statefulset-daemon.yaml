@@ -394,5 +394,9 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.journal.size | quote }}
+  {{- if .Values.persistence.dataSource }}
+        dataSource:
+          {{- toYaml .Values.persistence.dataSource | indent 10 }}
+  {{- end }}
   {{- end }}
   {{- end }}
