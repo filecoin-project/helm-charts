@@ -302,6 +302,10 @@ spec:
         args:
           {{- toYaml . | nindent 10 }}
         {{- end }}
+        {{- with .Values.daemonEnvs}}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         volumeMounts:
           - name: config-volume
             mountPath: /var/lib/lotus/config.toml

@@ -25,10 +25,17 @@ importSnapshot:
 
 # pass additional arguments to the lotus daemon, these values will be passed as container
 # arguments to the daemon container.
-# eg: 
+# eg:
 # daemonArgs:
 # - --profile=bootstrap
 daemonArgs: []
+
+# set additional environment variables on the lotus daemon
+# eg:
+# daemonEnvs:
+# - name: GOLOG_LOG_FMT
+#   value: json
+daemonEnvs: {}
 
 ports:
   api: 1234
