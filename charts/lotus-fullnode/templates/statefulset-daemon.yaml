@@ -17,6 +17,9 @@ metadata:
   name: {{ .Release.Name }}-lotus
   labels:
     app: lotus-fullnode-app
+{{- with .Values.additionalLabels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
 spec:
   # Hard set to a single replica, scaling should be done through additional releases
   replicas: 1
@@ -31,6 +34,9 @@ spec:
         app: lotus-fullnode-app
         chart: {{ .Chart.Name }}-{{ .Chart.Version }}
         release: {{ .Release.Name }}
+{{- with .Values.additionalLabels }}
+{{ toYaml .Values.additionalLabels | indent 8 }}
+{{- end }}
     spec:
       securityContext:
         fsGroup: 532
