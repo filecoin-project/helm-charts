@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: efs-{{ .Release.Namespace }}
+spec:
+  capacity:
+    storage: 4096Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: {{ .Values.volumeHandle }}

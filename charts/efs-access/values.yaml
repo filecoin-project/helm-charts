@@ -1,0 +1,3 @@
+claimName: chain-exports
+# the volumeHandle is the efs id, it will be in the form of `fs-<id>`
+# volumeHandle:
