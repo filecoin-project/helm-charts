@@ -13,6 +13,7 @@ image:
 # /dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234
 lotusAPIMultiaddr: ""
 # a lotus-fullnode secret containing jwt token under key jwt-ro-privs-token
+# secret must be in the same namespace
 # if unset uses default value of:
 # {{ .Release.Name }}-jwt-secrets
 lotusAPITokenSecret: ""
