@@ -1,5 +1,16 @@
 apiVersion: v1
 entries:
+  efs-access:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2020-10-13T03:32:38.871192032Z"
+    description: Creates the required resources to gain access to the efs volume
+    digest: b38f79a8e28129e58f598c1435c616693185e604c59d91b8ca1094986ff22942
+    name: efs-access
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/efs-access-0.1.0/efs-access-0.1.0.tgz
+    version: 0.1.0
   lotus-chain-export:
   - apiVersion: v2
     appVersion: 0.8.0
@@ -22,6 +33,16 @@ entries:
     - https://github.com/filecoin-project/helm-charts/releases/download/lotus-chain-export-0.1.0/lotus-chain-export-0.1.0.tgz
     version: 0.1.0
   lotus-consensus-check:
+  - apiVersion: v2
+    appVersion: 0.7.0
+    created: "2020-10-13T03:32:39.053362817Z"
+    description: Provision a consensus monitoring cronjob
+    digest: ebede17bd210ad29e8af7fd2014d61c281832cbee4fd545d7bed3213f3f7c024
+    name: lotus-consensus-check
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-consensus-check-0.1.1/lotus-consensus-check-0.1.1.tgz
+    version: 0.1.1
   - apiVersion: v2
     appVersion: 0.7.0
     created: "2020-10-02T22:08:00.39592591-04:00"
