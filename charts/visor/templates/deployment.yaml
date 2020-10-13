@@ -76,7 +76,11 @@ spec:
           - name: LOTUS_API_TOKEN
             valueFrom:
               secretKeyRef:
+          {{- if .Values.lotusAPITokenSecret }}
+                name: {{ .Values.lotusAPITokenSecret }}
+          {{- else }}
                 name: {{ .Release.Name }}-jwt-secrets
+          {{- end }}
                 key: jwt-ro-privs-token
           - name: FULLNODE_API_INFO
             value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
@@ -101,7 +105,11 @@ spec:
                 name: postgresql-secrets
                 key: port
           - name: PGDATABASE
-            value: "{{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel"
+          {{- if .Values.database }}
+            value: {{ .Values.database }}
+          {{- else }}
+            value: {{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel
+          {{- end }}
           - name: GOLOG_LOG_LEVEL
             value: "{{ .Values.logLevel }}"
           - name: LOTUS_DB
