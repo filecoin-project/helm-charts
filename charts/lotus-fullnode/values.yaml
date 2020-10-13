@@ -5,6 +5,14 @@ image:
 
 prometheusOperatorServiceMonitor: true
 
+# daemonConfig allows for defining the config.toml for the lotus daemon
+# you MUST listen on 1234 for the api and 1347 for the libp2p address
+daemonConfig: |
+  [API]
+    ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
+  [Libp2p]
+    ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
+
 importSnapshot:
   # when importSnapshot is enabled prior to the daemon starting a snapshot will
   # be imported into the blockstore
