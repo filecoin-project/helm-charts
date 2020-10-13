@@ -79,7 +79,7 @@ spec:
             command: ["bash", "-c"]
             args:
               - |
-                kubectl get service -l app=lotus-fullnode-app -o jsonpath='{range .items[*]}/ip4/{.spec.clusterIP}/tcp/{.spec.ports[?(@.name=="api")].port}/http{"\n"}{end}' | tee -a /scratch/multiaddrs
+                kubectl get service -l app=lotus-fullnode-app -o jsonpath='{range .items[?(@.spec.type=="ClusterIP")]}/ip4/{.spec.clusterIP}/tcp/{.spec.ports[?(@.name=="api")].port}/http{"\n"}{end}' | tee -a /scratch/multiaddrs
             volumeMounts:
             - name: scratch
               mountPath: "/scratch"
