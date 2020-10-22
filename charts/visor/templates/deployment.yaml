@@ -131,18 +131,12 @@ spec:
             value: "{{ .Values.tasks.heightTo }}"
         {{- end }}
 
-        {{- if eq .Values.tasks.indexLatest.enabled false }}
           - name: VISOR_INDEXHEAD
-            value: "false"
-        {{- else }}
+            value: "{{ .Values.tasks.indexLatest.enabled }}"
           - name: VISOR_INDEXHEAD_CONFIDENCE
             value: "{{ .Values.tasks.indexLatest.cacheLength }}"
-        {{- end }}
-
-        {{- if eq .Values.tasks.indexHistory.enabled false }}
           - name: VISOR_INDEXHISTORY
-            value: "false"
-        {{- end }}
+            value: "{{ .Values.tasks.indexHistory.enabled }}"
 
         {{- if and .Values.tasks.processTipSets .Values.tasks.processTipSets.workers }}
           - name: VISOR_STATECHANGE_WORKERS
