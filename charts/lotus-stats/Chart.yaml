@@ -1,0 +1,6 @@
+apiVersion: v2
+name: lotus-stats
+description: Lotus stats
+type: application
+version: 0.1.0
+appVersion: 1.1.2
