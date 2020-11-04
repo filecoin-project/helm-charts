@@ -87,22 +87,23 @@ spec:
           - name: PGPASSWORD
             valueFrom:
               secretKeyRef:
-                name: postgresql-secrets
+                name: sentinel-monitoring-postgresql-secrets
                 key: password
           - name: PGUSER
             valueFrom:
               secretKeyRef:
                 name: postgresql-secrets
+                name: sentinel-monitoring-postgresql-secrets
                 key: user
           - name: PGHOST
             valueFrom:
               secretKeyRef:
-                name: postgresql-secrets
+                name: sentinel-monitoring-postgresql-secrets
                 key: host
           - name: PGPORT
             valueFrom:
               secretKeyRef:
-                name: postgresql-secrets
+                name: sentinel-monitoring-postgresql-secrets
                 key: port
           - name: PGDATABASE
           {{- if .Values.database }}
