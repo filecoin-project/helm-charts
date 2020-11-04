@@ -1,0 +1,40 @@
+image:
+  repository: travisperson/lotus-stats
+  pullPolicy: IfNotPresent
+  tag: v1.1.2
+
+serviceAccountName: ""
+
+nosync: true
+headlag: 3
+height: 0
+
+# The lotus api info is the multiaddr for the backing lotus daemon.
+# Eg /ip4/1.2.3.4/tcp/1234/
+# Eg /dns/fullnode-0-lotus-daemon.<namespace>.svc.cluster.local/tcp/1234
+lotusApiInfo: ""
+
+# Influx connection information is stored in this secret, the following keys are required
+# - influx_hostname : http://influx.service:8086
+# - influx_username : username
+# - influx_password : password
+influxSecrets: "lotus-stats"
+influxDatabase: "chainstats"
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 532
+  runAsNonRoot: true
+  runAsUser: 532
+  runAsGroup: 532
+
+securityContext: {}
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
