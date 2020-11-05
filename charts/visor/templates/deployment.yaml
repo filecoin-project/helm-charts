@@ -6,6 +6,9 @@ metadata:
   labels:
     app: visor
     suite: sentinel
+{{- if .Values.labels }}
+{{ toYaml .Values.labels | indent 4 }}
+{{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -28,27 +31,27 @@ spec:
           - name: PGPASSWORD
             valueFrom:
               secretKeyRef:
-                name: sentinel-monitoring-postgresql-secrets
+                name: {{ .Values.pgSecret }}
                 key: password
           - name: PGUSER
             valueFrom:
               secretKeyRef:
-                name: sentinel-monitoring-postgresql-secrets
+                name: {{ .Values.pgSecret }}
                 key: user
           - name: PGHOST
             valueFrom:
               secretKeyRef:
-                name: sentinel-monitoring-postgresql-secrets
+                name: {{ .Values.pgSecret }}
                 key: host
           - name: PGPORT
             valueFrom:
               secretKeyRef:
-                name: sentinel-monitoring-postgresql-secrets
+                name: {{ .Values.pgSecret }}
                 key: port
           - name: PGDATABASE
             valueFrom:
               secretKeyRef:
-                name: sentinel-monitoring-postgresql-secrets
+                name: {{ .Values.pgSecret }}
                 key: database
           - name: POSTGRES_DB
           {{- if .Values.database }}
@@ -87,23 +90,23 @@ spec:
           - name: PGPASSWORD
             valueFrom:
               secretKeyRef:
-                name: sentinel-monitoring-postgresql-secrets
+                name: {{ .Values.pgSecret }}
                 key: password
           - name: PGUSER
             valueFrom:
               secretKeyRef:
                 name: postgresql-secrets
-                name: sentinel-monitoring-postgresql-secrets
+                name: {{ .Values.pgSecret }}
                 key: user
           - name: PGHOST
             valueFrom:
               secretKeyRef:
-                name: sentinel-monitoring-postgresql-secrets
+                name: {{ .Values.pgSecret }}
                 key: host
           - name: PGPORT
             valueFrom:
               secretKeyRef:
-                name: sentinel-monitoring-postgresql-secrets
+                name: {{ .Values.pgSecret }}
                 key: port
           - name: PGDATABASE
           {{- if .Values.database }}
@@ -198,6 +201,32 @@ spec:
         {{- if and .Values.tasks.processGasOutputs .Values.tasks.processGasOutputs.lease }}
           - name: VISOR_GASOUTPUTS_LEASE
             value: "{{ .Values.tasks.processGasOutputs.lease }}"
+        {{- end }}
+
+        {{- if and .Values.tasks.processChainEconomics .Values.tasks.processChainEconomics.workers }}
+          - name: VISOR_CHAINECONOMICS_WORKERS
+            value: "{{ .Values.tasks.processChainEconomics.workers }}"
+        {{- end }}
+        {{- if and .Values.tasks.processChainEconomics .Values.tasks.processChainEconomics.batch }}
+          - name: VISOR_CHAINECONOMICS_BATCH
+            value: "{{ .Values.tasks.processChainEconomics.batch }}"
+        {{- end }}
+        {{- if and .Values.tasks.processChainEconomics .Values.tasks.processChainEconomics.lease }}
+          - name: VISOR_CHAINECONOMICS_LEASE
+            value: "{{ .Values.tasks.processChainEconomics.lease }}"
+        {{- end }}
+
+        {{- if .Values.tasks.processingStatsRefresh }}
+          - name: VISOR_PROCESSINGSTATS_REFRESH
+            value: "{{ .Values.tasks.processingStatsRefresh }}"
+        {{- end }}
+        {{- if .Values.tasks.chainvisRefresh }}
+          - name: VISOR_CHAINVIS_REFRESH
+            value: "{{ .Values.tasks.chainvisRefresh }}"
+        {{- end }}
+        {{- if .Values.tasks.taskDelay }}
+          - name: VISOR_TASK_DELAY
+            value: "{{ .Values.tasks.taskDelay }}"
         {{- end }}
         resources:
 {{ toYaml .Values.resources | indent 10 }}

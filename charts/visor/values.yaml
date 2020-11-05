@@ -3,11 +3,18 @@
 # Declare variables to be passed into your templates.
 replicaCount: 1
 pgPoolSize: 45
+# Name of a secret containing password, user, host, port and database keys for a postgres database
+pgSecret: "sentinel-monitoring-postgresql-secrets"
 logLevel: info
 image:
   repo: filecoin/sentinel-visor
   tag: master-latest
   pullPolicy: IfNotPresent
+
+# may add custom labels
+# labels:
+#   name: foo
+
 # lotus api multiaddr
 # if unset uses default value of:
 # /dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234
@@ -36,26 +43,35 @@ tasks:
   indexHistory:
     enabled: true
   processTipSets:
-    workers: 15
+    workers: 2
     batch: 10
     lease: "15m"
   processActors:
-    workers: 15
+    workers: 2
     batch: 10
     lease: "15m"
 #   includeActorType:
 #   excludeActorType:
   processMessages:
-    workers: 15
+    workers: 2
     batch: 10
     lease: "15m"
   processGasOutputs:
-    workers: 15
+    workers: 2
     batch: 10
     lease: "15m"
-# heightFrom: 0
-# heightTo: 100
-
+  processChainEconomics:
+    workers: 2
+    batch: 10
+    lease: "15m"
+#  heightFrom: 0
+#  heightTo: 100
+  # Refresh frequency for processing stats
+#  processingStatsRefresh: "1m"
+  # Refresh frequency for chain visualization views
+#  chainvisRefresh: "15m"
+  # Base time to wait between starting tasks (jitter is added)
+#  taskDelay: "500ms"
 #
 # Tracing
 #
