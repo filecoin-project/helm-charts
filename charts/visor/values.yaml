@@ -5,6 +5,7 @@ replicaCount: 1
 pgPoolSize: 45
 # Name of a secret containing password, user, host, port and database keys for a postgres database
 pgSecret: "sentinel-monitoring-postgresql-secrets"
+pgSSLMode: "require"
 logLevel: info
 image:
   repo: filecoin/sentinel-visor

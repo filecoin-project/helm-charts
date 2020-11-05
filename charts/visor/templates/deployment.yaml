@@ -60,7 +60,7 @@ spec:
             value: {{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel
           {{- end }}
         command: ["/bin/bash", "-c"]
-        args: ["echo \"SELECT 'CREATE DATABASE $(POSTGRES_DB)' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$(POSTGRES_DB)'); \\gexec\" | psql --set=sslmode=require"]
+        args: ["echo \"SELECT 'CREATE DATABASE $(POSTGRES_DB)' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$(POSTGRES_DB)'); \\gexec\" | psql --set=sslmode={{ .Values.pgSSLMode }}"]
       containers:
       - name: visor
         image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
@@ -117,7 +117,7 @@ spec:
           - name: GOLOG_LOG_LEVEL
             value: "{{ .Values.logLevel }}"
           - name: LOTUS_DB
-            value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode=require"
+            value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode={{ .Values.pgSSLMode }}"
           - name: LOTUS_DB_POOL_SIZE
             value: "{{ .Values.pgPoolSize }}"
 
