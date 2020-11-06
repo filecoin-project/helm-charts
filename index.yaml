@@ -188,6 +188,16 @@ entries:
   visor:
   - apiVersion: v2
     appVersion: 0.3.0
+    created: "2020-11-06T13:29:35.513608777Z"
+    description: A Helm chart for Kubernetes to run visor
+    digest: 964a0ea402e30d8cd2d4d61e23727b15b39b768bfbb75a801400bbb05159b789
+    name: visor
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/visor-2.0.7/visor-2.0.7.tgz
+    version: 2.0.7
+  - apiVersion: v2
+    appVersion: 0.3.0
     created: "2020-11-04T21:43:08.431684449Z"
     description: A Helm chart for Kubernetes to run visor
     digest: 3069a8c8a2cc95b70479c1410f07aec886a36ce7276d2366eeda2f4079a64ba1
