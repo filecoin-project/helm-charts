@@ -16,21 +16,41 @@ image:
 # labels:
 #   name: foo
 
+# Type of lens to use: lotus, lotusrepo, carrepo, sql
+lens: lotus
+
+# Hint to pass to lens
+lensCacheHint: 1048576
+
 # lotus api multiaddr
-# if unset uses default value of:
-# /dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234
+# required if using the lotus API
 lotusAPIMultiaddr: ""
+
 # a lotus-fullnode secret containing jwt token under key jwt-ro-privs-token
-# secret must be in the same namespace
-# if unset uses default value of:
-# {{ .Release.Name }}-jwt-secrets
+# required if using the lotus API
 lotusAPITokenSecret: ""
+
 # postgresql database
 # if left empty, a database will be created with the following convention:
 # <namespace>-<release>-sentinel
 database: ""
+
 # prometheus service monitor
 prometheusOperatorServiceMonitor: false
+
+# The name of a VolumeSnapshot containing a lotus datastore.
+# If set, the snapshot will be mounted as a read only volume under /var/lib/lotus/datastore
+lotusDatastoreSnapshot: ""
+
+# The size of the datastore snapshot, must correspond to the snapshot being used
+lotusDatastoreSize: "10Gi"
+
+# The storage class of the datastore snapshot
+lotusDatastoreStorageClass: "ebs-sc"
+
+# Path to lotus repository if not using lotus API
+lotusPath: "/var/lib/lotus"
+
 
 #
 # Args

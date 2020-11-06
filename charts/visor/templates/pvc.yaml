@@ -1,0 +1,21 @@
+---
+{{- if .Values.lotusDatastoreSnapshot }}
+apiVersion: apps/v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-lotus-datastore
+  labels:
+    app: visor
+    suite: sentinel
+spec:
+  accessModes:
+  - ReadOnlyMany
+  storageClassName: "{{ .Values.lotusDatastoreStorageClass }}"
+  resources:
+    requests:
+      storage: "{{ .Values.lotusDatastoreSize }}"
+  dataSource:
+    name: "{{ .Values.lotusDatastoreSnapshot }}"
+    kind: VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+{{- end}}
