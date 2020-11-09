@@ -329,6 +329,10 @@ spec:
           - name: journal-volume
             mountPath: /var/lib/lotus/journal
           {{- end }}
+          {{- if .Values.persistence.parameters.enabled }}
+          - name: parameters-volume
+            mountPath: /var/tmp/filecoin-proof-parameters
+          {{- end }}
         livenessProbe:
           httpGet:
             path: /debug/metrics
@@ -395,5 +399,18 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.journal.size | quote }}
+  {{- end }}
+  {{- if .Values.persistence.parameters.enabled }}
+    - metadata:
+        name: parameters-volume
+      spec:
+        accessModes:
+        {{- range .Values.persistence.parameters.accessModes }}
+        - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.parameters.storageClassName }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.parameters.size | quote }}
   {{- end }}
   {{- end }}

@@ -108,6 +108,12 @@ persistence:
     accessModes:
       - ReadWriteOnce
     storageClassName: "gp2"
+  parameters:
+    enabled: true
+    size: "10Gi"
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: "gp2"
 
 loadBalancer:
   enabled: false
