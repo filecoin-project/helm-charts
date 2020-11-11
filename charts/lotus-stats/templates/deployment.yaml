@@ -34,7 +34,7 @@ spec:
           - name: FULLNODE_API_INFO
             value: {{ .Values.lotusApiInfo }}
           - name: LOTUS_STATS_INFLUX_DATABASE
-            value: {{ .Values.database }}
+            value: {{ .Values.influxDatabase }}
           - name: LOTUS_STATS_INFLUX_HOSTNAME
             valueFrom:
               secretKeyRef:
