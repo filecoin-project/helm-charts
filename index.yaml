@@ -187,6 +187,16 @@ entries:
   lotus-stats:
   - apiVersion: v2
     appVersion: 1.1.2
+    created: "2020-11-11T22:35:29.066139445Z"
+    description: Lotus stats
+    digest: 4c3d04896393cdecc7753ac2d78822faf1079109d6fecba4316826bff1eacdb2
+    name: lotus-stats
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-stats-0.1.1/lotus-stats-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 1.1.2
     created: "2020-11-04T20:37:54.563850726Z"
     description: Lotus stats
     digest: 5dc0df4378311828ba56b454864361bccbbb1fb609e9946c6d4aa9ccbf29e64b
