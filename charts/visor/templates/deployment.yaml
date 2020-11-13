@@ -70,23 +70,23 @@ spec:
           - containerPort: 9991
             name: metrics
         env:
+          - name: VISOR_LENS
+            value: "{{ .Values.lens }}"
+          - name: VISOR_LENS_CACHE_HINT
+            value: "{{ .Values.lensCacheHint }}"
+          - name: LOTUS_PATH
+            value: "{{ .Values.lotusPath }}"
+          {{- if and .Values.lotusAPITokenSecret .Values.lotusAPIMultiaddr }}
           - name: LOTUS_API_MULTIADDR
-          {{- if .Values.lotusAPIMultiaddr }}
             value: "{{ .Values.lotusAPIMultiaddr }}"
-          {{- else }}
-            value: "/dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234"
-          {{- end }}
           - name: LOTUS_API_TOKEN
             valueFrom:
               secretKeyRef:
-          {{- if .Values.lotusAPITokenSecret }}
                 name: {{ .Values.lotusAPITokenSecret }}
-          {{- else }}
-                name: {{ .Release.Name }}-jwt-secrets
-          {{- end }}
                 key: jwt-ro-privs-token
           - name: FULLNODE_API_INFO
             value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
+          {{- end }}
           - name: PGPASSWORD
             valueFrom:
               secretKeyRef:
@@ -230,3 +230,15 @@ spec:
         {{- end }}
         resources:
 {{ toYaml .Values.resources | indent 10 }}
+        {{- if .Values.lotusDatastoreSnapshot }}
+        volumeMounts:
+        - mountPath: /var/lib/lotus/datastore
+          name: datastore-volume
+          readOnly: true
+        {{- end }}
+      {{- if .Values.lotusDatastoreSnapshot }}
+      volumes:
+      - name: datastore-volume
+        persistentVolumeClaim:
+          claimName: "{{ .Release.Name }}-lotus-datastore"
+      {{- end }}
