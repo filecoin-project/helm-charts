@@ -55,14 +55,14 @@ spec:
 {{- if .Values.secrets.jwt.enabled }}
       - name: jwt-secrets-volume
         secret:
-          secretName: {{ default (print .Release.Name "-jwt-secrets") .Values.secrets.jwt.secretName }}
+          secretName: {{ .Values.secrets.jwt.secretName }}
           defaultMode: 0600
           items:
           - key: {{ .Values.secrets.jwt.jwts_key }}
             path: MF2XI2BNNJ3XILLQOJUXMYLUMU
       - name: jwt-token-volume
         secret:
-          secretName: {{ default (print .Release.Name "-jwt-secrets") .Values.secrets.jwt.secretName }}
+          secretName: {{ .Values.secrets.jwt.secretName }}
           defaultMode: 0600
           items:
           - key: {{ .Values.secrets.jwt.token_key }}
@@ -78,7 +78,7 @@ spec:
 {{- if .Values.secrets.libp2p.enabled }}
       - name: libp2p-secrets-volume
         secret:
-          secretName: {{ default (print .Release.Name "-libp2p-secrets") .Values.secrets.libp2p.secretName }}
+          secretName: {{ .Values.secrets.libp2p.secretName }}
           defaultMode: 0600
           items:
           - key: {{ .Values.secrets.libp2p.libp2p_key }}

@@ -1,0 +1,38 @@
+
+.____           __                   _________                            __           _________                        __
+|    |    _____/  |_ __ __  ______  /   _____/ ____   ___________   _____/  |_  ______ \_   ___ \_______   ____ _____ _/  |_  ___________
+|    |   /  _ \   __\  |  \/  ___/  \_____  \_/ __ \_/ ___\_  __ \_/ __ \   __\/  ___/ /    \  \/\_  __ \_/ __ \\__  \\   __\/  _ \_  __ \
+|    |__(  <_> )  | |  |  /\___ \   /        \  ___/\  \___|  | \/\  ___/|  |  \___ \  \     \____|  | \/\  ___/ / __ \|  | (  <_> )  | \/
+|_______ \____/|__| |____//____  > /_______  /\___  >\___  >__|    \___  >__| /____  >  \______  /|__|    \___  >____  /__|  \____/|__|
+        \/                     \/          \/     \/     \/            \/          \/          \/             \/     \/
+
+Release ---------- {{ .Release.Name }}
+Namespace -------- {{ .Release.Namespace }}
+Container Repo --- {{ .Values.image.repository }}
+Tag -------------- {{ .Values.image.tag }}
+
+Note: You can uninstall this release, the secrets creator will remain.
+
+Configuration
+{{- if and .Values.secrets.jwt.enabled }}
+
+  [JWT Tokens]
+
+  A jwt secret and four different tokens were created and have been placed in a secret
+  named '{{ .Values.secrets.jwt.secretName }}'.
+
+  The four tokens cover the basic uses case and are stored under the following keys of the
+  secret.
+
+  jwt-all-privs-token - The default AllPermissions token from lotus
+  jwt-ro-privs-token  - Provides only the read permission
+  jwt-rw-privs-token  - Provides both the read and write permission
+  jwt-so-privs-token  - Provides only the sign permission
+{{- end }}
+
+{{- if and .Values.secrets.libp2p.enabled }}
+
+  [Libp2p Identity]
+
+  A new libp2p identity was created and has been placed in a secret named '{{ .Values.secrets.libp2p.secretName }}'.
+{{- end }}

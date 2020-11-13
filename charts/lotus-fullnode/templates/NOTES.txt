@@ -28,30 +28,6 @@ Configuration
 
   If the snapshot is missing the init container will exit with {{ .Values.importSnapshot.exitCodeOnMissing }}.
 {{- end }}
-{{- if and .Values.secrets.jwt.enabled (not .Values.secrets.jwt.secretName) }}
-
-  [JWT Tokens]
-
-  A jwt secret and four different tokens were created for this lotus node and have been
-  placed in a secret named '{{ .Release.Name }}-jwt-secrets'.
-
-  The four tokens cover the basic uses case and are stored under the following keys of the
-  secret.
-
-  jwt-all-privs-token - The default AllPermissions token from lotus
-  jwt-ro-privs-token  - Provides only the read permission
-  jwt-rw-privs-token  - Provides both the read and write permission
-  jwt-so-privs-token  - Provides only the sign permission
-{{- end }}
-{{- if and .Values.secrets.jwt.enabled (not .Values.secrets.jwt.secretName) }}
-
-  [Libp2p Identity]
-
-  A new libp2p identity has been created for this lotus node. You can find the PeerID of
-  this lotus nodes by running the following command once the pod has completed deployment.
-
-  | $ kubectl -n {{ .Release.Namespace }} exec {{ .Release.Name }}-0 -- lotus net id
-{{- end }}
 {{- if not .Values.secrets.libp2p.enabled }}
 
   [Libp2p Identity]
