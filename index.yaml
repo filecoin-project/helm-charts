@@ -56,6 +56,16 @@ entries:
   lotus-fullnode:
   - apiVersion: v2
     appVersion: 0.8.0
+    created: "2020-11-13T23:00:57.272729176Z"
+    description: Provision a fullnode lotus node
+    digest: bee6d78348b3c62c9ec6dfaeda8c2201b02043d17c7f1bd837e15ede5c207ca0
+    name: lotus-fullnode
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-fullnode-0.2.0/lotus-fullnode-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 0.8.0
     created: "2020-11-09T18:05:59.897283694Z"
     description: Provision a fullnode lotus node
     digest: d86446bcc2ef4d60031c5cd15f1587c052b0ee394499dfafceec2c22baab81e3
@@ -183,6 +193,18 @@ entries:
     type: application
     urls:
     - https://github.com/filecoin-project/helm-charts/releases/download/lotus-fullnode-0.1.0/lotus-fullnode-0.1.0.tgz
+    version: 0.1.0
+  lotus-secrets-creator:
+  - apiVersion: v2
+    appVersion: 1.1.2
+    created: "2020-11-13T23:00:57.365212922Z"
+    description: Helm chart for creator valid libp2p and jwt secrets on cluster for
+      lotus-fullnode charts
+    digest: 8d4afe1301cc37c7f83b649e08981e0abff8d7b3005e8d093523c910c440cd1c
+    name: lotus-secrets-creator
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-secrets-creator-0.1.0/lotus-secrets-creator-0.1.0.tgz
     version: 0.1.0
   lotus-stats:
   - apiVersion: v2
