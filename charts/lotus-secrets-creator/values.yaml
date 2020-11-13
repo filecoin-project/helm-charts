@@ -16,9 +16,9 @@ secrets:
   jwt:
     # this is the fullname of the secret which will be generator
     secretName: ""
-    enabled: false
+    enabled: true
 
   libp2p:
     # this is the fullname of the secret which will be generator
     secretName: ""
-    enabled: false
+    enabled: true

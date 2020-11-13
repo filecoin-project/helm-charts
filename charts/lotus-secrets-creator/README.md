@@ -6,8 +6,8 @@ The lotus secrets creator is a chart tool to help generate valid secrets for the
 
 ### Basic
 
-The basic install will not do anything. You must enabled the secrets you want to create. Please see the `values.yaml`
-for more information.
+This chart by default will generate both libp2p and jwt secrets using the name of the helm release. It's adviced to not use this behavior
+has it makes updating secrets more difficult. You should instead specify the fullname of the secret instead as shown below.
 
 **Creating jwt secrets**
 
