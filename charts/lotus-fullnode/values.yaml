@@ -62,7 +62,7 @@ secrets:
   # the pod. when the pod is deleted the jwt and/or libp2p-host will be rotated when the pod
   # starts again
   jwt:
-    enabled: true
+    enabled: false
     secretName: ""
     # token will be used to lookup a value in the secret and mounted to $LOTUS_PATH/token
     # this is the token which will be available through the exec command
@@ -73,7 +73,7 @@ secrets:
     jwts_key: auth-jwt-private
 
   libp2p:
-    enabled: true
+    enabled: false
     secretName: ""
     # libp2p will be used to lookup a value in the secret and mounted to the $LOTUS_PATH/keystore
     # the name of the keystore file is an implementation detail of this chart and the version of

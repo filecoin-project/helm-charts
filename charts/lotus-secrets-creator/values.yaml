@@ -1,0 +1,24 @@
+# Default values for lotus-secrets-creator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+image:
+  repository: travisperson/lotus-shed
+  pullPolicy: IfNotPresent
+  tag: v1.1.2
+
+securityContext:
+  fsGroup: 532
+  runAsNonRoot: true
+  runAsUser: 532
+  runAsGroup: 532
+
+secrets:
+  jwt:
+    # this is the fullname of the secret which will be generator
+    secretName: ""
+    enabled: false
+
+  libp2p:
+    # this is the fullname of the secret which will be generator
+    secretName: ""
+    enabled: false
