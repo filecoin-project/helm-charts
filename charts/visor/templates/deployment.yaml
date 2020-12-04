@@ -9,6 +9,17 @@ metadata:
 {{- if .Values.labels }}
 {{ toYaml .Values.labels | indent 4 }}
 {{- end }}
+
+#
+# Validations
+#
+# pgSecret validation
+{{- required "pgSecret must be a defined value" .Values.pgSecret -}}
+# visor runtime mutual exclusion check
+{{- if and .Values.watch.enabled .Values.walk.enabled -}}
+{{- fail "a visor deployment cannot do both walk and watch, please disable one" -}}
+{{- end -}}
+
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -54,8 +65,8 @@ spec:
                 name: {{ .Values.pgSecret }}
                 key: database
           - name: POSTGRES_DB
-          {{- if .Values.database }}
-            value: {{ .Values.database }}
+          {{- if .Values.pgDatabase }}
+            value: {{ .Values.pgDatabase }}
           {{- else }}
             value: {{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel
           {{- end }}
@@ -65,28 +76,95 @@ spec:
       - name: visor
         image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        args: ["--tracing={{ .Values.jaeger.enabled }}", "run"]
+        args:
+          # Global args
+          # debugging args
+          {{- if and .Values.jaeger .Values.jaeger.enabled }}
+          - "--tracing={{ .Values.jaeger.enabled }}"
+          - "--jaeger-agent-host={{ .Values.jaeger.host }}"
+          - "--jaeger-agent-port={{ .Values.jaeger.port }}"
+          - "--jaeger-service-name={{ .Values.jaeger.serviceName }}"
+          {{- if .Values.jaeger.sampler }}
+          - "--jaeger-sampler-type={{ .Values.jaeger.sampler.type }}"
+          - "--jaeger-sample-param={{ .Values.jaeger.sampler.param }}"
+          {{- end }}
+          {{- end }}
+
+          {{- if .Values.logLevel }}
+          - "--log-level={{ .Values.logLevel }}"
+          {{- end }}
+
+          {{- if .Values.logLevelNamed }}
+          - "--log-level-named={{ .Values.logLevelNamed }}"
+          {{- end }}
+
+          # database args
+          {{- if .Values.pgPoolSize }}
+          - "--db-pool-size={{ int .Values.pgPoolSize }}"
+          {{- end }}
+
+          {{- if .Values.pgAppName }}
+          - "--name={{ .Values.pgAppName }}"
+          {{- end }}
+
+          - "--allow-schema-migration={{ .Values.allowAutomaticMigration }}"
+
+          # lens config
+          {{- if .Values.lens }}
+          {{- if and .Values.lens.lotusAPI }}
+          - "--lens=lotus"
+          {{- $lotusAPIMultiaddr := "/dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234" -}}
+          {{- if .Values.lens.lotusAPI.lotusAPIMultiaddr -}}
+            {{- $lotusAPIMultiaddr := .Values.lens.lotusAPI.lotusAPIMultiaddr -}}
+          {{- end }}
+          - "--repo=$(LOTUS_API_TOKEN):{{ $lotusAPIMultiaddr }}"
+          {{- end }}
+          {{- end }}
+
+          # mode-specific args
+          {{- if and .Values.watch .Values.watch.enabled }}
+          {{- with .Values.watch }}
+          - watch
+          - "--indexhead-confidence={{ int .confidence }}"
+          {{- if .tasks }}
+          - "--tasks={{ join "," .tasks }}"
+          {{- end }}
+          {{- end }}
+          {{- end }}
+
+          {{- if and .Values.walk .Values.walk.enabled }}
+          {{- with .Values.walk }}
+          - walk
+          {{- if .tasks }}
+          - "--tasks={{ join "," .tasks }}"
+          {{- end }}
+          {{- if .to }}
+          - "--to={{ int .to }}"
+          {{- end }}
+          {{- if .from }}
+          - "--from={{ int .from }}"
+          {{- end }}
+          {{- end }}
+          {{- end }}
+
         ports:
           - containerPort: 9991
             name: metrics
+
         env:
-          - name: LOTUS_API_MULTIADDR
-          {{- if .Values.lotusAPIMultiaddr }}
-            value: "{{ .Values.lotusAPIMultiaddr }}"
-          {{- else }}
-            value: "/dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234"
-          {{- end }}
+          # Global env
+          {{- if and .Values.lens .Values.lens.lotusAPI }}
           - name: LOTUS_API_TOKEN
             valueFrom:
               secretKeyRef:
-          {{- if .Values.lotusAPITokenSecret }}
-                name: {{ .Values.lotusAPITokenSecret }}
+          {{- if .Values.lens.lotusAPI.lotusAPITokenSecret }}
+                name: {{ .Values.lens.lotusAPI.lotusAPITokenSecret }}
           {{- else }}
                 name: {{ .Release.Name }}-jwt-secrets
           {{- end }}
                 key: jwt-ro-privs-token
-          - name: FULLNODE_API_INFO
-            value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
+          {{- end }}
+
           - name: PGPASSWORD
             valueFrom:
               secretKeyRef:
@@ -109,124 +187,13 @@ spec:
                 name: {{ .Values.pgSecret }}
                 key: port
           - name: PGDATABASE
-          {{- if .Values.database }}
-            value: {{ .Values.database }}
+          {{- if .Values.pgDatabase }}
+            value: {{ .Values.pgDatabase }}
           {{- else }}
             value: {{ .Release.Namespace }}_{{ .Release.Name | replace "-" "_" }}_sentinel
           {{- end }}
-          - name: GOLOG_LOG_LEVEL
-            value: "{{ .Values.logLevel }}"
           - name: LOTUS_DB
             value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode={{ .Values.pgSSLMode }}"
-          - name: LOTUS_DB_POOL_SIZE
-            value: "{{ .Values.pgPoolSize }}"
 
-        {{- if eq .Values.allowAutomaticMigration true }}
-          - name: VISOR_ALLOW_SCHEMA_MIGRATION
-            value: "true"
-        {{- end }}
-
-        {{- if .Values.tasks.heightFrom }}
-          - name: VISOR_HEIGHT_FROM
-            value: "{{ .Values.tasks.heightFrom }}"
-        {{- end }}
-        {{- if .Values.tasks.heightTo }}
-          - name: VISOR_HEIGHT_TO
-            value: "{{ .Values.tasks.heightTo }}"
-        {{- end }}
-
-          - name: VISOR_INDEXHEAD
-            value: "{{ .Values.tasks.indexLatest.enabled }}"
-          - name: VISOR_INDEXHEAD_CONFIDENCE
-            value: "{{ .Values.tasks.indexLatest.cacheLength }}"
-          - name: VISOR_INDEXHISTORY
-            value: "{{ .Values.tasks.indexHistory.enabled }}"
-
-        {{- if and .Values.tasks.processTipSets .Values.tasks.processTipSets.workers }}
-          - name: VISOR_STATECHANGE_WORKERS
-            value: "{{ .Values.tasks.processTipSets.workers }}"
-        {{- end }}
-        {{- if and .Values.tasks.processTipSets .Values.tasks.processTipSets.batch }}
-          - name: VISOR_STATECHANGE_BATCH
-            value: "{{ .Values.tasks.processTipSets.batch }}"
-        {{- end }}
-        {{- if and .Values.tasks.processTipSets .Values.tasks.processTipSets.lease }}
-          - name: VISOR_STATECHANGE_LEASE
-            value: "{{ .Values.tasks.processTipSets.lease }}"
-        {{- end }}
-
-        {{- if and .Values.tasks.processActors .Values.tasks.processActors.workers }}
-          - name: VISOR_ACTORSTATE_WORKERS
-            value: "{{ .Values.tasks.processActors.workers }}"
-        {{- end }}
-        {{- if and .Values.tasks.processActors .Values.tasks.processActors.batch }}
-          - name: VISOR_ACTORSTATE_BATCH
-            value: "{{ .Values.tasks.processActors.batch }}"
-        {{- end }}
-        {{- if and .Values.tasks.processActors .Values.tasks.processActors.lease }}
-          - name: VISOR_ACTORSTATE_LEASE
-            value: "{{ .Values.tasks.processActors.lease }}"
-        {{- end }}
-        {{- if and .Values.tasks.processActors .Values.tasks.processActors.includeActorType }}
-          - name: VISOR_ACTORSTATE_INCLUDE
-            value: "{{ .Values.tasks.processActors.includeActorType }}"
-        {{- end }}
-        {{- if and .Values.tasks.processActors .Values.tasks.processActors.excludeActorType }}
-          - name: VISOR_ACTORSTATE_EXCLUDE
-            value: "{{ .Values.tasks.processActors.excludeActorType }}"
-        {{- end }}
-
-
-        {{- if and .Values.tasks.processMessages .Values.tasks.processMessages.workers }}
-          - name: VISOR_MESSAGE_WORKERS
-            value: "{{ .Values.tasks.processMessages.workers }}"
-        {{- end }}
-        {{- if and .Values.tasks.processMessages .Values.tasks.processMessages.batch }}
-          - name: VISOR_MESSAGE_BATCH
-            value: "{{ .Values.tasks.processMessages.batch }}"
-        {{- end }}
-        {{- if and .Values.tasks.processMessages .Values.tasks.processMessages.lease }}
-          - name: VISOR_MESSAGE_LEASE
-            value: "{{ .Values.tasks.processMessages.lease }}"
-        {{- end }}
-
-        {{- if and .Values.tasks.processGasOutputs .Values.tasks.processGasOutputs.workers }}
-          - name: VISOR_GASOUTPUTS_WORKERS
-            value: "{{ .Values.tasks.processGasOutputs.workers }}"
-        {{- end }}
-        {{- if and .Values.tasks.processGasOutputs .Values.tasks.processGasOutputs.batch }}
-          - name: VISOR_GASOUTPUTS_BATCH
-            value: "{{ .Values.tasks.processGasOutputs.batch }}"
-        {{- end }}
-        {{- if and .Values.tasks.processGasOutputs .Values.tasks.processGasOutputs.lease }}
-          - name: VISOR_GASOUTPUTS_LEASE
-            value: "{{ .Values.tasks.processGasOutputs.lease }}"
-        {{- end }}
-
-        {{- if and .Values.tasks.processChainEconomics .Values.tasks.processChainEconomics.workers }}
-          - name: VISOR_CHAINECONOMICS_WORKERS
-            value: "{{ .Values.tasks.processChainEconomics.workers }}"
-        {{- end }}
-        {{- if and .Values.tasks.processChainEconomics .Values.tasks.processChainEconomics.batch }}
-          - name: VISOR_CHAINECONOMICS_BATCH
-            value: "{{ .Values.tasks.processChainEconomics.batch }}"
-        {{- end }}
-        {{- if and .Values.tasks.processChainEconomics .Values.tasks.processChainEconomics.lease }}
-          - name: VISOR_CHAINECONOMICS_LEASE
-            value: "{{ .Values.tasks.processChainEconomics.lease }}"
-        {{- end }}
-
-        {{- if .Values.tasks.processingStatsRefresh }}
-          - name: VISOR_PROCESSINGSTATS_REFRESH
-            value: "{{ .Values.tasks.processingStatsRefresh }}"
-        {{- end }}
-        {{- if .Values.tasks.chainvisRefresh }}
-          - name: VISOR_CHAINVIS_REFRESH
-            value: "{{ .Values.tasks.chainvisRefresh }}"
-        {{- end }}
-        {{- if .Values.tasks.taskDelay }}
-          - name: VISOR_TASK_DELAY
-            value: "{{ .Values.tasks.taskDelay }}"
-        {{- end }}
         resources:
 {{ toYaml .Values.resources | indent 10 }}

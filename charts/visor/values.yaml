@@ -2,82 +2,83 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 replicaCount: 1
-pgPoolSize: 45
-# Name of a secret containing password, user, host, port and database keys for a postgres database
-pgSecret: "sentinel-monitoring-postgresql-secrets"
-pgSSLMode: "require"
+# Name of a secret containing 'password', 'user', 'host', 'port' and 'database' keys for a postgres database
 logLevel: info
 image:
   repo: filecoin/sentinel-visor
   tag: master-latest
   pullPolicy: IfNotPresent
 
-# may add custom labels
-# labels:
-#   name: foo
+# Custom labels
+#labels:
+  #name: foo
 
-# lotus api multiaddr
-# if unset uses default value of:
-# /dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234
-lotusAPIMultiaddr: ""
-# a lotus-fullnode secret containing jwt token under key jwt-ro-privs-token
-# secret must be in the same namespace
-# if unset uses default value of:
-# {{ .Release.Name }}-jwt-secrets
-lotusAPITokenSecret: ""
-# postgresql database
-# if left empty, a database will be created with the following convention:
-# <namespace>-<release>-sentinel
-database: ""
+#
+# Global
+#
+
+# PostgreSQL options
+pgSecret: "" # no default, must be explicitly defined in values yaml
+pgDatabase: "" # default: "{{ .Release.Namespace }}-{{ .Release.Name }}-sentinel"
+pgSSLMode: "require"
+pgPoolSize: 45
+pgAppName: "" # default: "visor_<version>_<host>_<runtime_pid>"
+
+# Debug Options
+
 # prometheus service monitor
 prometheusOperatorServiceMonitor: false
+prometheusPort: ":9991"
 
-#
-# Args
-#
-allowAutomaticMigration: true
+logLevel: error
+#logLevelNamed: "vm:error,badgerbs:error"
 
-tasks:
-  indexLatest:
-    enabled: true
-    cacheLength: 25
-  indexHistory:
-    enabled: true
-  processTipSets:
-    workers: 2
-    batch: 10
-    lease: "15m"
-  processActors:
-    workers: 2
-    batch: 10
-    lease: "15m"
-#   includeActorType:
-#   excludeActorType:
-  processMessages:
-    workers: 2
-    batch: 10
-    lease: "15m"
-  processGasOutputs:
-    workers: 2
-    batch: 10
-    lease: "15m"
-  processChainEconomics:
-    workers: 2
-    batch: 10
-    lease: "15m"
-#  heightFrom: 0
-#  heightTo: 100
-  # Refresh frequency for processing stats
-#  processingStatsRefresh: "1m"
-  # Refresh frequency for chain visualization views
-#  chainvisRefresh: "15m"
-  # Base time to wait between starting tasks (jitter is added)
-#  taskDelay: "500ms"
-#
-# Tracing
-#
 jaeger:
   enabled: false
+  host: ""
+  port: 6831
+  serviceName: "" # default: "visor"
+  sampler:
+    type: "probabilistic"
+    param: 0.0001
+
+
+allowAutomaticMigration: true
+
+lens: # configure how visor sources its data
+  lotusAPI: # backed by a live node's API
+    # a lotus-fullnode secret containing jwt read-only token under key 'jwt-ro-privs-token'
+    # secret must be in the same namespace
+    lotusAPITokenSecret: "" # default: "{{ .Release.Name }}-jwt-secrets"
+    # lotus api multiaddr
+    lotusAPIMultiaddr: "" # default: "/dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234"
+
+#
+# Mode-specific
+#
+watch:
+  enabled: true
+  confidence: 0
+  tasks:
+    - blocks
+    - messages
+    - chainEconomics
+    # for least confusion during runtime, pick only one actorStates task. (last one applies)
+    - actorStatesRaw
+    #- actorStatesParsed
+    #- actorStatesBoth
+walk:
+  enabled: false
+  #from: 0 # default: 0
+  #to: 1000 # default: host's MaxUint64
+  tasks:
+    - blocks
+    - messages
+    - chainEconomics
+    # for least confusion during runtime, pick only one actorStates task. (last one applies)
+    - actorStatesRaw
+    #- actorStatesParsed
+    #- actorStatesBoth
 
 resources:
   requests:
