@@ -1,0 +1,245 @@
+# Default values for chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+hostNetwork: true
+
+image:
+  repository: ognots/lotus
+  pullPolicy: Always
+  tag: ntwk-calibration-1.2.1-2-amd
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+securityContext:
+  # capabilities:
+  #   drop:
+  #   - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: false
+  runAsUser: 1000
+
+lotusMinerSecret: ""
+lotusMinerSecretKey: ""
+lotusMinerAddress: ""
+
+lotusPrecomm1Worker:
+  enabled: true
+  cpuArch: amd
+  replicaCount: 1
+  containerCount: 6
+  gologLogLevel: info
+
+  volumes:
+    proofParams:
+      enabled: false
+      claimName: proof-params-pvc
+    worker:
+      enabled: true
+      basePath: /mnt/worker
+      basePathOffset: 0
+      requests: 1782Gi
+      storageClassName: local-storage
+      accessModes:
+        - ReadWriteOnce
+      nodeAffinity:
+        required:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: role
+              operator: In
+              values:
+              - lotus-precomm1-worker
+
+  resources:
+    requests:
+      cpu: 2
+      memory: 192Gi
+    limits:
+      cpu: 2
+      memory: 192Gi
+
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: role
+          operator: In
+          values:
+          - lotus-precomm1-worker
+
+  tolerations:
+    - key: "role"
+      operator: "Equal"
+      value: "lotus-precomm1-worker"
+      effect: "NoSchedule"
+
+  affinity: {}
+
+lotusPrecomm2CommWorker:
+  enabled: false
+  cpuArch: intel
+  replicaCount: 3
+  gologLogLevel: debug
+  GPU: "Tesla V100-SXM2-32GB:5120"
+
+  volumes:
+    proofParams:
+      enabled: false
+      claimName: proof-params-pvc
+    worker:
+      enabled: true
+      basePath: /mnt/worker
+      basePathOffset: 0
+      requests: 1782Gi
+      storageClassName: local-storage
+      accessModes:
+        - ReadWriteOnce
+      nodeAffinity:
+        required:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: role
+              operator: In
+              values:
+              - lotus-precomm2-comm-worker
+    miner:
+      enabled: true
+      claimName: ""
+
+  resources: #{}
+    requests:
+      cpu: 20
+      memory: 180Gi
+    limits:
+      cpu: 20
+      memory: 180Gi
+
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: role
+          operator: In
+          values:
+          - lotus-precomm2-comm-worker
+
+  tolerations:
+    - key: "role"
+      operator: "Equal"
+      value: "lotus-precomm2-comm-worker"
+      effect: "NoSchedule"
+
+  affinity: {}
+
+lotusPrecomm2Worker:
+  enabled: false
+  cpuArch: intel
+  replicaCount: 1
+  gologLogLevel: debug
+  GPU: "Tesla V100-SXM2-32GB:5120"
+
+  volumes:
+    proofParams:
+      enabled: false
+      claimName: proof-params-pvc
+    worker:
+      enabled: true
+      basePath: /mnt/worker
+      basePathOffset: 0
+      requests: 1782Gi
+      storageClassName: local-storage
+      accessModes:
+        - ReadWriteOnce
+      nodeAffinity:
+        required:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: role
+              operator: In
+              values:
+              - lotus-precomm2-worker
+
+  resources: #{}
+    requests:
+      cpu: 20
+      memory: 180Gi
+    limits:
+      cpu: 20
+      memory: 180Gi
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: role
+            operator: In
+            values:
+            - lotus-precomm2-worker
+
+  tolerations:
+    - key: "role"
+      operator: "Equal"
+      value: "lotus-precomm2-worker"
+      effect: "NoSchedule"
+
+  affinity: {}
+
+lotusCommWorker:
+  enabled: false
+  cpuArch: intel
+  replicaCount: 1
+  containerCount: 2
+  gologLogLevel: debug
+  GPU: "Tesla V100-SXM2-32GB:5120"
+
+  volumes:
+    proofParams:
+      enabled: false
+      claimName: proof-params-pvc
+    worker:
+      enabled: true
+      basePath: /mnt/worker
+      basePathOffset: 0
+      requests: 1782Gi
+      storageClassName: local-storage
+      accessModes:
+        - ReadWriteOnce
+      nodeAffinity:
+        required:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: role
+              operator: In
+              values:
+              - lotus-comm-worker
+    miner:
+      enabled: true
+      claimName: ""
+
+  resources: #{}
+    requests:
+      cpu: 10
+      memory: 90Gi
+    limits:
+      cpu: 10
+      memory: 90Gi
+
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: role
+          operator: In
+          values:
+          - lotus-comm-worker
+
+  tolerations:
+    - key: "role"
+      operator: "Equal"
+      value: "lotus-comm-worker"
+      effect: "NoSchedule"
+
+  affinity: {}

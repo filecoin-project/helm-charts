@@ -1,0 +1,98 @@
+# Default values for chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+enabled: true
+cpuArch: intel
+hostNetwork: true
+GPU: "Quadro RTX 6000:4608"
+IP4: 127.0.0.1
+lotusIP4: 127.0.0.1
+lotusAddress: ""
+libp2pPort: 15432
+gologLogLevel: info
+
+lotusToken:
+  secretName: ""
+  secretKey: ""
+
+image:
+  repository: ognots/lotus
+  tag: ntwk-calibration-1.2.1-2-amd
+  pullPolicy: Always
+
+init:
+  wait:
+    enabled: true
+
+volumes:
+  proofParams:
+    enabled: false
+    claimName: proof-params-pvc
+  tmp:
+    enabled: true
+    hostPath: /mnt/tmp
+  scratch:
+    enabled: false 
+    hostPath: "" 
+    pvcName: ""
+resources: #{}
+  requests:
+    cpu: 12
+    memory: 160Gi
+
+persistence:
+  enabled: true
+  ## Filecoin data Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  # storageClass: "-"
+  lotusMiner:
+    size: "150Ti"
+    storageClassName: csi-cephfs
+    accessModes:
+      - ReadWriteMany
+
+nodeSelector: {}
+
+tolerations:
+  - key: "role"
+    operator: "Equal"
+    value: "lotus-miner"
+    effect: "NoSchedule"
+
+affinity: {}
+
+service:
+  # API service
+  type: ClusterIP
+  port: 2345
+  targetPort: 2345
+
+prometheusOperatorServiceMonitor: true
+replicaCount: 1
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext:
+
+securityContext:
+  # capabilities:
+  #   drop:
+  #   - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true 
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 2000
