@@ -1,0 +1,6 @@
+apiVersion: v2
+name: lotus-seal-worker
+description: Provision lotus-seal-workers
+type: application
+version: 0.1.0
+appVersion: 0.1.0
