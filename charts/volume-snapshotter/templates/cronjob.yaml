@@ -1,0 +1,102 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-volume-snapshotter
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-volume-snapshotter
+rules:
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshots"]
+  verbs: ["get", "list", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-volume-snapshotter
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ .Release.Name }}-volume-snapshotter
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-volume-snapshotter
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 60
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ .Release.Name }}-volume-snapshotter
+          restartPolicy: Never
+          containers:
+          - name: main
+            image: bitnami/kubectl
+            command: ["bash", "-c"]
+            args:
+              - |
+                set -euo pipefail
+
+                # this script keeps a desired number of VolumeSnapshots resources for a given PersistentVolumeClaim, and rotates them
+                # by removing the oldest and adding a new snapshot. the script will only remove volumes if the number of VolumeSnapshots
+                # with the label `snapshot-pvc` matching the name of the pvc is greater than or equal to the desired. the volume will be
+                # removed first, and a new snapshot will be created to replace it.
+
+                pvc="{{ .Values.pvc}}"
+                desired="{{ .Values.desired}}"
+
+                snapshots=($(kubectl get volumesnapshots -l snapshot-pvc="${pvc}" -o jsonpath='{range $.items[*]}{@.metadata.name}{"\n"}{end}' | sort ))
+
+                echo -e "volume\t${pvc}"
+                echo -e "desired\t${desired}"
+                echo -e "current\t${#snapshots[@]}"
+                echo ""
+
+                kubectl get volumesnapshots -l snapshot-pvc="${pvc}"
+
+                if (( desired <= ${#snapshots[@]} )) && (( ${#snapshots[@]} > 0 )); then
+                  echo ""
+                  echo "removing ${snapshots[0]}"
+                  kubectl delete volumesnapshot ${snapshots[0]}
+                fi
+
+                echo ""
+
+                echo "creating new snapshot of ${pvc}"
+                kubectl apply -f <(cat <<EOF
+                apiVersion: snapshot.storage.k8s.io/v1beta1
+                kind: VolumeSnapshot
+                metadata:
+                  name: snapshot-${pvc}-$(date +%s)
+                  labels:
+                    snapshot-pvc: ${pvc}
+
+                spec:
+                  volumeSnapshotClassName: ebs-csi-snapclass
+                  source:
+                    persistentVolumeClaimName: ${pvc}
+                EOF
+                )
+
+                echo ""
+                kubectl get volumesnapshots -l snapshot-pvc="${pvc}"
+            volumeMounts:
+            - name: scratch
+              mountPath: "/scratch"
+          volumes:
+          - name: scratch
+            emptyDir:
+              medium: Memory
