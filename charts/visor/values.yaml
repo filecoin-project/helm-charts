@@ -18,13 +18,16 @@ image:
 #
 
 # PostgreSQL options
-pgSecret: "" # no default, must be explicitly defined in values yaml
+pgSecret: "" # required
 pgDatabase: "" # default: "{{ .Release.Namespace }}-{{ .Release.Name }}-sentinel"
 pgSSLMode: "require"
 pgPoolSize: 45
 pgAppName: "" # default: "visor_<version>_<host>_<runtime_pid>"
 
 # Debug Options
+
+# sleep container without exiting
+debug: false
 
 # prometheus service monitor
 prometheusOperatorServiceMonitor: false
@@ -51,7 +54,7 @@ lens: # configure how visor sources its data
     # secret must be in the same namespace
     lotusAPITokenSecret: "" # default: "{{ .Release.Name }}-jwt-secrets"
     # lotus api multiaddr
-    lotusAPIMultiaddr: "" # default: "/dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234"
+    lotusAPIMultiaddr: "" # required
 
 #
 # Mode-specific
