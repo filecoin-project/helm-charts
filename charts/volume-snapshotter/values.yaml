@@ -1,0 +1,5 @@
+schedule: "* 0/24 * * *"
+# desired is the number of volumesnapshots that should exist
+desired: 3
+# pvc is the name of the pvc that a snapshot should be created for
+# pvc: ""
