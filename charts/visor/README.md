@@ -22,13 +22,6 @@ Assumes a Kubernetes Service is available mapping to the lotus API
 Can be configured with value `lotusAPIMultiaddr`
 If value unset, uses default multiaddr `/dns/{{ .Release.Name }}-lotus-daemon.{{ .Release.Namespace }}.svc.cluster.local/tcp/1234`
 
-### Redis
-
-Redis is required to be available with no password configured
-Can be configured with value `redisAddress`
-If value unset, uses default address of `{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.local:6379`
-
-
 ## Configuration
 
 See values.yaml for default values
