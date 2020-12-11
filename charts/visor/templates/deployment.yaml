@@ -114,9 +114,11 @@ spec:
           {{- /*
 
           # mode-specific args
+          */}}
           {{- if and .Values.watch.enabled .Values.walk.enabled }}
             {{- fail "a visor deployment cannot do both walk and watch, please disable one" }}
           {{- end }}
+          {{- /*
 
           # watch
           */}}
@@ -129,7 +131,6 @@ spec:
           {{- end }}
           {{- end }}
           {{- end }}
-
           {{- /*
 
           # walk

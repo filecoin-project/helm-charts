@@ -1,8 +1,7 @@
-# Default values for fil-sentinel.
+# Default values for sentinel-visor
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 replicaCount: 1
-# Name of a secret containing 'password', 'user', 'host', 'port' and 'database' keys for a postgres database
 logLevel: info
 image:
   repo: filecoin/sentinel-visor
