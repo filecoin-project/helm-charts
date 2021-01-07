@@ -1,0 +1,29 @@
+# Default values for sentinel-tick.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+image:
+  repository: filecoin/sentinel-tick
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+# PostgreSQL options
+pgSecret: ""
+pgSSLMode: "require"
+pgPoolSize: 15
+
+# Required - name of secret.
+exchangeSecrets: ""
+
+# Intervals
+exchanges:
+  coinmarketcap: 600
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+ingress:
+  enabled: false
