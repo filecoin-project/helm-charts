@@ -5,7 +5,7 @@
 replicaCount: 1
 image:
   repository: filecoin/sentinel-tick
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
@@ -24,6 +24,3 @@ exchanges:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-
-ingress:
-  enabled: false
