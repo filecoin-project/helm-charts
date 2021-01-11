@@ -227,6 +227,17 @@ entries:
     urls:
     - https://github.com/filecoin-project/helm-charts/releases/download/lotus-stats-0.1.0/lotus-stats-0.1.0.tgz
     version: 0.1.0
+  sentinel-tick:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2021-01-11T14:30:31.186589019Z"
+    description: Sentinel-tick deployment
+    digest: 03f5a9b0a93a15a33f8c4f257b2329ad73fbe5691efaf7f68203d68cc7e1cf75
+    name: sentinel-tick
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/sentinel-tick-0.1.0/sentinel-tick-0.1.0.tgz
+    version: 0.1.0
   visor:
   - apiVersion: v2
     appVersion: 0.4.0
