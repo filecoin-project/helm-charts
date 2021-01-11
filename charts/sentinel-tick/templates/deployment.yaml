@@ -63,7 +63,7 @@ spec:
             - name: SENTINEL_TICK_COINMARKETCAP_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: "{{ .Values.exchangeSecrets }}"
+                  name: "{{ required "required field exchangeSecrets is empty" .Values.exchangeSecrets }}"
                   key: coinmarketcap
             - name: SENTINEL_TICK_COINMARKETCAP
               value: "{{ .Values.exchanges.coinmarketcap }}"
