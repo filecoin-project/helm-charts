@@ -6,4 +6,4 @@ maintainers:
 - email: infra@protocol.ai
   name: Filecoin Infra
 name: drone
-version: 0.1
+version: "0.1"
