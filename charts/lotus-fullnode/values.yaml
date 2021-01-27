@@ -96,6 +96,18 @@ secrets:
     enabled: false
     secretName: ""
 
+disputer:
+  # when enabled the `lotus chain disputer start` command will be run in a `disputer` container.
+  enabled: false
+  # walletAddr is passed through to the `disputer` command as the `--from` flag, its value is
+  # used a the wallet for which messages will be sent from when disputing
+  walletAddr: ""
+  # maxFee is passed through to the `disputer` command as the `--max-fee` flag, its value is
+  # the max Filecoin per DisputeWindowedPoSt message
+  # maxFee: 0
+  # pass in additional environment variables to the `lotus chain dispute start` process
+  env: []
+
 persistence:
   journal:
     enabled: true
