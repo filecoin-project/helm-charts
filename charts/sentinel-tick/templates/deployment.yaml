@@ -3,12 +3,17 @@ kind: Deployment
 metadata:
   name: {{ include "sentinel-tick.fullname" . }}
   labels:
-    {{- include "sentinel-tick.labels" . | nindent 4 }}
+    app: sentinel-tick
+    suite: sentinel
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "sentinel-tick.selectorLabels" . | nindent 6 }}
+      app: sentinel-tick
+      release: {{ .Release.Name }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -16,7 +21,11 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "sentinel-tick.selectorLabels" . | nindent 8 }}
+        app: sentinel-tick
+        suite: sentinel
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -30,6 +39,10 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          ports:
+            - containerPort: 2111
+              name: metrics
+
           env:
             - name: PGPASSWORD
               valueFrom:
@@ -60,6 +73,8 @@ spec:
               value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode={{ .Values.pgSSLMode }}"
             - name: SENTINEL_TICK_POOL_SIZE
               value: "{{ .Values.pgPoolSize }}"
+            - name: SENTINEL_TICK_METRICS
+              value: "0.0.0.0:2111"
             - name: SENTINEL_TICK_COINMARKETCAP_TOKEN
               valueFrom:
                 secretKeyRef:
