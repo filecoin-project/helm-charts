@@ -230,6 +230,16 @@ entries:
   sentinel-tick:
   - apiVersion: v2
     appVersion: 0.0.1
+    created: "2021-01-28T15:20:46.721366595Z"
+    description: Sentinel-tick deployment
+    digest: b9fa3727eeb783696d7d21238126c6cec223617e391ccc313157a2357806023b
+    name: sentinel-tick
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/sentinel-tick-0.2.0/sentinel-tick-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 0.0.1
     created: "2021-01-11T14:30:31.186589019Z"
     description: Sentinel-tick deployment
     digest: 03f5a9b0a93a15a33f8c4f257b2329ad73fbe5691efaf7f68203d68cc7e1cf75
