@@ -6,12 +6,6 @@
 |_______ \____/|__| |____//____  >  \___  / |____/|____/____/___|  /\____/\____ |\___  >
         \/                     \/       \/                       \/            \/    \/
 
-{{- if .Values.secrets.wallets.enabled }}
-{{- if not .Values.secrets.wallets.keystore }}
-
-          !!! This pod as wallets enabled but no wallets were specified !!!
-{{- end }}
-{{- end }}
 
 Release ---------- {{ .Release.Name }}
 Namespace -------- {{ .Release.Namespace }}
@@ -50,16 +44,7 @@ Configuration
 {{- if .Values.secrets.wallets.enabled }}
 
   [Wallets]
-  {{- if not .Values.secrets.wallets.keystore }}
 
-  !!! This pod as wallets enabled but no wallets were specified !!!
-  {{- else }}
-
-  You have provided the following wallets from the secret '{{ .Values.secrets.wallets.secretName }}'.
-
-  {{- range .Values.secrets.wallets.keystore }}
-  - {{ .key }}
-  {{- end }}
-  {{- end }}
+  All wallets from '{{ .Values.secrets.wallets.secretName }}' will be imported.
 {{- end }}
 

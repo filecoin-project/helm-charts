@@ -93,11 +93,9 @@ spec:
         secret:
           secretName: {{ .Values.secrets.wallets.secretName }}
           defaultMode: 0600
-          items:
-          {{- range .Values.secrets.wallets.keystore }}
-           - key: {{ .key }}
-             path: {{ .path }}
-          {{- end }}
+      - name: wallets-transfer-scratch
+        emptyDir:
+          medium: Memory
 {{- end }}
       - name: keystore-volume
         emptyDir:
@@ -168,20 +166,30 @@ spec:
             mountPath: /keystore
 {{- if .Values.secrets.wallets.enabled }}
       - name: keystore-transfer-wallets
-        image: busybox
-        command: ["sh","-c"]
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        command: ["bash","-c"]
         args:
           - |
+            mkdir $LOTUS_PATH/keystore
             for key in $(ls /secrets); do
-              cp "/secrets/$key" /keystore/
+              lotus-shed keyinfo import "/secrets/$key"
+            done
+
+            for key in $(ls /$LOTUS_PATH/keystore); do
+              cp "/scratch/keystore/$key" /keystore/
               chmod 0600 "/keystore/$key"
             done
+        env:
+          - name: LOTUS_PATH
+            value: /scratch
         volumeMounts:
           - name: wallets-secrets-volume
             mountPath: /secrets
             readOnly: true
           - name: keystore-volume
             mountPath: /keystore
+          - name: wallets-transfer-scratch
+            mountPath: /scratch
 {{- end }}
       - name: keystore-verifier
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"

@@ -46,19 +46,23 @@ helm upgrade --install lotus-0 ./lotus-fullnode --set importSnapshot.enabled=tru
 
 ### Adding wallets
 
-Wallets must be managed externally to the chart. A secret name must be provided along with the key of the secret entry and the
-correct keystore encoding of the wallet address. See the `values.yaml` file for more details.
+Wallets must be managed externally to the chart. A secret name must be provided, all entries in the secret will be treated as a wallet.
+
+The secret key should be the name of the wallet, and the value should be the base64 enocded contents of the keyinfo file
+```
+$ lotus-shed keyinfo new bls
+t3u5bz4yb6mriqbbpx5mif6fodmobr3a5vi5gjyxsfp6xs7um3coruzhowj6eqlvv6hd7gts5mue56f7knzrdq
+$ kubectl create secret generic my-wallets-secret --from-file=t3u5bz4yb6mriqbbpx5mif6fodmobr3a5vi5gjyxsfp6xs7um3coruzhowj6eqlvv6hd7gts5mue56f7knzrdq=bls-t3u5bz4yb6mriqbbpx5mif6fodmobr3a5vi5gjyxsfp6xs7um3coruzhowj6eqlvv6hd7gts5mue56f7knzrdq.keyinfo
+```
 
 ```
 helm upgrade --install lotus-0 ./lotus-fullnode -f lotus_secrets_wallets.yaml
 ```
+
 ```
 # lotus_secrets_wallets.yaml
 secrets:
   wallets:
     enabled: true
     secretName: my-wallets-secret
-    keystore:
-    - key: t16otcoguwipz3puid6ilsqh26unpdf4iwocnxywa
-      path: O5QWY3DFOQWXIMJWN52GG33HOV3WS4D2GNYHK2LEGZUWY43RNAZDM5LOOBSGMNDJO5XWG3TYPF3WC
 ```
