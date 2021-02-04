@@ -1,0 +1,68 @@
+enabled: true
+hostNetwork: false
+generate:
+  enabled: true
+
+minerIDs:
+  - f01000
+
+image:
+  lotusSeed:
+    repository: ognots/lotus-seed
+    tag: seed-test-1.4.0
+    pullPolicy: Always
+  nginx:
+    repository: nginxinc/nginx-unprivileged
+    tag: mainline
+    pullPolicy: Always
+
+persistence:
+  enabled: true
+  ## Filecoin data Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  # storageClass: "-"
+  seed:
+    size: "5Gi"
+    storageClassName: microk8s-hostpath
+    accessModes:
+      - ReadWriteMany
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+service:
+  # API service
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext:
+
+securityContext:
+  # capabilities:
+  #   drop:
+  #   - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 2000

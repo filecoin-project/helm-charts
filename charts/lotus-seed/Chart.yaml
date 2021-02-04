@@ -1,0 +1,6 @@
+apiVersion: v2
+name: lotus-seed
+description: generate seed sectors used by genesis miner to create a new network
+type: application
+version: 0.1.0
+appVersion: 0.1.0

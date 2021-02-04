@@ -1,0 +1,118 @@
+{{- if .Values.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-seed-config-writer
+  namespace: {{ .Release.Namespace }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-seed-config-writer
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: seed-config-writer
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-seed-config-writer
+  namespace: {{ .Release.Namespace }}
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-lotus-seed
+  labels:
+    app: lotus-seed-app
+spec:
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ .Release.Name }}-lotus-seed-service
+  selector:
+    matchLabels:
+      app: lotus-seed-app
+  template:
+    metadata:
+      labels:
+        app: lotus-seed-app
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      hostNetwork: {{ .Values.hostNetwork }}
+{{- if .Values.securityContext.runAsNonRoot }}
+      securityContext:
+        fsGroup: 532
+        runAsNonRoot: true
+        runAsUser: 532
+        runAsGroup: 532
+{{- end }}
+      volumes:
+        - name: lotus-seed-config-volume
+          configMap:
+            name: {{ .Release.Name}}-seed-nginx-config
+            items:
+            - key: server.conf.template
+              path: server.conf.template
+      initContainers:
+{{- if .Values.generate.enabled }}
+{{- range .Values.minerIDs }}
+      - name: generate-{{ . }}
+        image: {{ $.Values.image.lotusSeed.repository }}:{{ $.Values.image.lotusSeed.tag }}
+        imagePullPolicy: {{ $.Values.image.lotusSeed.pullPolicy }}
+        command: ["/bin/sh","-c"]
+        args:
+          - |
+            mkdir -p /sectors/{{ . }}
+            rm -rf /sectors/{{ . }}/*
+            lotus-seed --sector-dir=/sectors/{{ . }} pre-seal --miner-addr={{ . }} --sector-size 2KiB --num-sectors=32 --fake-sectors
+        volumeMounts:
+          - name: seed
+            mountPath: /sectors
+{{- end }}
+{{- end }}
+      containers:
+      - name: server
+        image: {{ .Values.image.nginx.repository }}:{{ .Values.image.nginx.tag }}
+        imagePullPolicy: {{ .Values.image.nginx.pullPolicy }}
+        ports:
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+          - name: seed
+            mountPath: /usr/share/nginx/html
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+  {{- if .Values.persistence.enabled }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: seed
+        {{- range $key, $value := .Values.persistence.seed.annotations }}
+            {{ $key }}: {{ $value }}
+        {{- end }}
+      spec:
+        accessModes:
+            {{- range .Values.persistence.seed.accessModes }}
+            - {{ . | quote }}
+            {{- end }}
+        resources:
+            requests:
+                storage: {{ .Values.persistence.seed.size | quote }}
+        {{- if .Values.persistence.seed.storageClassName }}
+        {{- if (eq "-" .Values.persistence.seed.storageClassName) }}
+        storageClassName: ""
+        {{- else }}
+        storageClassName: "{{ .Values.persistence.seed.storageClassName }}"
+        {{- end }}
+        {{- end }}
+  {{- end }}
+{{- end }}
