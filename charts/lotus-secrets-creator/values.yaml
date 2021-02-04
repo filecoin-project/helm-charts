@@ -14,11 +14,18 @@ securityContext:
 
 secrets:
   jwt:
-    # this is the fullname of the secret which will be generator
+    # this is the fullname of the secret which will be generated
     secretName: ""
     enabled: true
 
   libp2p:
-    # this is the fullname of the secret which will be generator
+    # this is the fullname of the secret which will be generated
     secretName: ""
     enabled: true
+
+# How many secrets to generate?
+# The map key is included in the secret name
+counts:
+  fullnode: 1
+  # bootstrap: 3
+  # preminer: 3

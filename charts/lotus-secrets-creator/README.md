@@ -1,6 +1,8 @@
 # Lotus Secrets Creator
 
-The lotus secrets creator is a chart tool to help generate valid secrets for the lotus fullnode chart.
+The lotus secrets creator is a chart tool to help generate valid secrets.
+It can be used to generate secrets for a lotus fullnode chart.
+Multiple secrets can also be created at the same time when creating new networks.
 
 ## Deployments
 
@@ -19,4 +21,12 @@ $ helm upgrade --install lotus-0-secrets ./lotus-secrets-creator --set secrets.j
 
 ```
 $ helm upgrade --install lotus-0-secrets ./lotus-secrets-creator --set secrets.libp2p.enabled=true --set secrets.libp2p.secretName=lotus-0-libp2p-secrets
+```
+
+**Defining multiple secrets for networks**
+
+Set the `counts` value to create multiple secrets
+
+```
+$ helm upgrade --install lotus-0-secrets ./lotus-secrets-creator --set counts.bootstrap=3 --set counts.preminer=2 --set secrets.libp2p.enabled=true --set secrets.libp2p.secretName=lotus-0-libp2p-secrets
 ```
