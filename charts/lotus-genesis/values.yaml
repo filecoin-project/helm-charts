@@ -1,22 +1,27 @@
 enabled: true
-hostNetwork: false
-generate:
-  enabled: true
 
 minerIDs:
   - t01000
   - t01001
   - t01002
 
+# this is the service name of the lotus-seed install
+lotusSeed: "localnet-seed-lotus-seed.default.svc.cluster.local"
+
 image:
-  lotusSeed:
-    repository: ognots/lotus-seed
-    tag: seed-test-1.4.0
-    pullPolicy: Always
+  lotusShed:
+    # required binaries lotus, lotus-shed, lotus-seed
+    repository: lotus-shed
+    tag: 2k-2b0022f1a
+    pullPolicy: IfNotPresent
   nginx:
     repository: nginxinc/nginx-unprivileged
     tag: mainline
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
+  kubectl:
+    repository: bitnami/kubectl
+    tag: latest
+    pullPolicy: IfNotPresent
 
 persistence:
   enabled: true
@@ -28,11 +33,11 @@ persistence:
   ##   GKE, AWS & OpenStack)
   ##
   # storageClass: "-"
-  seed:
+  genesis:
     size: "5Gi"
-    storageClassName: microk8s-hostpath
+    storageClassName: null
     accessModes:
-      - ReadWriteMany
+      - ReadWriteOnce
 
 nodeSelector: {}
 
