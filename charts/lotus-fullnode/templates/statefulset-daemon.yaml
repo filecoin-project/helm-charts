@@ -52,6 +52,17 @@ spec:
           items:
           - key: config.toml
             path: config.toml
+{{- if .Values.genesis.enabled }}
+      - name: genesis-info-volume
+        configMap:
+          name: {{ .Values.genesis.configMapName }}
+          items:
+          - key: genesis
+            path: genesis
+      - name: genesis-volume
+        emptyDir:
+          medium: Memory
+{{- end }}
 {{- if .Values.secrets.jwt.enabled }}
       - name: jwt-secrets-volume
         secret:
@@ -101,6 +112,20 @@ spec:
         emptyDir:
           medium: Memory
       initContainers:
+{{- if .Values.genesis.enabled }}
+      - name: genesis-transfer
+        image: "curlimages/curl"
+        command: ["sh","-c"]
+        args:
+          - |
+            curl -o /genesis/genesis.car $(cat /genesis-info/genesis)
+        volumeMounts:
+          - name: genesis-info-volume
+            mountPath: /genesis-info
+            readOnly: true
+          - name: genesis-volume
+            mountPath: /genesis
+{{- end }}
 {{- if not .Values.secrets.jwt.enabled }}
       - name: temp-jwt
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -303,6 +328,10 @@ spec:
           - name: journal-volume
             mountPath: /var/lib/lotus/journal
           {{- end }}
+          {{- if .Values.genesis.enabled }}
+          - name: genesis-volume
+            mountPath: /genesis/
+          {{- end }}
 {{- end }}
       containers:
       - name: daemon
@@ -340,6 +369,10 @@ spec:
           {{- if .Values.persistence.parameters.enabled }}
           - name: parameters-volume
             mountPath: /var/tmp/filecoin-proof-parameters
+          {{- end }}
+          {{- if .Values.genesis.enabled }}
+          - name: genesis-volume
+            mountPath: /genesis/
           {{- end }}
         livenessProbe:
           httpGet:

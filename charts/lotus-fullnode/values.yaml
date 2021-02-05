@@ -31,6 +31,14 @@ importSnapshot:
   # when set, the network level chain export will be used instead of a namespaced one
   network: ""
 
+genesis:
+  # when enabled, a config map can be provided that points to a genesis.car file. The genesis
+  # will be downloaded and made available at /genesis/genesis.car, it is the users jobs to
+  # provides the `--genesis=/genesis/genesis.car` flag to the daemonArgs value.
+  enabled: false
+  # the config map should contain a `genesis` entry which is a full url which provides the genesis
+  configMapName: ""
+
 # pass additional arguments to the lotus daemon, these values will be passed as container
 # arguments to the daemon container.
 # eg:
