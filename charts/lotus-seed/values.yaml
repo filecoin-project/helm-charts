@@ -5,6 +5,7 @@ generate:
 
 minerIDs:
   - f01000
+recreateSectors: ""
 
 image:
   lotusSeed:
