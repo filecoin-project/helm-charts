@@ -1,0 +1,222 @@
+{{- if .Values.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-lotus-genesis-secrets-writer
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Name }}-lotus-genesis-secrets-writer
+rules:
+- apiGroups: [""]
+  resources: ["secrets", "configmaps"]
+  verbs: ["get", "list", "watch", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-lotus-genesis-secrets-writer
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ .Release.Name }}-lotus-genesis-secrets-writer
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-lotus-genesis-secrets-writer
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-lotus-genesis
+  labels:
+    app: lotus-genesis-app
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ .Release.Name }}-lotus-gensis
+  selector:
+    matchLabels:
+      app: lotus-genesis-app
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: lotus-genesis-app
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: {{ .Release.Name }}-lotus-genesis-secrets-writer
+      securityContext:
+        fsGroup: 532
+        runAsNonRoot: true
+        runAsUser: 532
+        runAsGroup: 532
+      volumes:
+      - name: secrets
+        emptyDir:
+          medium: Memory
+      initContainers:
+{{- range .Values.minerIDs }}
+      - name: generate-{{ . }}
+        image: {{ $.Values.image.lotusShed.repository }}:{{ $.Values.image.lotusShed.tag }}
+        imagePullPolicy: {{ $.Values.image.lotusShed.pullPolicy }}
+        command: ["bash","-c"]
+        args:
+          - |
+            set -x
+            pushd /genesis/
+
+            # create a new wallet address for the miner
+            addr=$(lotus-shed keyinfo new --output "bls-{{ . }}.keyinfo" bls)
+
+            # fetch the metadata file for the miner
+            curl -O http://{{ $.Values.lotusSeed }}/{{ . }}/pre-seal-{{ . }}.json
+
+            # update the metadata file with the new wallet address and make deals unique
+            cat pre-seal-{{ . }}.json | jq --arg Addr "$addr" --arg MinerId "{{ . }}" '
+                .[$MinerId].Owner = $Addr
+              | .[$MinerId].Worker = $Addr
+              | .[$MinerId].ID = $MinerId
+              | .[$MinerId].Sectors[].Deal.Client = $Addr
+              | .[$MinerId].Sectors[] |= (.Deal.Label = .CommR."/")
+            ' > pre-seal-{{ . }}.updated.json
+
+            # prep files for creating secrets and configmaps
+
+            mkdir -p /secrets/wallets/
+            mkdir -p /secrets/metadata/
+
+            mv pre-seal-{{ . }}.updated.json /secrets/metadata/pre-seal-{{ . }}.json
+
+            cp /genesis/bls-{{ . }}.keyinfo "/secrets/wallets/$addr"
+
+            # this allows us to look up the miner id for a given wallet address
+            echo "{{ . }}" > "/secrets/$addr.minerid"
+        volumeMounts:
+          - name: genesis
+            mountPath: /genesis
+          - name: secrets
+            mountPath: /secrets
+{{- end }}
+      - name: generate-genesis
+        image: {{ $.Values.image.lotusShed.repository }}:{{ $.Values.image.lotusShed.tag }}
+        imagePullPolicy: {{ $.Values.image.lotusShed.pullPolicy }}
+        command: ["/bin/bash","-c"]
+        args:
+          - |
+            pushd /genesis/
+
+            # create new genesis for network
+            lotus-seed genesis new /genesis/localnet.json
+
+            # add each miner to the network
+            for miner in $(ls /genesis/pre-seal-*.json); do
+              echo $miner
+              lotus-seed genesis add-miner /genesis/localnet.json $miner
+            done
+
+            # create the genesis
+            lotus --repo /genesis/temp daemon --api 0 --lotus-make-genesis=/genesis/genesis.car --genesis-template=/genesis/localnet.json --bootstrap=false &
+            ldpid=$!
+
+            while true; do
+              if [ ! -f "/genesis/genesis.car" ]; then
+                sleep 5
+              else
+                break
+              fi
+            done
+
+            sleep 5
+
+            kill "$ldpid"
+
+            wait
+
+            rm -rf /genesis/temp
+        volumeMounts:
+          - name: genesis
+            mountPath: /genesis
+          - name: secrets
+            mountPath: /secrets
+      - name: wallet-writer
+        image: {{ $.Values.image.kubectl.repository }}:{{ $.Values.image.kubectl.tag }}
+        imagePullPolicy: {{ $.Values.image.kubectl.pullPolicy }}
+        command: ["bash", "-c"]
+        args:
+          - |
+            # create a secret for each miners wallet
+            for wallet in $(ls /secrets/wallets/); do
+              kubectl delete secret {{ .Release.Name }}-wallet-$(cat /secrets/$wallet.minerid) || true
+              kubectl create secret generic {{ .Release.Name }}-wallet-$(cat /secrets/$wallet.minerid) \
+              --from-file=$wallet=/secrets/wallets/$wallet                                             \
+              --output=name
+            done
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+      - name: config-writer
+        image: {{ $.Values.image.kubectl.repository }}:{{ $.Values.image.kubectl.tag }}
+        imagePullPolicy: {{ $.Values.image.kubectl.pullPolicy }}
+        command: ["bash", "-c"]
+        args:
+          - |
+            kubectl delete configmap {{ .Release.Name }}-genesis || true
+            kubectl create configmap {{ .Release.Name }}-genesis --from-literal genesis="http://{{ .Release.Name }}-lotus-genesis.{{ .Release.Namespace }}.svc.cluster.local/genesis.car"
+
+            # this creates a single configmap that contains the metadata for all miners. the keys are in
+            # the format of `pre-seal-<miner>.json`, eg for t01000 the key would be 'pre-seal-t01000.json'.
+            # these could be put into their own configmaps if needed as well
+            kubectl delete configmap {{ .Release.Name }}-metadata || true
+            kubectl create configmap {{ .Release.Name }}-metadata --from-file /secrets/metadata
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+      containers:
+      - name: server
+        image: {{ .Values.image.nginx.repository }}:{{ .Values.image.nginx.tag }}
+        imagePullPolicy: {{ .Values.image.nginx.pullPolicy }}
+        ports:
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+          - name: genesis
+            mountPath: /usr/share/nginx/html
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+  {{- if .Values.persistence.enabled }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: genesis
+        {{- range $key, $value := .Values.persistence.genesis.annotations }}
+            {{ $key }}: {{ $value }}
+        {{- end }}
+      spec:
+        accessModes:
+            {{- range .Values.persistence.genesis.accessModes }}
+            - {{ . | quote }}
+            {{- end }}
+        resources:
+            requests:
+                storage: {{ .Values.persistence.genesis.size | quote }}
+        {{- if .Values.persistence.genesis.storageClassName }}
+        {{- if (eq "-" .Values.persistence.genesis.storageClassName) }}
+        storageClassName: ""
+        {{- else }}
+        storageClassName: "{{ .Values.persistence.genesis.storageClassName }}"
+        {{- end }}
+        {{- end }}
+  {{- end }}
+{{- end }}
