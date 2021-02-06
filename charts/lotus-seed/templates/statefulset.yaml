@@ -52,9 +52,8 @@ spec:
               mkdir -p /sectors/{{ . }}
               rm -rf /sectors/{{ . }}/*
               lotus-seed --sector-dir=/sectors/{{ . }} pre-seal --miner-addr={{ . }} --sector-size 2KiB --num-sectors=32 --fake-sectors
-
               cd /sectors/{{ . }}
-              tar -cvzf pre-seal-sectors-{{ . }}.tar.gz sealed
+              tar --exclude="pre-seal-{{ . }}.json" --exclude="pre-seal-{{ . }}.key" --exclude="unsealed" -cvzf pre-seal-sectors-{{ . }}.tar.gz *
             fi
         volumeMounts:
           - name: seed
