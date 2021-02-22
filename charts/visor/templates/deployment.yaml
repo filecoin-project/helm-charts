@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
       - name: visor
-        image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         {{- if .Values.debug }}
         command: ["/bin/bash", "-c", "sleep 10000"]

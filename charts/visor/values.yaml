@@ -5,7 +5,7 @@ replicaCount: 1
 logLevel: info
 image:
   repo: filecoin/sentinel-visor
-  tag: master-latest
+  tag: "v0.5.2" # required
   pullPolicy: IfNotPresent
 
 # Custom labels
@@ -61,15 +61,15 @@ lens: # configure how visor sources its data
 #
 watch:
   enabled: true
-  confidence: 0
+  confidence: 1
   tasks:
     - blocks
     - messages
-    - chainEconomics
+    - chaineconomics
     # for least confusion during runtime, pick only one actorStates task. (last one applies)
-    - actorStatesRaw
-    #- actorStatesParsed
-    #- actorStatesBoth
+    - actorstatesraw
+    #- actorstatesparsed
+    #- actorstatesboth
 walk:
   enabled: false
   #from: 0 # default: 0
@@ -77,11 +77,11 @@ walk:
   tasks:
     - blocks
     - messages
-    - chainEconomics
+    - chaineconomics
     # for least confusion during runtime, pick only one actorStates task. (last one applies)
-    - actorStatesRaw
-    #- actorStatesParsed
-    #- actorStatesBoth
+    - actorstatesraw
+    #- actorstatesparsed
+    #- actorstatesboth
 
 resources:
   requests:
