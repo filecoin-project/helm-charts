@@ -18,7 +18,7 @@ image:
 
 # PostgreSQL options
 pgSecret: "" # required
-pgDatabase: "" # default: "{{ .Release.Namespace }}-{{ .Release.Name }}-sentinel"
+pgDatabase: "" # default `database` key from pgSecret
 pgSSLMode: "require"
 pgPoolSize: 45
 pgAppName: "" # default: "visor_<version>_<host>_<runtime_pid>"
