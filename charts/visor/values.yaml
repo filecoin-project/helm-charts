@@ -33,6 +33,7 @@ prometheusOperatorServiceMonitor: false
 prometheusPort: ":9991"
 
 logLevel: error
+#logFormat: json
 #logLevelNamed: "vm:error,badgerbs:error"
 
 jaeger:

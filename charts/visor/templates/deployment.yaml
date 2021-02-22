@@ -156,6 +156,12 @@ spec:
           {{- /*
           # Global env
           */}}
+          - name: GOLOG_LOG_FMT
+          {{- if .Values.logFormat }}
+            value: {{ .Values.logFormat }}
+          {{- else }}
+            value: json
+          {{- end }}
           {{- if .Values.lens }}
           {{- if .Values.lens.lotusAPI }}
           - name: LOTUS_API_MULTIADDR
