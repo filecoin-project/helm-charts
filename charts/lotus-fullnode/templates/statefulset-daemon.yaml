@@ -334,6 +334,33 @@ spec:
           {{- end }}
 {{- end }}
       containers:
+{{- if .Values.disputer.enabled}}
+      - name: disputer
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/usr/local/bin/lotus"]
+        args:
+          - chain
+          - disputer
+          {{- if .Values.disputer.maxFee }}
+          - --max-fee={{ .Values.disputer.maxFee }}
+          {{- end }}
+          - --from={{ .Values.disputer.walletAddr }}
+          - start
+        env:
+          - name: LOTUS_API_MULTIADDR
+            value: "/ip4/127.0.0.1/tcp/1234"
+          - name: LOTUS_API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.secrets.jwt.secretName }}
+                key: {{ .Values.secrets.jwt.token_key }}
+          - name: FULLNODE_API_INFO
+            value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
+        {{- with .Values.disputer.env }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+{{- end }}
       - name: daemon
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
