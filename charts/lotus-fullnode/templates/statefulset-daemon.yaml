@@ -112,6 +112,21 @@ spec:
         emptyDir:
           medium: Memory
       initContainers:
+{{- if and .Values.persistence.datastore.enabled .Values.persistence.datastore.easyReset }}
+      - name: datastore-reset
+        image: busybox
+        command: ["sh","-c"]
+        args:
+          - |
+            set -xe
+            if [ -f "/var/lib/lotus/datastore/_reset" ]; then
+              echo "Removing datastore"
+              rm -rf /var/lib/lotus/datastore/*
+            fi
+        volumeMounts:
+          - name: datastore-volume
+            mountPath: /var/lib/lotus/datastore
+{{- end }}
 {{- if .Values.genesis.enabled }}
       - name: genesis-transfer
         image: "curlimages/curl"
@@ -245,6 +260,11 @@ spec:
         command: ["sh", "-c"]
         args:
           - |
+            if [ -f "/var/lib/lotus/datastore/_imported" ]; then
+              echo "Skipping import, found /var/lib/lotus/datastore/_imported file."
+              exit 0
+            fi
+
             # wait for the write to finish
             ls -alh /chain-exports
             while [ -f /chain-exports/{{ .Values.importSnapshot.exportRelease }}-write.lock ]; do
@@ -263,18 +283,30 @@ spec:
           {{- else }}
           subPath: chain-exports/by-namespace/{{ .Release.Namespace }}/
           {{- end }}
+        {{- if .Values.persistence.datastore.enabled }}
+        - name: datastore-volume
+          mountPath: /var/lib/lotus/datastore
+        {{- end }}
       - name: chain-import
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["bash", "-c"]
         args:
           - |
+            if [ -f "/var/lib/lotus/datastore/_imported" ]; then
+              echo "Skipping import, found /var/lib/lotus/datastore/_imported file."
+              exit 0
+            fi
+
             if [ ! -f /chain-exports/{{ .Values.importSnapshot.exportRelease }}.car ]; then
               echo "No export was found"
               exit {{ .Values.importSnapshot.exitCodeOnMissing }}
             fi
+
             lotus daemon --bootstrap=false --halt-after-import --import-snapshot=/chain-exports/{{ .Values.importSnapshot.exportRelease }}.car
             rm -f /chain-exports/{{ .Values.importSnapshot.exportRelease }}-read-{{ .Release.Namespace }}-{{ .Release.Name }}.lock
+
+            touch "/var/lib/lotus/datastore/_imported"
         volumeMounts:
           - name: config-volume
             mountPath: /var/lib/lotus/config.toml

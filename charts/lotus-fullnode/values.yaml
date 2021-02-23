@@ -15,7 +15,9 @@ daemonConfig: |
 
 importSnapshot:
   # when importSnapshot is enabled prior to the daemon starting a snapshot will
-  # be imported into the blockstore
+  # be imported into the blockstore iff /var/lib/lotus/datastore/_imported is not
+  # present. after an import /var/lib/lotus/datastore/_imported will be created
+  # resulting in no further imports from occuring till the file is removed.
   enabled: false
   # if the snapshot can't be found, the import init container will exit with
   # this status code, if you want the daemon to come back online regardless set
@@ -117,6 +119,9 @@ persistence:
     storageClassName: "gp2"
   datastore:
     enabled: true
+    # when easyReset is true, if `/var/lib/lotus/datastore/_reset` is present, all files under
+    # /var/lib/lotus/datastore/ will be removed when the pod restarts.
+    easyReset: false
     size: "10Gi"
     accessModes:
       - ReadWriteOnce
