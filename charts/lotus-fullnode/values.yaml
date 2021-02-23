@@ -31,6 +31,14 @@ importSnapshot:
   # when set, the network level chain export will be used instead of a namespaced one
   network: ""
 
+genesis:
+  # when enabled, a config map can be provided that points to a genesis.car file. The genesis
+  # will be downloaded and made available at /genesis/genesis.car, it is the users jobs to
+  # provides the `--genesis=/genesis/genesis.car` flag to the daemonArgs value.
+  enabled: false
+  # the config map should contain a `genesis` entry which is a full url which provides the genesis
+  configMapName: ""
+
 # pass additional arguments to the lotus daemon, these values will be passed as container
 # arguments to the daemon container.
 # eg:
@@ -81,19 +89,12 @@ secrets:
     libp2p_key: libp2p-host
 
   # all wallets must be managed externally to the deployed pod and should then be
-  # referenced by their secret name.
+  # referenced by their secret name. All keys in the secret will be imported.
+  # the secret should contain pairs in the format of <addr>: base64(base16(keyinfo))
+  # where the base64 is the standard k8s requirement.
   wallets:
     enabled: false
     secretName: ""
-    # the keystore value maps the secret key name to keystore under $LOTUS_PATH/keystore/<path>
-    # it's the responsability of the operator to properly encode the keystore path name for the
-    # wallets
-    # please see https://gist.github.com/travisperson/fa7380f24ea16b79f7274cc6d7ba2d40 for more informatio
-    # about how lotus encodes keystore filenames
-    # keystore:
-    # - key: t16otcoguwipz3puid6ilsqh26unpdf4iwocnxywa
-    #   path: O5QWY3DFOQWXIMJWN52GG33HOV3WS4D2GNYHK2LEGZUWY43RNAZDM5LOOBSGMNDJO5XWG3TYPF3WC
-    keystore: {}
 
 persistence:
   journal:

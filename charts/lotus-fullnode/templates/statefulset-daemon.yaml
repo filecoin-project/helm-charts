@@ -52,6 +52,17 @@ spec:
           items:
           - key: config.toml
             path: config.toml
+{{- if .Values.genesis.enabled }}
+      - name: genesis-info-volume
+        configMap:
+          name: {{ .Values.genesis.configMapName }}
+          items:
+          - key: genesis
+            path: genesis
+      - name: genesis-volume
+        emptyDir:
+          medium: Memory
+{{- end }}
 {{- if .Values.secrets.jwt.enabled }}
       - name: jwt-secrets-volume
         secret:
@@ -93,16 +104,28 @@ spec:
         secret:
           secretName: {{ .Values.secrets.wallets.secretName }}
           defaultMode: 0600
-          items:
-          {{- range .Values.secrets.wallets.keystore }}
-           - key: {{ .key }}
-             path: {{ .path }}
-          {{- end }}
+      - name: wallets-transfer-scratch
+        emptyDir:
+          medium: Memory
 {{- end }}
       - name: keystore-volume
         emptyDir:
           medium: Memory
       initContainers:
+{{- if .Values.genesis.enabled }}
+      - name: genesis-transfer
+        image: "curlimages/curl"
+        command: ["sh","-c"]
+        args:
+          - |
+            curl -o /genesis/genesis.car $(cat /genesis-info/genesis)
+        volumeMounts:
+          - name: genesis-info-volume
+            mountPath: /genesis-info
+            readOnly: true
+          - name: genesis-volume
+            mountPath: /genesis
+{{- end }}
 {{- if not .Values.secrets.jwt.enabled }}
       - name: temp-jwt
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -168,20 +191,30 @@ spec:
             mountPath: /keystore
 {{- if .Values.secrets.wallets.enabled }}
       - name: keystore-transfer-wallets
-        image: busybox
-        command: ["sh","-c"]
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        command: ["bash","-c"]
         args:
           - |
+            mkdir $LOTUS_PATH/keystore
             for key in $(ls /secrets); do
-              cp "/secrets/$key" /keystore/
+              lotus-shed keyinfo import "/secrets/$key"
+            done
+
+            for key in $(ls /$LOTUS_PATH/keystore); do
+              cp "/scratch/keystore/$key" /keystore/
               chmod 0600 "/keystore/$key"
             done
+        env:
+          - name: LOTUS_PATH
+            value: /scratch
         volumeMounts:
           - name: wallets-secrets-volume
             mountPath: /secrets
             readOnly: true
           - name: keystore-volume
             mountPath: /keystore
+          - name: wallets-transfer-scratch
+            mountPath: /scratch
 {{- end }}
       - name: keystore-verifier
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -295,6 +328,10 @@ spec:
           - name: journal-volume
             mountPath: /var/lib/lotus/journal
           {{- end }}
+          {{- if .Values.genesis.enabled }}
+          - name: genesis-volume
+            mountPath: /genesis/
+          {{- end }}
 {{- end }}
       containers:
       - name: daemon
@@ -332,6 +369,10 @@ spec:
           {{- if .Values.persistence.parameters.enabled }}
           - name: parameters-volume
             mountPath: /var/tmp/filecoin-proof-parameters
+          {{- end }}
+          {{- if .Values.genesis.enabled }}
+          - name: genesis-volume
+            mountPath: /genesis/
           {{- end }}
         livenessProbe:
           httpGet:
