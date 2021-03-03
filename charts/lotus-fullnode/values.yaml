@@ -137,6 +137,10 @@ loadBalancer:
   enabled: false
   annotations: {}
 
+apiLoadBalancer:
+  enabled: false
+  annotations: {}
+
 resources: {}
 
 nodeSelector: {}
