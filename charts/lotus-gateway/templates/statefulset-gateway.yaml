@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-lotus-gateway
+  labels:
+    app: lotus-gateway-app
+{{- with .Values.additionalLabels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  replicas: 1
+  serviceName: {{ .Release.Name }}-lotus-gateway-service
+  selector:
+    matchLabels:
+      app: lotus-gateway-app
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: lotus-gateway-app
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        release: {{ .Release.Name }}
+{{- with .Values.additionalLabels }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+    spec:
+      securityContext:
+        fsGroup: 532
+        runAsNonRoot: true
+        runAsUser: 532
+        runAsGroup: 532
+      containers:
+      - name: gateway
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/usr/local/bin/lotus-gateway"]
+        args:
+          - run
+        env:
+        {{ if .Values.secrets.jwt.enabed }}
+          - name: LOTUS_API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.secrets.jwt.secretName }}
+                key: {{ .Values.secrets.jwt.token_key }}
+          - name: FULLNODE_API_INFO
+            value: "$(LOTUS_API_TOKEN):{{ .Values.lotus.fullnode_api_multiaddr }}"
+        {{ else }}
+          - name: FULLNODE_API_INFO
+            value: "{{ .Values.lotus.fullnode_api_multiaddr }}"
+        {{ end }}

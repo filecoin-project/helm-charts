@@ -1,0 +1,32 @@
+image:
+  repository: coryschwartz/lotus-gateway
+  pullPolicy: IfNotPresent
+  tag: v1.5.0
+
+prometheusOperatorServiceMonitor: true
+
+ports:
+  rpc: 2346
+
+loadBalancer:
+  enabled: false
+  annotations: {}
+
+secrets:
+  jwt:
+    enabled: false
+    secretName: ""
+    token_key: ""
+
+lotus:
+  fullnode_api_multiaddr: "/dns/fullnode-0-lotus-daemon/tcp/1234"
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+additionalLabels: {}
