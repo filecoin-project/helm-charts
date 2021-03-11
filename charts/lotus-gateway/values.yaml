@@ -24,7 +24,7 @@ secrets:
     token_key: ""
 
 lotus:
-  fullnode_api_multiaddr: "/dns/fullnode-0-lotus-daemon/tcp/1234"
+  fullnodeApiMultiaddr: "/dns/fullnode-0-lotus-daemon/tcp/1234"
 
 resources: {}
 

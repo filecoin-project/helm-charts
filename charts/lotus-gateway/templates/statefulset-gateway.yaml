@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ .Release.Name }}-lotus-gateway
   labels:
@@ -10,7 +10,6 @@ metadata:
 {{- end }}
 spec:
   replicas: 1
-  serviceName: {{ .Release.Name }}-lotus-gateway-service
   selector:
     matchLabels:
       app: lotus-gateway-app
@@ -45,8 +44,8 @@ spec:
                 name: {{ .Values.secrets.jwt.secretName }}
                 key: {{ .Values.secrets.jwt.token_key }}
           - name: FULLNODE_API_INFO
-            value: "$(LOTUS_API_TOKEN):{{ .Values.lotus.fullnode_api_multiaddr }}"
+            value: "$(LOTUS_API_TOKEN):{{ .Values.lotus.fullnodeApiMultiaddr }}"
         {{ else }}
           - name: FULLNODE_API_INFO
-            value: "{{ .Values.lotus.fullnode_api_multiaddr }}"
+            value: "{{ .Values.lotus.fullnodeApiMultiaddr }}"
         {{ end }}
