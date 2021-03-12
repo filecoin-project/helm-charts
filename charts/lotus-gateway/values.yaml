@@ -17,6 +17,9 @@ ingress:
   class: nginx
   host: example.com
 
+deployment:
+  replicas: 1
+
 secrets:
   jwt:
     enabled: false
