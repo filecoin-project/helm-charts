@@ -8,9 +8,10 @@ prometheusOperatorServiceMonitor: true
 ports:
   rpc: 2346
 
-loadBalancer:
-  enabled: false
-  annotations: {}
+backend:
+  enabled: true
+  appSelector: lotus-fullnode-app
+  port: 1234
 
 ingress:
   enabled: false
@@ -27,7 +28,7 @@ secrets:
     token_key: ""
 
 lotus:
-  fullnodeApiMultiaddr: "/dns/fullnode-0-lotus-daemon/tcp/1234"
+  fullnodeApiMultiaddr: "/dns/lotus-gateway-backend/tcp/1234"
 
 resources: {}
 

@@ -1,0 +1,19 @@
+# This service is used to balance traffic between the gateway and
+# multiple backend fullnodes.
+
+---
+{{- if .Values.backend.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-lotus-gateway-backend
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ .Values.backend.appSelector }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.backend.port }}
+      targetPort: {{ .Values.backend.port }}
+      name: rpc
+{{- end }}
