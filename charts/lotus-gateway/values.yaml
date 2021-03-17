@@ -8,11 +8,6 @@ prometheusOperatorServiceMonitor: true
 ports:
   rpc: 2346
 
-backend:
-  enabled: true
-  appSelector: lotus-fullnode-app
-  port: 1234
-
 ingress:
   enabled: false
   class: nginx
