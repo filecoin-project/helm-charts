@@ -24,6 +24,8 @@ exchangeSecrets: ""
 exchanges:
   coinmarketcap: 600
 
+pairs: "FIL-USD"
+
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""

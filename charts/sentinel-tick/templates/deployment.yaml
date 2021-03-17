@@ -75,6 +75,8 @@ spec:
               value: "{{ .Values.pgPoolSize }}"
             - name: SENTINEL_TICK_METRICS
               value: "0.0.0.0:2111"
+            - name: SENTINEL_TICK_PAIRS
+              value: "{{ .Values.pairs }}"
             - name: SENTINEL_TICK_COINMARKETCAP_TOKEN
               valueFrom:
                 secretKeyRef:
