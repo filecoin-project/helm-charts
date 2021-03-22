@@ -5,7 +5,7 @@ replicaCount: 1
 logLevel: info
 image:
   repo: filecoin/sentinel-visor
-  tag: master-latest
+  tag: "v0.5.2" # required
   pullPolicy: IfNotPresent
 
 # Custom labels
@@ -18,7 +18,7 @@ image:
 
 # PostgreSQL options
 pgSecret: "" # required
-pgDatabase: "" # default: "{{ .Release.Namespace }}-{{ .Release.Name }}-sentinel"
+pgDatabase: "" # default `database` key from pgSecret
 pgSSLMode: "require"
 pgPoolSize: 45
 pgAppName: "" # default: "visor_<version>_<host>_<runtime_pid>"
@@ -33,6 +33,7 @@ prometheusOperatorServiceMonitor: false
 prometheusPort: ":9991"
 
 logLevel: error
+#logFormat: json
 #logLevelNamed: "vm:error,badgerbs:error"
 
 jaeger:
@@ -60,15 +61,15 @@ lens: # configure how visor sources its data
 #
 watch:
   enabled: true
-  confidence: 0
+  confidence: 1
   tasks:
     - blocks
     - messages
-    - chainEconomics
+    - chaineconomics
     # for least confusion during runtime, pick only one actorStates task. (last one applies)
-    - actorStatesRaw
-    #- actorStatesParsed
-    #- actorStatesBoth
+    - actorstatesraw
+    #- actorstatesparsed
+    #- actorstatesboth
 walk:
   enabled: false
   #from: 0 # default: 0
@@ -76,11 +77,11 @@ walk:
   tasks:
     - blocks
     - messages
-    - chainEconomics
+    - chaineconomics
     # for least confusion during runtime, pick only one actorStates task. (last one applies)
-    - actorStatesRaw
-    #- actorStatesParsed
-    #- actorStatesBoth
+    - actorstatesraw
+    #- actorstatesparsed
+    #- actorstatesboth
 
 resources:
   requests:
