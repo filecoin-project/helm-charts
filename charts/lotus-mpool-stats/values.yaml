@@ -1,0 +1,18 @@
+image:
+  repository: travisperson/lotus-shed
+  pullPolicy: IfNotPresent
+  tag: mainnet-v1.5.3-rc2
+nameOverride: ""
+
+# The lotus api info is the multiaddr for the backing lotus daemon.
+# Eg /ip4/1.2.3.4/tcp/1234/
+# Eg /dns/fullnode-0-lotus-daemon.<namespace>.svc.cluster.local/tcp/1234
+lotusApiInfo: ""
+
+podAnnotations: {}
+podSecurityContext: []
+securityContext: {}
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

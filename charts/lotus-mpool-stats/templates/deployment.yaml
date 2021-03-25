@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lotus-mpool-stats.fullname" . }}
+  labels:
+    {{- include "lotus-mpool-stats.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "lotus-mpool-stats.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: lotus-mpool-stats
+        release: {{ .Release.Name }}
+        {{- include "lotus-mpool-stats.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: mpool-stats
+        {{- with .Values.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/usr/local/bin/lotus-shed", "mpool-stats"]
+        args: []
+        env:
+          - name: FULLNODE_API_INFO
+            value: {{ required "lotusApiInfo is required" .Values.lotusApiInfo }}
+        {{- with .Values.resources }}
+        resources:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 4 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 4 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 4 }}
+      {{- end }}
