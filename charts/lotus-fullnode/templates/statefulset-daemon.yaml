@@ -288,7 +288,6 @@ spec:
             readOnly: true
           - name: keystore-volume
             mountPath: /var/lib/lotus/keystore
-            readOnly: false
           {{- if .Values.persistence.datastore.enabled }}
           - name: datastore-volume
             mountPath: /var/lib/lotus/datastore
