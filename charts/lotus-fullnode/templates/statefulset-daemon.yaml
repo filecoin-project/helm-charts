@@ -104,9 +104,6 @@ spec:
         secret:
           secretName: {{ .Values.secrets.wallets.secretName }}
           defaultMode: 0600
-      - name: wallets-transfer-scratch
-        emptyDir:
-          medium: Memory
 {{- end }}
       - name: keystore-volume
         emptyDir:
@@ -204,33 +201,6 @@ spec:
             readOnly: true
           - name: keystore-volume
             mountPath: /keystore
-{{- if .Values.secrets.wallets.enabled }}
-      - name: keystore-transfer-wallets
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-        command: ["bash","-c"]
-        args:
-          - |
-            mkdir $LOTUS_PATH/keystore
-            for key in $(ls /secrets); do
-              lotus-shed keyinfo import "/secrets/$key"
-            done
-
-            for key in $(ls /$LOTUS_PATH/keystore); do
-              cp "/scratch/keystore/$key" /keystore/
-              chmod 0600 "/keystore/$key"
-            done
-        env:
-          - name: LOTUS_PATH
-            value: /scratch
-        volumeMounts:
-          - name: wallets-secrets-volume
-            mountPath: /secrets
-            readOnly: true
-          - name: keystore-volume
-            mountPath: /keystore
-          - name: wallets-transfer-scratch
-            mountPath: /scratch
-{{- end }}
       - name: keystore-verifier
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -318,7 +288,7 @@ spec:
             readOnly: true
           - name: keystore-volume
             mountPath: /var/lib/lotus/keystore
-            readOnly: true
+            readOnly: false
           {{- if .Values.persistence.datastore.enabled }}
           - name: datastore-volume
             mountPath: /var/lib/lotus/datastore
@@ -366,6 +336,42 @@ spec:
           {{- end }}
 {{- end }}
       containers:
+{{- if .Values.secrets.wallets.enabled }}
+      - name: wallet-importer
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        command: ["bash","-c"]
+        args:
+          - |
+            # TODO, if we had any inotify tools we could use that instead of polling.
+            while sleep 60; do
+              # import keys
+              for key in /wallets/*; do
+                lotus wallet import "${key}"
+              done
+              # Not sure how best to delete old keys. I think perhaps we could define an upstream
+              # cash-out wallet when wallets are deleted, we would cash out and then delete the key.
+              # In the mean time, not doing anything. Old keys will stay here.
+              for addr in $(lotus wallet list -a); do
+                if [ ! -f "/wallets/${addr}" ]; then
+                  echo "please delete $addr manually; it is no longer in the wallet list."
+                fi
+              done
+            done
+        env:
+          - name: LOTUS_API_MULTIADDR
+            value: "/ip4/127.0.0.1/tcp/1234"
+          - name: LOTUS_API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.secrets.jwt.secretName }}
+                key: {{ .Values.secrets.jwt.token_key }}
+          - name: FULLNODE_API_INFO
+            value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
+        volumeMounts:
+          - name: wallets-secrets-volume
+            mountPath: /wallets
+            readOnly: true
+{{- end }}
 {{- if .Values.disputer.enabled}}
       - name: disputer
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -416,7 +422,6 @@ spec:
             readOnly: true
           - name: keystore-volume
             mountPath: /var/lib/lotus/keystore
-            readOnly: true
           {{- if .Values.persistence.datastore.enabled }}
           - name: datastore-volume
             mountPath: /var/lib/lotus/datastore
