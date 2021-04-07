@@ -37,7 +37,7 @@ spec:
         args:
           - run
         env:
-        {{ if .Values.secrets.jwt.enabed }}
+        {{ if .Values.secrets.jwt.enabled }}
           - name: LOTUS_API_TOKEN
             valueFrom:
               secretKeyRef:
