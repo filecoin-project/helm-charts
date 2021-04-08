@@ -44,7 +44,6 @@ importSnapshot:
   exportRelease: ""
   # when set, the network level chain export will be used instead of a namespaced one
   network: ""
-
   # strategy "url" options:
   #
   url: "https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car"
