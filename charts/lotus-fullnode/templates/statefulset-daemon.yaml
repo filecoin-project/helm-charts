@@ -335,6 +335,48 @@ spec:
             subPath: chain-exports/by-namespace/{{ .Release.Namespace }}/
             {{- end }}
 {{- end }}
+{{- if .Values.importTrustedSnapshot.enabled }}
+      - name: trusted-chain-import
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["bash", "-c"]
+        args:
+          - |
+            if [ -f "/var/lib/lotus/datastore/_imported" ]; then
+              echo "Skipping import, found /var/lib/lotus/datastore/_imported file."
+              exit 0
+            fi
+            lotus daemon --bootstrap=false --halt-after-import --import-snapshot={{ .Values.importTrustedSnapshot.url }}
+            status=$?
+            if [ $status -eq 0 ]; then
+              echo snapshot imported successfully.
+              touch "/var/lib/lotus/datastore/_imported"
+            else
+              echo snapshot not imported successfully. exiting with error condition.
+            fi
+            exit $status
+
+        volumeMounts:
+          - name: config-volume
+            mountPath: /var/lib/lotus/config.toml
+            subPath: config.toml
+            readOnly: true
+          - name: jwt-token-volume
+            mountPath: /var/lib/lotus/token
+            subPath: token
+            readOnly: true
+          - name: keystore-volume
+            mountPath: /var/lib/lotus/keystore
+            readOnly: true
+          {{- if .Values.persistence.datastore.enabled }}
+          - name: datastore-volume
+            mountPath: /var/lib/lotus/datastore
+          {{- end }}
+          {{- if .Values.persistence.journal.enabled }}
+          - name: journal-volume
+            mountPath: /var/lib/lotus/journal
+          {{- end }}
+{{- end }}
 {{- if .Values.debug }}
       - name: debug
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
