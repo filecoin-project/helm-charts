@@ -95,8 +95,8 @@ secrets:
   # the secret should contain pairs in the format of <addr>: base64(base16(keyinfo))
   # where the base64 is the standard k8s requirement.
   wallets:
-    enabled: false
-    secretName: ""
+    enabled: true
+    secretName: "fullnode-1-wallets"
 
 disputer:
   # when enabled the `lotus chain disputer start` command will be run in a `disputer` container.
