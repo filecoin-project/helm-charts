@@ -13,34 +13,40 @@ daemonConfig: |
   [Libp2p]
     ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
 
-# Import a snapshot from pre-existing volume on the same cluster where the lotus daemon will run.
-# This should not be enabled when importTrustedSnapshot is enabled.
+# importSnapshot controls the way the lotus repo is initialized prior to starting
+# the daemon.
+# When importSnapshot is disabled (default) the lotus daemon will start with an empty
+# repo and will sync the chain slowly over the network, This is a slow process, so it is
+# highly recommended to enable importSnapshot.
+# "volume" strategy instructs the import container to import from a volume that already
+# exists on the netowrk. If you run archive nodes and wish to manage your own snapshots,
+# this is the strategy thta should be used.
+# "url" strategy downloads and imports a snapshot over HTTP. By default, this strategy
+# will download the "lightweight" snapshot from here:
+# https://docs.filecoin.io/get-started/lotus/chain/
 importSnapshot:
   # when importSnapshot is enabled prior to the daemon starting a snapshot will
   # be imported into the blockstore iff /var/lib/lotus/datastore/_imported is not
   # present. after an import /var/lib/lotus/datastore/_imported will be created
   # resulting in no further imports from occuring till the file is removed.
   enabled: false
+  strategy: "volume"
+
+  # strategy "volume" options:
+  #
   # if the snapshot can't be found, the import init container will exit with
   # this status code, if you want the daemon to come back online regardless set
   # this value to `0`
   exitCodeOnMissing: 1
-
   # this is the claimName of a pvc that will be used for chain importing
   claimName: chain-exports
-
   # exportRelease is the name of the chain-export release
   exportRelease: ""
-
   # when set, the network level chain export will be used instead of a namespaced one
   network: ""
 
-# Download and import a snapshot from a trusted location during lotus initialization.
-# The default behavior, when this is enabled, mimics the procedure described here for
-# importing the lightweight snapshot. This should not be enabled when importSnapshot is enabled.
-# https://docs.filecoin.io/get-started/lotus/chain/#lightweight-snapshot
-importTrustedSnapshot:
-  enabled: false
+  # strategy "url" options:
+  #
   url: "https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car"
 
 genesis:
