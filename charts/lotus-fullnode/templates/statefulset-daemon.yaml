@@ -108,6 +108,11 @@ spec:
         emptyDir:
           medium: Memory
 {{- end }}
+{{- if .Values.additionalVolumes }}
+  {{- range .Values.additionalVolumes }}
+{{- toYaml .volume | nindent 6 }}
+  {{- end }}
+{{ end }}
       - name: keystore-volume
         emptyDir:
           medium: Memory
@@ -433,6 +438,11 @@ spec:
           - name: genesis-volume
             mountPath: /genesis/
           {{- end }}
+{{- if .Values.additionalVolumes }}
+  {{- range .Values.additionalVolumes }}
+{{- toYaml .volumeMount | nindent 10 }}
+  {{- end }}
+{{ end }}
         livenessProbe:
           httpGet:
             path: /debug/metrics
