@@ -55,29 +55,8 @@ spec:
           {{- if .Values.logLevelNamed }}
           - --log-level-named={{ .Values.logLevelNamed }}
           {{- end }}
+
           {{- /*
-
-          # database args
-          */}}
-          {{- if .Values.pgPoolSize }}
-          - --db-pool-size={{ int .Values.pgPoolSize }}
-          {{- end }}
-
-          {{- if .Values.pgAppName }}
-          - --name={{ .Values.pgAppName | replace "-" "" }}
-          {{- end }}
-          - --allow-schema-migration={{ .Values.allowAutomaticMigration }}
-          {{- /*
-
-          # lens config
-          */}}
-          {{- if .Values.lens }}
-          {{- if .Values.lens.lotusAPI }}
-          - --lens=lotus
-          {{- end }}
-          {{- end }}
-          {{- /*
-
           # mode-specific args
           */}}
           {{- if and .Values.watch.enabled .Values.walk.enabled }}
@@ -89,7 +68,27 @@ spec:
           */}}
           {{- if and .Values.watch .Values.watch.enabled }}
           {{- with .Values.watch }}
+          - run
           - watch
+          {{- /*
+          # database args
+          */}}
+          {{- if .Values.pgPoolSize }}
+          - --db-pool-size={{ int .Values.pgPoolSize }}
+          {{- end }}
+
+          {{- if .Values.pgAppName }}
+          - --name={{ .Values.pgAppName | replace "-" "" }}
+          {{- end }}
+          - --allow-schema-migration={{ .Values.allowAutomaticMigration }}
+          {{- /*
+          # lens config
+          */}}
+          {{- if .Values.lens }}
+          {{- if .Values.lens.lotusAPI }}
+          - --lens=lotus
+          {{- end }}
+          {{- end }}
           - --indexhead-confidence={{ int .confidence }}
           {{- if .tasks }}
           - --tasks={{ .tasks | join "," | lower }}
@@ -102,7 +101,27 @@ spec:
           */}}
           {{- if and .Values.walk .Values.walk.enabled }}
           {{- with .Values.walk }}
+          - run
           - walk
+          {{- /*
+          # database args
+          */}}
+          {{- if .Values.pgPoolSize }}
+          - --db-pool-size={{ int .Values.pgPoolSize }}
+          {{- end }}
+
+          {{- if .Values.pgAppName }}
+          - --name={{ .Values.pgAppName | replace "-" "" }}
+          {{- end }}
+          - --allow-schema-migration={{ .Values.allowAutomaticMigration }}
+          {{- /*
+          # lens config
+          */}}
+          {{- if .Values.lens }}
+          {{- if .Values.lens.lotusAPI }}
+          - --lens=lotus
+          {{- end }}
+          {{- end }}
           {{- if .tasks }}
           - --tasks={{ join "," .tasks }}
           {{- end }}

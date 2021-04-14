@@ -5,7 +5,7 @@ replicaCount: 1
 logLevel: info
 image:
   repo: filecoin/sentinel-visor
-  tag: "v0.5.3" # required
+  tag: "v0.6.0" # required
   pullPolicy: IfNotPresent
 
 # Custom labels
