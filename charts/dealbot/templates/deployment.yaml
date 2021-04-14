@@ -1,0 +1,145 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-dealbot-controller
+  labels:
+    app: dealbot-controller
+{{- if .Values.labels }}
+{{ toYaml .Values.labels | indent 4 }}
+{{- end }}
+
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dealbot-controller
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: dealbot-controller
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-{{ .Values.controller.config }}
+          items:
+          - key: config.toml
+            path: config.toml
+      containers:
+      - name: dealbot-controller
+        image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        ports:
+          - containerPort: 9991
+            name: metrics
+          - containerPort: 8764
+            name: dealbot
+        command: [ "controller" ]
+        args: [ "--configpath", "/config.toml" ]
+        env: []
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config.toml
+          subPath: config.toml
+          readOnly: true
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-dealbot-worker
+  labels:
+    app: dealbot-worker
+{{- if .Values.labels }}
+{{ toYaml .Values.labels | indent 4 }}
+{{- end }}
+
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dealbot-worker
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: dealbot-worker
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-{{ .Values.controller.config }}
+          items:
+          - key: config.toml
+            path: config.toml
+      containers:
+      - name: dealbot-worker
+        image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        ports:
+          - containerPort: 9991
+            name: metrics
+          - containerPort: 8764
+            name: dealbot
+        command: [ "daemon" ]
+        args: ["--configpath", "/config.toml"]
+        env:
+        - name: LOTUS_API_MULTIADDR
+          value: {{ .Values.worker.lotusAPI.lotusAPIMultiaddr }}
+        - name: LOTUS_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.worker.lotusAPI.lotusAPITokenSecret }}
+              key: jwt-ro-privs-token
+        - name: FULLNODE_API_INFO
+          value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config.toml
+          subPath: config.toml
+          readOnly: true
+        - name: worker-data
+          mountPath: /data
+        - name: worker-node-data
+          mountPath: /nodedata
+        resources:
+  volumeClaimTemplates:
+  {{- if .Values.worker.persistence.enabled }}
+    - metadata:
+        name: worker-data
+      spec:
+        accessModes:
+        {{- range .Values.worker.persistence.accessModes }}
+        - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.worker.persistence.storageClassName }}
+        resources:
+          requests:
+            storage: {{ .Values.worker.persistence.size | quote }}
+    - metadata:
+        name: worker-node-data
+      spec:
+        accessModes:
+        {{- range .Values.worker.persistence.accessModes }}
+        - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.worker.persistence.storageClassName }}
+        resources:
+          requests:
+            storage: {{ .Values.worker.persistence.size | quote }}
+  {{- end }}
+{{ toYaml .Values.resources | indent 10 }}

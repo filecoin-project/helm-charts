@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.controller.config }}
+data:
+  config.toml: |
+    [controller]
+    listen = "0.0.0.0:8764"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.worker.config }}
+data:
+  config.toml: |
+    [daemon]
+    listen        = "0.0.0.0:8764"
+    data_dir      = "/data"
+    node_data_dir = "/nodedata"
+    wallet        = ""

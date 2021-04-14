@@ -1,0 +1,58 @@
+# Default values for filecoin dealbot
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+logLevel: info
+image:
+  repo: filecoin/dealbot
+  tag: "" # required
+  pullPolicy: IfNotPresent
+
+# Custom labels
+#labels:
+  #name: foo
+
+#
+# Global
+#
+
+# Debug Options
+
+# sleep container without exiting
+debug: false
+
+# prometheus service monitor
+prometheusOperatorServiceMonitor: false
+prometheusPort: ":9991"
+
+logLevel: error
+#logFormat: json
+#logLevelNamed: "vm:error,badgerbs:error"
+
+jaeger:
+  enabled: false
+  host: ""
+  port: 6831
+  serviceName: "dealbot"
+  sampler:
+    type: "probabilistic"
+    param: 0.0001
+
+controller:
+  config: "dealbot-controller"
+
+worker:
+  replicas: 1
+  config: "dealbot-worker"
+  lotusAPI:
+    lotusAPITokenSecret: ""
+    lotusAPIMultiaddr: "" # required
+  persistence:
+    enabled: false
+
+resources:
+  requests:
+    cpu: 8000m
+    memory: 32Gi
+  limits:
+    cpu: 16000m
+    memory: 64Gi
