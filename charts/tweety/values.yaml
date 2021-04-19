@@ -15,3 +15,24 @@ resources:
   limits:
     cpu: 100m
     memory: 512Mi
+
+
+ingress:
+  enabled: true
+  class: nginx
+  host: example.com
+  # An auth token must be generated manually.
+  # For more information, see here:
+  # https://kubernetes.github.io/ingress-nginx/examples/auth/basic/
+  # but the tl;dr is to do this:
+  # Use htpasswd or another tool like this one to produce an htpasswd file.
+  # https://www.web2generators.com/apache-tools/htpasswd-generator
+  # $ htpasswd -a tweety
+  # The file will look something like this:
+  # tweety:$apr1$cf52lxsp$sHbroRL9wU10nh.iNI5rI.
+  # Now, create a secret with this file in the right namespace.
+  # kubectl -n <namespace> create secret generic basic-auth --from-file=auth
+  auth:
+    enabled: true
+    secret: basic-auth
+    realm: "Authentication Required - tweety"
