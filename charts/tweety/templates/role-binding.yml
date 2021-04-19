@@ -5,7 +5,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups: [""]
-  resources: ["secrets", "pods", "nodes", "pods/log", "pods/exec", "events", "persistentvolumeclaims", "persistentvolumes"]
+  resources: ["configmaps", "secrets", "services", "pods", "nodes", "pods/log", "pods/exec", "events", "persistentvolumeclaims", "persistentvolumes"]
+  verbs: ["get", "watch", "list", "edit", "create", "delete", "deletecollection"]
+- apiGroups: ["apps"]
+  resources: ["statefulsets"]
+  verbs: ["get", "watch", "list", "edit", "create", "delete", "deletecollection"]
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors"]
   verbs: ["get", "watch", "list", "edit", "create", "delete", "deletecollection"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

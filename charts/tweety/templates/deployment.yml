@@ -29,6 +29,6 @@ spec:
         #   privileged: true
         ports:
         - containerPort: 1337
-          hostPort: 1337
+          name: tweety
         resources:
 {{ toYaml .Values.resources | indent 10 }}
