@@ -1,0 +1,26 @@
+{{- if .Values.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-tweety-ingress
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.ingress.class }}
+{{- if .Values.ingress.auth.enabled }}
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: {{ .Values.ingress.auth.secret }}
+    nginx.ingress.kubernetes.io/auth-realm: {{ .Values.ingress.auth.realm }}
+{{- end }}
+{{- with .Values.ingress.annotations }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Release.Name }}-tweety-daemon
+          servicePort: 1337
+{{- end }}

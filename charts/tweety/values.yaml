@@ -32,6 +32,7 @@ ingress:
   # tweety:$apr1$cf52lxsp$sHbroRL9wU10nh.iNI5rI.
   # Now, create a secret with this file in the right namespace.
   # kubectl -n <namespace> create secret generic basic-auth --from-file=auth
+  # and you're all set!
   auth:
     enabled: true
     secret: basic-auth
