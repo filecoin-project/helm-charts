@@ -55,7 +55,6 @@ spec:
           {{- if .Values.logLevelNamed }}
           - --log-level-named={{ .Values.logLevelNamed }}
           {{- end }}
-
           {{- /*
           # mode-specific args
           */}}
@@ -75,7 +74,6 @@ spec:
           {{- if .Values.pgPoolSize }}
           - --db-pool-size={{ int .Values.pgPoolSize }}
           {{- end }}
-
           {{- if .Values.pgAppName }}
           - --name={{ .Values.pgAppName | replace "-" "" }}
           {{- end }}
