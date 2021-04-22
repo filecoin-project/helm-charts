@@ -3,22 +3,13 @@
 # Declare variables to be passed into your templates.
 logLevel: info
 image:
-  repo: filecoin/dealbot
-  tag: "" # required
-  pullPolicy: IfNotPresent
+  repo: coryschwartz/dealbot
+  tag: "latest" # required
+  pullPolicy: Always
 
 # Custom labels
 #labels:
   #name: foo
-
-#
-# Global
-#
-
-# Debug Options
-
-# sleep container without exiting
-debug: false
 
 # prometheus service monitor
 prometheusOperatorServiceMonitor: false
@@ -37,22 +28,47 @@ jaeger:
     type: "probabilistic"
     param: 0.0001
 
-controller:
-  config: "dealbot-controller"
+controller: 
+  enabled: true
+  postgres:
+    enabled: true
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1000Mi
+    requests:
+      cpu: 500m
+      memory: 500Mi
 
-worker:
+postgres:
+  enabled: true
+  instances: 1
+  version: 13
+  teamid: dealbotteam
+  user: dealbotuser
+  database: dealbotdb
+  volume: 100Gi
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1000Mi
+    requests:
+      cpu: 500m
+      memory: 500Mi
+
+daemon:
+  enabled: true
   replicas: 1
-  config: "dealbot-worker"
+  config: "dealbot-daemon"
   lotusAPI:
     lotusAPITokenSecret: ""
     lotusAPIMultiaddr: "" # required
   persistence:
     enabled: false
-
-resources:
-  requests:
-    cpu: 8000m
-    memory: 32Gi
-  limits:
-    cpu: 16000m
-    memory: 64Gi
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1000Mi
+    requests:
+      cpu: 500m
+      memory: 1000Mi
