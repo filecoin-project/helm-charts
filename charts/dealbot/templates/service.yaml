@@ -1,3 +1,4 @@
+{{ if .Values.controller.enabled }}
 ---
 apiVersion: v1
 kind: Service
@@ -17,3 +18,26 @@ spec:
       port: 8764
       targetPort: 8764
       name: dealbot
+{{ end }}
+
+{{ if .Values.daemon.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-daemon
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: dealbot-controller
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: dealbot-controller
+    release: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: 8764
+      targetPort: 8764
+      name: dealbot
+{{ end }}

@@ -1,3 +1,4 @@
+{{ if .Values.controller.enabled }}
 ---
 apiVersion: v1
 kind: Service
@@ -8,7 +9,7 @@ metadata:
     release: {{ .Release.Name }}
   annotations:
     prometheus.io/scrape: "true"
-    prometheus.io/port: "9991"
+    prometheus.io/port: "8764"
     prometheus.io/path: /metrics
 spec:
   type: ClusterIP
@@ -17,21 +18,23 @@ spec:
       release: {{ .Release.Name }}
   ports:
     - protocol: TCP
-      port: 9991
-      targetPort: 9991
+      port: 8764 
+      targetPort: 8764
       name: metrics
+{{ end }}
 
+{{ if .Values.daemon.enabled }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-dealbot-worker-metrics
+  name: {{ .Release.Name }}-dealbot-daemon-metrics
   labels:
     app: visor
     release: {{ .Release.Name }}
   annotations:
     prometheus.io/scrape: "true"
-    prometheus.io/port: "9991"
+    prometheus.io/port: "8764"
     prometheus.io/path: /metrics
 spec:
   type: ClusterIP
@@ -40,6 +43,7 @@ spec:
       release: {{ .Release.Name }}
   ports:
     - protocol: TCP
-      port: 9991
-      targetPort: 9991
+      port: 8764
+      targetPort: 8764
       name: metrics
+{{ end }}

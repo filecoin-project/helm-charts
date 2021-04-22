@@ -50,7 +50,7 @@ spec:
           - name: PGHOST
             value: {{ .Values.postgres.teamid }}-{{ .Release.Name }}-controllerdb
           - name: PGPORT
-            value: "8764"
+            value: "5432"
           - name: PGUSER
             value: {{ .Values.postgres.user }}
           - name: PGPASSWORD
@@ -108,25 +108,25 @@ spec:
             name: dealbot
         args: ["daemon"]
         env:
-        # - name: LOTUS_API_MULTIADDR
-        #   value: {{ .Values.daemon.lotusAPI.lotusAPIMultiaddr }}
-        # - name: LOTUS_API_TOKEN
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: {{ .Values.daemon.lotusAPI.lotusAPITokenSecret }}
-        #       key: jwt-ro-privs-token
+        - name: LOTUS_API_MULTIADDR
+          value: {{ .Values.daemon.lotusAPI.lotusAPIMultiaddr }}
+        - name: LOTUS_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.daemon.lotusAPI.lotusAPITokenSecret }}
+              key: jwt-ro-privs-token
         - name: FULLNODE_API_INFO
           value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
         - name: DEALBOT_DATA_DIRECTORY
-          value: /data
+          value: /tmp
         - name: DEALBOT_NODE_DATA_DIRECTORY
-          value: /nodedata
+          value: /tmp
         - name: DEALBOT_WALLET_ADDRESS
-          value:
+          value: {{ .Values.daemon.lotusAPI.wallet }}
         - name: DEALBOT_LISTEN
           value: "0.0.0.0:8764"
         - name: DEALBOT_CONTROLLER_ENDPOINT
-          value: {{ .Release.Name }}-controller
+          value: http://{{ .Release.Name }}-controller
         {{- if .Values.daemon.persistence.enabled }}
         volumeMounts:
         - name: daemon-data

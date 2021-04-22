@@ -63,6 +63,7 @@ daemon:
   lotusAPI:
     lotusAPITokenSecret: ""
     lotusAPIMultiaddr: "" # required
+    wallet: ""
   persistence:
     enabled: false
   resources:
