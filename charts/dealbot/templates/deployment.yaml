@@ -26,14 +26,18 @@ spec:
         heritage: {{ .Release.Service }}
         release: {{ .Release.Name }}
     spec:
-      volumes: []
+      volumes:
+        - name: dealbot-key-volume
+          secret:
+            secretName: {{ .Values.controller.secrets.keySecret }}
+            items:
+              - key: dealbot.key
+                path: dealbot.key
       containers:
       - name: dealbot-controller
         image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         ports:
-          - containerPort: 9991
-            name: metrics
           - containerPort: 8764
             name: dealbot
         args: ["controller"]
@@ -42,8 +46,8 @@ spec:
             value: "0.0.0.0:5678"
           - name: DEALBOT_METRICS
             value: prometheus
-          # - name: DEALBOT_IDENTITY_KEYPAIR
-          #   value:
+          - name: DEALBOT_IDENTITY_KEYPAIR
+            value: /dealbot.key
           {{ if .Values.controller.postgres.enabled }}
           - name: DEALBOT_PERSISTENCE_DRIVER
             value: postgres
@@ -63,7 +67,11 @@ spec:
           {{ end }}
         resources:
 {{ toYaml .Values.controller.resources | indent 10 }}
-        volumeMounts: []
+        volumeMounts:
+          - name: dealbot-key-volume
+            mountPath: /dealbot.key
+            subPath: dealbot.key
+            readOnly: true
 {{ end }}
 {{ if .Values.daemon.enabled }}
 
@@ -102,8 +110,6 @@ spec:
         image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         ports:
-          - containerPort: 9991
-            name: metrics
           - containerPort: 8764
             name: dealbot
         args: ["daemon"]
