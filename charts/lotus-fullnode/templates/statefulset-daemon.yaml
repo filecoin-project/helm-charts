@@ -41,7 +41,7 @@ spec:
         runAsUser: 532
         runAsGroup: 532
       volumes:
-{{- if .Values.importSnapshot.enabled }}
+{{- if and .Values.importSnapshot.enabled (eq .Values.importSnapshot.strategy "volume")}}
       - name: chain-exports
         persistentVolumeClaim:
           claimName: {{ .Values.importSnapshot.claimName }}
@@ -259,7 +259,7 @@ spec:
           - name: keystore-volume
             mountPath: /keystore
             readOnly: true
-{{- if .Values.importSnapshot.enabled }}
+{{- if and .Values.importSnapshot.enabled (eq .Values.importSnapshot.strategy "volume") }}
       - name: lock-and-wait
         image: busybox
         command: ["sh", "-c"]
@@ -292,6 +292,8 @@ spec:
         - name: datastore-volume
           mountPath: /var/lib/lotus/datastore
         {{- end }}
+{{- end }}
+{{- if .Values.importSnapshot.enabled }}
       - name: chain-import
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -303,15 +305,27 @@ spec:
               exit 0
             fi
 
+  {{- if eq .Values.importSnapshot.strategy "volume" }}
             if [ ! -f /chain-exports/{{ .Values.importSnapshot.exportRelease }}.car ]; then
               echo "No export was found"
               exit {{ .Values.importSnapshot.exitCodeOnMissing }}
             fi
-
+            echo importing snapshot from volume {{ .Values.importSnapshot.claimName }}
             lotus daemon --bootstrap=false --halt-after-import --import-snapshot=/chain-exports/{{ .Values.importSnapshot.exportRelease }}.car
+            status=$?
             rm -f /chain-exports/{{ .Values.importSnapshot.exportRelease }}-read-{{ .Release.Namespace }}-{{ .Release.Name }}.lock
-
-            touch "/var/lib/lotus/datastore/_imported"
+  {{- else if eq .Values.importSnapshot.strategy "url" }}
+            echo importing snapshot from url {{ .Values.importSnapshot.url }}
+            lotus daemon --bootstrap=false --halt-after-import --import-snapshot={{ .Values.importSnapshot.url }}
+            status=$?
+  {{- else }}
+            echo "error: importSnapshot is enabled, but strategy is unknown."
+            status=1
+  {{- end }}
+            if [ $status -eq 0]; then
+              touch "/var/lib/lotus/datastore/_imported"
+            fi
+            exit $status
         volumeMounts:
           - name: config-volume
             mountPath: /var/lib/lotus/config.toml
@@ -332,6 +346,7 @@ spec:
           - name: journal-volume
             mountPath: /var/lib/lotus/journal
           {{- end }}
+          {{- if and .Values.importSnapshot.enabled (eq .Values.importSnapshot.strategy "volume") }}
           - name: chain-exports
             mountPath: "/chain-exports"
             {{- if .Values.importSnapshot.network }}
@@ -339,6 +354,7 @@ spec:
             {{- else }}
             subPath: chain-exports/by-namespace/{{ .Release.Namespace }}/
             {{- end }}
+          {{- end }}
 {{- end }}
 {{- if .Values.debug }}
       - name: debug
