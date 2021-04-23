@@ -1,0 +1,8 @@
+image:
+  repository: plpull/lotus-shed
+  pullPolicy: Always
+  tag: shed-beacon-scan
+replicaCount: 1
+labels: {}
+lotusAPI:
+  address: ""

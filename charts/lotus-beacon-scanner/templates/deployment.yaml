@@ -1,0 +1,48 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-beacon-scanner
+  labels:
+    app: beacon-scanner
+{{- if .Values.labels }}
+{{ toYaml .Values.labels | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: beacon-scanner
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: beacon-scanner
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+    spec:
+      securityContext:
+        fsGroup: 532
+        runAsNonRoot: true
+        runAsUser: 532
+        runAsGroup: 532
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: beacon-scanner
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["consensus", "scan-beacon-follow"]
+          env:
+            - name: FULLNODE_API_INFO
+              value: "{{ .Values.lotusAPI.address }}"
+            # value: "$(LOTUS_TOKEN):{{ .Values.lotusAPI.address }}"
+            #- name: LOTUS_TOKEN
+            #  secretKeyRef:
+            #    name: {{ .Values.lotusAPI.secretName }}
+            #    key: {{ .Values.lotusAPI.secretKey }}
+
+
