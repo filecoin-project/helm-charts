@@ -1,0 +1,51 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-debug-ssh
+  labels:
+    app: debug-ssh
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: debug-ssh
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: debug-ssh
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+    spec:
+      volumes:
+        - name: ssh-authorized-keys-volume
+          configMap:
+            defaultMode: 0600
+            name: {{ .Release.Name }}-ssh-users
+      containers:
+      - name: ssh
+        image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        args: []
+        ports:
+          - containerPort: 22
+            name: ssh
+        env:
+          - name: SSH_USERS
+            value: "{{ .Values.debug.ssh_users }}"
+          - name: SSH_ENABLE_ROOT
+            value: "false"
+          - name: SSH_ENABLE_PASSWORD_AUTH
+            value: "false"
+          - name: TCP_FORWARDING
+            value: "{{ .Values.debug.tcp_forwarding }}"
+        volumeMounts:
+          - name: ssh-authorized-keys-volume
+            mountPath: /etc/authorized_keys
+            readOnly: true
+        resources:
+{{ toYaml .Values.resources | indent 10 }}

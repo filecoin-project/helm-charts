@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-debug-ssh
+  labels:
+    app: debug-ssh 
+    release: {{ .Release.Name }}
+spec:
+  type: LoadBalancer
+  selector:
+      app: debug-ssh
+      release: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: 9922
+      targetPort: 22
+      name: ssh

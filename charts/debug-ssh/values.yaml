@@ -1,0 +1,21 @@
+replicaCount: 1
+
+image:
+  repo: panubo/sshd
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+debug:
+  ssh_users: "cory:1000:1000"
+  tcp_forwarding: "true"
+  users:
+    - name: cory
+      key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDiwx4Vw4oVp/WaxHFqd85KdvQ03E78mUcjD7wr6XRl7xFssVg+NQAoBc1UVKpavrDFcbYHAcEWQbvY//izmloGql1CbhNBEp9pHNHe1QJLChPZDJ0J4ljCHCtWTYQqYXhF5j7qefQjZ/chwbJJIV/47koUKXjJUFW7ohtF07WGr8SGXn3oSrP+8lynj9I7JHRX5XbzcID7qlQ5pX52mCzNkrESrhUi+KIMo0d9i0EyhJKNT+qDVwLBoaqDb5vtLSixNE4LLlsC6xp/YnE3dEY2vLyapfiBddsDxfFQJaqjZ7qlQgsWOuwwDNJOrzOSmLTqZ5wgTG2ViVv32Ngen16bLTH4V2E3h5M6meHFpgZT0lhU8wGP/qmvFmwOvsTMmGu+kmtvs3Pov5B3li7AgOOneYs7/PP74WZL74kg63cZ7yUMAZo7FcTTWwyQhdphCmwDH7ymVIQEUPlfyh85jt2Q2mkBMQc+7f6NhxZVMGc7WYcIDRXmXwyJlDai7xNtTQs= cory@nemesis

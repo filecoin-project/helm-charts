@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-ssh-users
+data:
+{{ range .Values.debug.users }}
+  {{ .name }}:  {{ .key }}
+{{ end }}
