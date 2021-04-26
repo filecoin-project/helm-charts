@@ -41,6 +41,8 @@ controller:
     requests:
       cpu: 500m
       memory: 500Mi
+  secrets:
+    keySecret: ""
 
 postgres:
   enabled: true
