@@ -32,6 +32,8 @@ controller:
   enabled: true
   postgres:
     enabled: true
+  ingress:
+    enabled: false
   resources:
     limits:
       cpu: 1000m

@@ -63,6 +63,13 @@ spec:
         emptyDir:
           medium: Memory
 {{- end }}
+{{- if .Values.additionalVolumes.enabled | default false }}
+      {{ range .Values.additionalVolumes.pvcs }}
+      - name: {{ .name }}
+        persistentVolumeClaim:
+          claimName: {{ .claimName }}
+      {{ end }}
+{{- end }}
 {{- if .Values.secrets.jwt.enabled }}
       - name: jwt-secrets-volume
         secret:

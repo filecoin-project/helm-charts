@@ -43,7 +43,7 @@ spec:
         args: ["controller"]
         env:
           - name: DEALBOT_LISTEN
-            value: "0.0.0.0:5678"
+            value: "0.0.0.0:8764"
           - name: DEALBOT_METRICS
             value: prometheus
           - name: DEALBOT_IDENTITY_KEYPAIR
@@ -73,8 +73,8 @@ spec:
             subPath: dealbot.key
             readOnly: true
 {{ end }}
-{{ if .Values.daemon.enabled }}
 
+{{ if .Values.daemon.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -103,7 +103,10 @@ spec:
         release: {{ .Release.Name }}
     spec:
       {{- if .Values.daemon.persistence.enabled }}
-      volumes: []
+      volumes:
+      - name: deals-volume
+        persistentVolumeClaim:
+          claimName: {{ .Values.daemon.persistence.claimName }}
       {{- end }}
       containers:
       - name: dealbot-daemon
@@ -124,21 +127,19 @@ spec:
         - name: FULLNODE_API_INFO
           value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
         - name: DEALBOT_DATA_DIRECTORY
-          value: /tmp
+          value: {{ .Values.daemon.persistence.data | default "/tmp" }}
         - name: DEALBOT_NODE_DATA_DIRECTORY
-          value: /tmp
+          value: {{ .Values.daemon.persistence.nodedata | default "/tmp" }}
         - name: DEALBOT_WALLET_ADDRESS
           value: {{ .Values.daemon.lotusAPI.wallet }}
         - name: DEALBOT_LISTEN
           value: "0.0.0.0:8764"
         - name: DEALBOT_CONTROLLER_ENDPOINT
-          value: http://{{ .Release.Name }}-controller
+          value: http://{{ .Release.Name }}-controller:8764
         {{- if .Values.daemon.persistence.enabled }}
         volumeMounts:
-        - name: daemon-data
-          mountPath: /data
-        - name: daemon-node-data
-          mountPath: /nodedata
+        - name: deals-volume
+          mountPath: /efs
         {{- end }}
         resources:
 {{ toYaml .Values.daemon.resources | indent 10 }}
