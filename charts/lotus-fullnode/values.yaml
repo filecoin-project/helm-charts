@@ -148,14 +148,9 @@ persistence:
       - ReadWriteOnce
     storageClassName: "gp2"
 
-additionalVolumes: []
-  # - volume:
-  #    - name: cache-volume
-  #      emptyDir:
-  #        medium: Memory
-  #  volumeMount:
-  #    - name: cache-volume
-  #      mountPath: /cache
+additionalVolumes:
+  enabled: false
+  pvcs: []
 
 loadBalancer:
   enabled: false
