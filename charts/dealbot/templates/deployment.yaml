@@ -139,7 +139,7 @@ spec:
         {{- if .Values.daemon.persistence.enabled }}
         volumeMounts:
         - name: deals-volume
-          mountPath: /efs
+          mountPath: {{ .Values.daemon.persistence.mountPath }}
         {{- end }}
         resources:
 {{ toYaml .Values.daemon.resources | indent 10 }}
