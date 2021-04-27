@@ -25,8 +25,9 @@ spec:
       - name: tweety-daemon
         image: {{ .Values.image.repo }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        # securityContext:
-        #   privileged: true
+        command:
+          - /usr/local/bin/tweety
+          - daemon
         ports:
         - containerPort: 1337
           name: tweety
