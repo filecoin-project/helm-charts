@@ -1,4 +1,8 @@
 ---
+{{- if or .Values.watch.enabled .Values.walk.enabled }}
+{{- if .Values.daemon.enabled }}
+  {{- fail "a visor deployment cannot enable more than one mode, please disable one" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -196,3 +200,4 @@ spec:
 
         resources:
 {{ toYaml .Values.resources | indent 10 }}
+{{- end }}

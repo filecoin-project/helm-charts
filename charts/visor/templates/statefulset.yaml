@@ -1,0 +1,76 @@
+---
+{{- if .Values.daemon.enabled }}
+{{- if or .Values.watch.enabled .Values.walk.enabled }}
+  {{- fail "a visor deployment cannot enable more than one mode, please disable one" }}
+{{- end }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-visor
+  labels:
+    app: visor
+    suite: sentinel
+{{- if .Values.labels }}
+{{ toYaml .Values.labels | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: visor
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: visor
+        suite: sentinel
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+{{- if .Values.labels }}
+{{ toYaml .Values.labels | indent 8 }}
+{{- end }}
+    spec:
+      securityContext:
+        fsGroup: 532
+        runAsNonRoot: true
+        runAsUser: 532
+        runAsGroup: 532
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: daemon
+        image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        {{- if .Values.debug }}
+        command: ["/bin/bash", "-c", "sleep 10000"]
+        {{- end }}
+        args:
+          - daemon
+        env:
+        - name: GOLOG_LOG_FMT
+        {{- if .Values.logFormat }}
+          value: {{ .Values.logFormat }}
+        {{- else }}
+          value: json
+        {{- end }}
+        ports:
+        - containerPort: 1234
+          name: api
+        - containerPort: 1347
+          name: p2p
+        - containerPort: 9991
+          name: metrics
+
+{{- end}}
+

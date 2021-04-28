@@ -83,6 +83,13 @@ walk:
     #- actorstatesparsed
     #- actorstatesboth
 
+daemon:
+  enabled: false
+
+
+
+
+
 resources:
   requests:
     cpu: 8000m
@@ -90,3 +97,12 @@ resources:
   limits:
     cpu: 16000m
     memory: 64Gi
+
+# A node selector to control placement of pods
+nodeSelector: {}
+
+# A set of tolerations to control placement of pods
+tolerations: []
+
+# An affinity expression to control placement of pods
+affinity: {}
