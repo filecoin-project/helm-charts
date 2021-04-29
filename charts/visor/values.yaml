@@ -85,8 +85,22 @@ walk:
 
 daemon:
   enabled: false
-
-
+  importSnapshot:
+    enabled: false
+    url: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
+  persistence:
+    journal:
+      enabled: true
+      size: "10Gi"
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: "gp2"
+    datastore:
+      enabled: true
+      size: "10Gi"
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: "gp2"
 
 
 

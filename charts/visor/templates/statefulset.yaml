@@ -15,6 +15,7 @@ metadata:
 {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  serviceName: {{ .Release.Name }}-visor-service
   selector:
     matchLabels:
       app: visor
@@ -48,6 +49,33 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+{{- if .Values.daemon.importSnapshot.enabled }}
+      - name: chain-import
+        image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        command: ["bash", "-c"]
+        args:
+          - |
+            if [ -f "/var/lib/visor/datastore/_imported" ]; then
+              echo "Skipping import, found /var/lib/visor/datastore/_imported file."
+              exit 0
+            fi
+
+            echo importing snapshot from url {{ .Values.daemon.importSnapshot.url }}
+            visor init --repo=/var/lib/visor/datastore --import-snapshot={{ .Values.daemon.importSnapshot.url }}
+            status=$?
+
+            if [ $status -eq 0 ]; then
+              touch "/var/lib/visor/datastore/_imported"
+            fi
+            exit $status
+        volumeMounts:
+        {{- if .Values.daemon.persistence.datastore.enabled }}
+        - name: datastore-volume
+          mountPath: /var/lib/visor/datastore
+        {{- end }}
+{{- end }}
       containers:
       - name: daemon
         image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
@@ -57,6 +85,8 @@ spec:
         {{- end }}
         args:
           - daemon
+          - --repo
+          - /var/lib/visor/datastore
         env:
         - name: GOLOG_LOG_FMT
         {{- if .Values.logFormat }}
@@ -71,6 +101,31 @@ spec:
           name: p2p
         - containerPort: 9991
           name: metrics
-
-{{- end}}
+        volumeMounts:
+        {{- if .Values.daemon.persistence.datastore.enabled }}
+        - name: datastore-volume
+          mountPath: /var/lib/visor/datastore
+        {{- end }}
+  volumeClaimTemplates:
+  {{- if .Values.daemon.persistence.datastore.enabled }}
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: datastore-volume
+    spec:
+      accessModes:
+      {{- range .Values.daemon.persistence.datastore.accessModes }}
+      - {{ . | quote }}
+      {{- end }}
+      storageClassName: {{ .Values.daemon.persistence.datastore.storageClassName }}
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: {{ .Values.daemon.persistence.datastore.size | quote }}
+      {{- with .Values.daemon.persistence.datastore.dataSource }}
+      dataSource:
+        {{- toYaml . | nindent 10 }}
+      {{- end }}
+  {{- end}}
+{{- end }}
 
