@@ -63,6 +63,13 @@ spec:
         emptyDir:
           medium: Memory
 {{- end }}
+{{- if .Values.additionalVolumes.enabled | default false }}
+      {{ range .Values.additionalVolumes.pvcs }}
+      - name: {{ .name }}
+        persistentVolumeClaim:
+          claimName: {{ .claimName }}
+      {{ end }}
+{{- end }}
 {{- if .Values.secrets.jwt.enabled }}
       - name: jwt-secrets-volume
         secret:
@@ -108,10 +115,12 @@ spec:
         emptyDir:
           medium: Memory
 {{- end }}
-{{- if .Values.additionalVolumes }}
-  {{- range .Values.additionalVolumes }}
-{{- toYaml .volume | nindent 6 }}
-  {{- end }}
+{{- if .Values.additionalVolumes.enabled | default false }}
+      {{ range .Values.additionalVolumes.pvcs }}
+      - name: {{ .name }}
+        persistentVolumeClaim:
+          claimName: {{ .claimName }}
+      {{ end }}
 {{ end }}
       - name: keystore-volume
         emptyDir:
@@ -454,11 +463,12 @@ spec:
           - name: genesis-volume
             mountPath: /genesis/
           {{- end }}
-{{- if .Values.additionalVolumes }}
-  {{- range .Values.additionalVolumes }}
-{{- toYaml .volumeMount | nindent 10 }}
-  {{- end }}
-{{ end }}
+          {{- if .Values.additionalVolumes.enabled }}
+          {{- range .Values.additionalVolumes.pvcs }}
+          - name: {{ .name }}
+            mountPath: {{ .mountPath }}
+          {{- end }}
+          {{- end }}
         livenessProbe:
           httpGet:
             path: /debug/metrics

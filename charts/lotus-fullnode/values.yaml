@@ -44,7 +44,6 @@ importSnapshot:
   exportRelease: ""
   # when set, the network level chain export will be used instead of a namespaced one
   network: ""
-
   # strategy "url" options:
   #
   url: "https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car"
@@ -149,14 +148,9 @@ persistence:
       - ReadWriteOnce
     storageClassName: "gp2"
 
-additionalVolumes: []
-  # - volume:
-  #    - name: cache-volume
-  #      emptyDir:
-  #        medium: Memory
-  #  volumeMount:
-  #    - name: cache-volume
-  #      mountPath: /cache
+additionalVolumes:
+  enabled: false
+  pvcs: []
 
 loadBalancer:
   enabled: false
