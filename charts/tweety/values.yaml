@@ -1,0 +1,27 @@
+# Default values for tweety
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+logLevel: info
+image:
+  repo: coryschwartz/tweety
+  tag: "latest" # required
+  pullPolicy: IfNotPresent
+
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: 100m
+    memory: 512Mi
+
+
+ingress:
+  enabled: false
+  class: nginx
+  annotations: {}
+  hosts:
+    - host: example.com
+      paths:
+        - "/"

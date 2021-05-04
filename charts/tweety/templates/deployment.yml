@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-tweety-daemon
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}-tweety-daemon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-tweety-daemon
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-tweety-daemon
+    spec:
+      serviceAccountName: {{ .Release.Name }}-tweety-daemon
+      # hostPID: true
+      # hostNetwork: true
+      # dnsPolicy: ClusterFirstWithHostNet
+      # nodeSelector:
+      #   testground.node.role.infra: "true"
+      containers:
+      - name: tweety-daemon
+        image: {{ .Values.image.repo }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+          - /usr/local/bin/tweety
+          - daemon
+        ports:
+        - containerPort: 1337
+          name: tweety
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
