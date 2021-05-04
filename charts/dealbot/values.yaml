@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 logLevel: info
 image:
-  repo: coryschwartz/dealbot
+  repo: filecoin/dealbot
   tag: "latest" # required
   pullPolicy: Always
 
