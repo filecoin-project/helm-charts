@@ -224,6 +224,17 @@ entries:
     urls:
     - https://github.com/filecoin-project/helm-charts/releases/download/lotus-fullnode-0.1.0/lotus-fullnode-0.1.0.tgz
     version: 0.1.0
+  lotus-gateway:
+  - apiVersion: v2
+    appVersion: 1.5.0
+    created: "2021-05-04T22:58:43.452686483Z"
+    description: Provision a lotus-gateway
+    digest: f38cf41137fa556742a9e2000df710356cedadf570545a21e123d52e8f4fc2ce
+    name: lotus-gateway
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-gateway-0.1.1/lotus-gateway-0.1.1.tgz
+    version: 0.1.1
   lotus-secrets-creator:
   - apiVersion: v2
     appVersion: 1.1.2
@@ -291,9 +302,9 @@ entries:
   visor:
   - apiVersion: v2
     appVersion: 0.6.0
-    created: "2021-05-04T22:58:59.872411531Z"
+    created: "2021-05-04T22:58:43.872112321Z"
     description: A Helm chart for Kubernetes to run visor
-    digest: a188533fecf7dd09b8dbe732d5115c42c7199087d073e158329ff1ca12ca7efa
+    digest: 435da67baaeb4d6e9541ef127fe50fdb7673d3c3782be1bb6ac673f122f5e891
     name: visor
     type: application
     urls:
