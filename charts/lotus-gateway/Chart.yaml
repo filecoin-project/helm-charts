@@ -2,5 +2,5 @@ apiVersion: v2
 name: lotus-gateway
 description: Provision a lotus-gateway
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: 1.5.0
