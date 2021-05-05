@@ -25,7 +25,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-lotus-gateway
+  name: {{ .Release.Name }}-lotus-gateway-lb
   namespace: {{ .Release.Namespace }}
   labels:
     app: lotus-gateway-app
