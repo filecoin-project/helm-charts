@@ -37,7 +37,10 @@ spec:
         args:
           - run
         env:
-        {{ if .Values.secrets.jwt.enabled }}
+        {{- with .Values.gatewayEnvs }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.secrets.jwt.enabled }}
           - name: LOTUS_API_TOKEN
             valueFrom:
               secretKeyRef:
@@ -45,7 +48,7 @@ spec:
                 key: {{ .Values.secrets.jwt.token_key }}
           - name: FULLNODE_API_INFO
             value: "$(LOTUS_API_TOKEN):{{ .Values.lotus.fullnodeApiMultiaddr }}"
-        {{ else }}
+        {{- else }}
           - name: FULLNODE_API_INFO
             value: "{{ .Values.lotus.fullnodeApiMultiaddr }}"
-        {{ end }}
+        {{- end }}
