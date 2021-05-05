@@ -13,6 +13,10 @@ ingress:
   class: nginx
   host: example.com
 
+loadBalancer:
+  enabled: false
+  rpcPort: 80
+
 deployment:
   replicas: 1
 
@@ -24,6 +28,13 @@ secrets:
 
 lotus:
   fullnodeApiMultiaddr: "/dns/lotus-gateway-backend/tcp/1234"
+
+# set additional environment variables on the lotus-gateway
+# eg:
+# gatewayEnvs:
+# - name: GOLOG_LOG_FMT
+#   value: json
+gatewayEnvs: {}
 
 resources: {}
 
