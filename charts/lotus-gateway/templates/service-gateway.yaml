@@ -42,5 +42,5 @@ spec:
     - protocol: TCP
       port: {{ .Values.loadBalancer.rpcPort }}
       targetPort: 2346
-      name: api
+      name: lb-api
 {{- end }}
