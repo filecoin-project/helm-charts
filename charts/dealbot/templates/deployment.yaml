@@ -40,10 +40,14 @@ spec:
         ports:
           - containerPort: 8764
             name: dealbot
+          - containerPort: 8763
+            name: dealbotGraphql
         args: ["controller"]
         env:
           - name: DEALBOT_LISTEN
             value: "0.0.0.0:8764"
+          - name: DEALBOT_GRAPHQL_LISTEN
+            value: "0.0.0.0:8763"
           - name: DEALBOT_METRICS
             value: prometheus
           - name: DEALBOT_IDENTITY_KEYPAIR
