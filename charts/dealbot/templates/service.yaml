@@ -18,11 +18,28 @@ spec:
       port: 8764
       targetPort: 8764
       name: dealbot
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-controller-graphql
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: dealbot-controller
+    release: {{ .Release.Name }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: dealbot-controller
+    release: {{ .Release.Name }}
+  ports:
     - protocol: TCP
       port: 8763
       targetPort: 8763
       name: dealbotgraphql
 {{ end }}
+
 
 {{ if .Values.daemon.enabled }}
 ---
