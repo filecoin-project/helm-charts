@@ -3,6 +3,17 @@ entries:
   dealbot:
   - apiVersion: v2
     appVersion: 0.0.2
+    created: "2021-05-12T18:17:50.632869346Z"
+    description: A tool to test and analyze storage and retrieval deal capability
+      on the Filecoin network.
+    digest: cb5fdf3a47fdcdd11f9a4b04c6b7c24df129c8586db16f83b4311460c4e4db81
+    name: dealbot
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/dealbot-0.0.3/dealbot-0.0.3.tgz
+    version: 0.0.3
+  - apiVersion: v2
+    appVersion: 0.0.2
     created: "2021-05-10T21:51:04.639810275Z"
     description: A tool to test and analyze storage and retrieval deal capability
       on the Filecoin network.
