@@ -50,6 +50,15 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       initContainers:
+      - name: initfs
+        image: busybox
+        command: ["sh", "-c"]
+        args:
+          - |
+            mkdir -p /var/lib/visor/keystore
+        volumeMounts:
+        - name: repo-volume
+          mountPath: /var/lib/visor
 {{- if .Values.daemon.importSnapshot.enabled }}
       - name: chain-import
         image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
@@ -60,7 +69,7 @@ spec:
             if [ -f "/var/lib/visor/datastore/_imported" ]; then
               echo "Skipping import, found /var/lib/visor/datastore/_imported file."
               echo "Ensuring secrets have correct permissions."
-              chmod 0600 /var/lib/visor/datastore/keystore/*
+              chmod 0600 /var/lib/visor/keystore/*
               exit 0
             fi
 
@@ -73,7 +82,7 @@ spec:
             fi
 
             echo "Ensuring secrets have correct permissions."
-            chmod 0600 /var/lib/visor/datastore/keystore/*
+            chmod 0600 /var/lib/visor/keystore/*
 
             exit $status
         env:
@@ -84,9 +93,15 @@ spec:
           value: json
         {{- end }}
         - name: VISOR_REPO
-          value: /var/lib/visor/datastore
+          value: /var/lib/visor
         volumeMounts:
-        {{- if .Values.daemon.persistence.datastore.enabled }}
+        - name: repo-volume
+          mountPath: /var/lib/visor
+        - name: config-volume
+          mountPath: /var/lib/visor/config.toml
+          subPath: config.toml
+          readOnly: true
+        {{- if .Values.daemon.volumes.datastore.enabled }}
         - name: datastore-volume
           mountPath: /var/lib/visor/datastore
         {{- end }}
@@ -106,8 +121,25 @@ spec:
         {{- else }}
           value: json
         {{- end }}
+        {{- if .Values.logLevel }}
+        - name: GOLOG_LOG_LEVEL
+          value: {{ .Values.logLevel }}
+        {{- end }}
+        {{- if .Values.logLevelNamed }}
+        - name: VISOR_LOG_LEVEL_NAMED
+          value: {{ .Values.logLevelNamed }}
+        {{- end }}
         - name: VISOR_REPO
-          value: /var/lib/visor/datastore
+          value: /var/lib/visor
+        - name: VISOR_CONFIG
+          value: /var/lib/visor/config.toml
+{{- range .Values.daemon.storage.postgresql }}
+        - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .secret }}
+              key: url
+{{- end }}
         ports:
         - containerPort: 1234
           name: api
@@ -116,7 +148,13 @@ spec:
         - containerPort: 9991
           name: metrics
         volumeMounts:
-        {{- if .Values.daemon.persistence.datastore.enabled }}
+        - name: repo-volume
+          mountPath: /var/lib/visor
+        - name: config-volume
+          mountPath: /var/lib/visor/config.toml
+          subPath: config.toml
+          readOnly: true
+        {{- if .Values.daemon.volumes.datastore.enabled }}
         - name: datastore-volume
           mountPath: /var/lib/visor/datastore
         {{- end }}
@@ -148,31 +186,56 @@ spec:
         image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         command: ["sh", "-c", "tail -f /dev/null"]
+        env:
+        - name: VISOR_REPO
+          value: /var/lib/visor
+        - name: VISOR_CONFIG
+          value: /var/lib/visor/config.toml
+{{- range .Values.daemon.storage.postgresql }}
+        - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .secret }}
+              key: url
+{{- end }}
         volumeMounts:
-        {{- if .Values.daemon.persistence.datastore.enabled }}
+        - name: repo-volume
+          mountPath: /var/lib/visor
+        - name: config-volume
+          mountPath: /var/lib/visor/config.toml
+          subPath: config.toml
+          readOnly: true
+        {{- if .Values.daemon.volumes.datastore.enabled }}
         - name: datastore-volume
           mountPath: /var/lib/visor/datastore
         {{- end }}
 {{- end }}
-
-
+      volumes:
+      - name: repo-volume
+        emptyDir: {}
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-visor-config
+          items:
+          - key: config.toml
+            path: config.toml
   volumeClaimTemplates:
-  {{- if .Values.daemon.persistence.datastore.enabled }}
+  {{- if .Values.daemon.volumes.datastore.enabled }}
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
       name: datastore-volume
     spec:
       accessModes:
-      {{- range .Values.daemon.persistence.datastore.accessModes }}
+      {{- range .Values.daemon.volumes.datastore.accessModes }}
       - {{ . | quote }}
       {{- end }}
-      storageClassName: {{ .Values.daemon.persistence.datastore.storageClassName }}
+      storageClassName: {{ .Values.daemon.volumes.datastore.storageClassName }}
       volumeMode: Filesystem
       resources:
         requests:
-          storage: {{ .Values.daemon.persistence.datastore.size | quote }}
-      {{- with .Values.daemon.persistence.datastore.dataSource }}
+          storage: {{ .Values.daemon.volumes.datastore.size | quote }}
+      {{- with .Values.daemon.volumes.datastore.dataSource }}
       dataSource:
         {{- toYaml . | nindent 10 }}
       {{- end }}

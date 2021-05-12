@@ -1,0 +1,36 @@
+---
+{{- if .Values.daemon.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-visor-config
+  labels:
+    app: visor
+    suite: sentinel
+{{- if .Values.labels }}
+{{ toYaml .Values.labels | indent 4 }}
+{{- end }}
+data:
+  config.toml: |
+    [API]
+    ListenAddress = "/ip4/127.0.0.1/tcp/1234/http"
+    [Storage]
+{{- if .Values.daemon.storage.postgresql }}
+      [Storage.Postgresql]
+{{- range .Values.daemon.storage.postgresql }}
+        [Storage.Postgresql.{{ .name }}]
+          URLEnv = "VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL"
+          ApplicationName = {{ .applicationName | default "visor" | quote }}
+          PoolSize = {{ .poolSize | default 20 }}
+          AllowUpsert = {{ .allowUpsert | default false }}
+{{- end }}
+{{- end }}
+{{- if .Values.daemon.storage.file }}
+      [Storage.File]
+{{- range .Values.daemon.storage.file }}
+        [Storage.File.{{ .name }}]
+          Format = {{ .format | default "CSV" | quote }}
+          Path = {{ .path  | quote }}
+{{- end }}
+{{- end }}
+{{- end }}

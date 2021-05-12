@@ -84,23 +84,31 @@ walk:
     #- actorstatesboth
 
 daemon:
+  # Set enabled to true to run visor in daemon mode with its own data store
   enabled: false
+
+  # importSnapshot controls the initialisation of the daemon's data store. When enabled the deployment
+  # will start an init container that may call 'visor init' with the url specified. After the init is
+  # complete an empty file named '_imported' is placed in the data store directory to signify that
+  # the data store has been imported. The import process will be skipped if this file is present.
+  # Delete /var/lib/visor/datastore/_imported to force the import to run the next time the pod is
+  # restarted. You may want to do this if the daemon has fallen out of sync for a long period of time.
   importSnapshot:
     enabled: false
     url: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
-  persistence:
-    journal:
-      enabled: true
-      size: "10Gi"
-      accessModes:
-        - ReadWriteOnce
-      storageClassName: "gp2"
+
+ # volumes enables control over the configuration of attached volumes
+  volumes:
+    # datastore is the volume used for the daemon's data store. If enabled is false then the data store will
+    # be set up on the pod's local storage which will is usally too small.
+    # The datastore volume is mounted at /var/lib/visor/datastore
     datastore:
       enabled: true
-      size: "10Gi"
+      size: "1000Gi"
       accessModes:
         - ReadWriteOnce
       storageClassName: "gp2"
+
   # jobs is a list of jobs to start on the daemon
   # each job has a command and a list of args, for example:
   # - command: watch
@@ -109,11 +117,19 @@ daemon:
   #   - --tasks=blocks,messages,chaineconomics
   jobs: []
 
-
-
-
-
-
+  # storage is a list of storage configurations that will be added to the visor config
+  # and used when starting jobs
+  storage:
+    postgresql:
+    - name: db
+      secret: postgresql-secret
+      applicationName: visor
+      poolSize: 45
+      allowUpsert: false
+    file:
+    - name: db
+      format: CSV
+      path: /tmp
 
 
 resources:
