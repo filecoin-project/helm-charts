@@ -101,6 +101,18 @@ daemon:
       accessModes:
         - ReadWriteOnce
       storageClassName: "gp2"
+  # jobs is a list of jobs to start on the daemon
+  # each job has a command and a list of args, for example:
+  # - command: watch
+  #   args:
+  #   - --confidence=10
+  #   - --tasks=blocks,messages,chaineconomics
+  jobs: []
+
+
+
+
+
 
 
 

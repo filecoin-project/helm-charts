@@ -59,17 +59,32 @@ spec:
           - |
             if [ -f "/var/lib/visor/datastore/_imported" ]; then
               echo "Skipping import, found /var/lib/visor/datastore/_imported file."
+              echo "Ensuring secrets have correct permissions."
+              chmod 0600 /var/lib/visor/datastore/keystore/*
               exit 0
             fi
 
             echo importing snapshot from url {{ .Values.daemon.importSnapshot.url }}
-            visor init --repo=/var/lib/visor/datastore --import-snapshot={{ .Values.daemon.importSnapshot.url }}
+            visor init --import-snapshot={{ .Values.daemon.importSnapshot.url }}
             status=$?
 
             if [ $status -eq 0 ]; then
               touch "/var/lib/visor/datastore/_imported"
             fi
+
+            echo "Ensuring secrets have correct permissions."
+            chmod 0600 /var/lib/visor/datastore/keystore/*
+
             exit $status
+        env:
+        - name: GOLOG_LOG_FMT
+        {{- if .Values.logFormat }}
+          value: {{ .Values.logFormat }}
+        {{- else }}
+          value: json
+        {{- end }}
+        - name: VISOR_REPO
+          value: /var/lib/visor/datastore
         volumeMounts:
         {{- if .Values.daemon.persistence.datastore.enabled }}
         - name: datastore-volume
@@ -80,13 +95,10 @@ spec:
       - name: daemon
         image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        {{- if .Values.debug }}
-        command: ["/bin/bash", "-c", "sleep 10000"]
-        {{- end }}
+        command:
+        - visor
         args:
-          - daemon
-          - --repo
-          - /var/lib/visor/datastore
+        - daemon
         env:
         - name: GOLOG_LOG_FMT
         {{- if .Values.logFormat }}
@@ -94,6 +106,8 @@ spec:
         {{- else }}
           value: json
         {{- end }}
+        - name: VISOR_REPO
+          value: /var/lib/visor/datastore
         ports:
         - containerPort: 1234
           name: api
@@ -106,6 +120,42 @@ spec:
         - name: datastore-volume
           mountPath: /var/lib/visor/datastore
         {{- end }}
+        {{- if .Values.daemon.jobs }}
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - "/bin/sh"
+                - "-c"
+                - |
+                  echo "Waiting for api to become ready"
+
+                  visor wait-api --timeout=60s
+                  status=$?
+
+                  if [ $status -ne 0 ]; then
+                    exit $status
+                  fi
+
+                  echo "Starting jobs"
+
+                  {{- range .Values.daemon.jobs }}
+                  visor {{ .command }} {{ join " " .args }}
+                  {{- end }}
+        {{- end }}
+{{- if .Values.debug }}
+      - name: debug
+        image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        command: ["sh", "-c", "tail -f /dev/null"]
+        volumeMounts:
+        {{- if .Values.daemon.persistence.datastore.enabled }}
+        - name: datastore-volume
+          mountPath: /var/lib/visor/datastore
+        {{- end }}
+{{- end }}
+
+
   volumeClaimTemplates:
   {{- if .Values.daemon.persistence.datastore.enabled }}
   - apiVersion: v1
