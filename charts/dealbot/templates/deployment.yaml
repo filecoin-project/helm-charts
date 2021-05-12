@@ -41,7 +41,7 @@ spec:
           - containerPort: 8764
             name: dealbot
           - containerPort: 8763
-            name: dealbotGraphql
+            name: dealbotgraphql
         args: ["controller"]
         env:
           - name: DEALBOT_LISTEN

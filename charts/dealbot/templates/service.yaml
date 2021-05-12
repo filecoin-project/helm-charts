@@ -21,7 +21,7 @@ spec:
     - protocol: TCP
       port: 8763
       targetPort: 8763
-      name: dealbotGraphql
+      name: dealbotgraphql
 {{ end }}
 
 {{ if .Values.daemon.enabled }}
