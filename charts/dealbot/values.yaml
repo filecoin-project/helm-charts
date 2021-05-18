@@ -34,6 +34,11 @@ controller:
     enabled: true
   ingress:
     enabled: false
+  services:
+    api:
+      annotations: {}
+    graphql:
+      annotations: {}
   resources:
     limits:
       cpu: 1000m

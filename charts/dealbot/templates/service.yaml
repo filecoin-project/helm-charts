@@ -2,6 +2,10 @@
 ---
 apiVersion: v1
 kind: Service
+annotations:
+{{- with .Values.controller.services.api.annotations }}
+{{ toYaml . | indent 2 }}
+{{- end }}
 metadata:
   name: {{ .Release.Name }}-controller
   namespace: {{ .Release.Namespace }}
@@ -22,6 +26,10 @@ spec:
 ---
 apiVersion: v1
 kind: Service
+annotations:
+{{- with .Values.controller.services.graphql.annotations }}
+{{ toYaml . | indent 2 }}
+{{- end }}
 metadata:
   name: {{ .Release.Name }}-controller-graphql
   namespace: {{ .Release.Namespace }}
