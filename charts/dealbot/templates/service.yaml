@@ -26,16 +26,16 @@ spec:
 ---
 apiVersion: v1
 kind: Service
-annotations:
-{{- with .Values.controller.services.graphql.annotations }}
-{{ toYaml . | indent 2 }}
-{{- end }}
 metadata:
   name: {{ .Release.Name }}-controller-graphql
   namespace: {{ .Release.Namespace }}
   labels:
     app: dealbot-controller
     release: {{ .Release.Name }}
+  annotations:
+  {{- with .Values.controller.services.graphql.annotations }}
+  {{ toYaml . | indent 4 }}
+  {{- end }}
 spec:
   type: LoadBalancer
   selector:
