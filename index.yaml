@@ -321,6 +321,17 @@ entries:
     urls:
     - https://github.com/filecoin-project/helm-charts/releases/download/lotus-gateway-0.1.1/lotus-gateway-0.1.1.tgz
     version: 0.1.1
+  lotus-mpool-stats:
+  - apiVersion: v2
+    appVersion: 1.5.3
+    created: "2021-05-27T00:32:14.065799738Z"
+    description: Lotus Mpool stats
+    digest: be323e66beb8ceda0d00c31f1aec43420462a6634794beee4d10a0b7a7443da7
+    name: lotus-mpool-stats
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-mpool-stats-0.1.0/lotus-mpool-stats-0.1.0.tgz
+    version: 0.1.0
   lotus-secrets-creator:
   - apiVersion: v2
     appVersion: 1.1.2
