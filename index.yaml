@@ -354,6 +354,17 @@ entries:
     urls:
     - https://github.com/filecoin-project/helm-charts/releases/download/lotus-stats-0.1.0/lotus-stats-0.1.0.tgz
     version: 0.1.0
+  sentinel-locations:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2021-05-27T00:19:21.940479692Z"
+    description: Sentinel-locations deployment
+    digest: 04d26bcbc88c62ad74ceb0f0ec0238a42e89faab31b5e5ee1569640026108e0d
+    name: sentinel-locations
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/sentinel-locations-0.1.0/sentinel-locations-0.1.0.tgz
+    version: 0.1.0
   sentinel-tick:
   - apiVersion: v2
     appVersion: 0.0.1
