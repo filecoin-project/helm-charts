@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-monitoring
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: lotus-mpool-stats
+    release: {{ .Release.Name }}
+{{- with .Values.additionalLabels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  type: ClusterIP
+  selector:
+    app: lotus-mpool-stats
+    release: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: 10555
+      name: prometheus-api
