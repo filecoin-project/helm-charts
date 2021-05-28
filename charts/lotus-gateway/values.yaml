@@ -5,6 +5,19 @@ image:
 
 prometheusOperatorServiceMonitor: true
 
+check:
+  enabled: false
+  schedule: "0/15 * * * *"
+  checkService: true
+  # pushGateway is a hostname and port for a pushGateway accessible over http
+  # eg: prometheus-pushgateway.kube-system:9091
+  pushGateway: ""
+  # items is a list of additional endpoints to check
+  # eg:
+  # - "wss://api.chain.love"
+  # - "https://api.chain.love"
+  items: []
+
 ports:
   rpc: 2346
 
