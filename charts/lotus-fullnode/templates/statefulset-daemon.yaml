@@ -331,7 +331,7 @@ spec:
             echo "error: importSnapshot is enabled, but strategy is unknown."
             status=1
   {{- end }}
-            if [ $status -eq 0]; then
+            if [ $status -eq 0 ]; then
               touch "/var/lib/lotus/datastore/_imported"
             fi
             exit $status
