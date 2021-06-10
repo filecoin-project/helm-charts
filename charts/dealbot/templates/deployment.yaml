@@ -127,7 +127,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ .Values.daemon.lotusAPI.lotusAPITokenSecret }}
-              key: jwt-ro-privs-token
+              key: jwt-all-privs-token
         - name: FULLNODE_API_INFO
           value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
         - name: DEALBOT_DATA_DIRECTORY
