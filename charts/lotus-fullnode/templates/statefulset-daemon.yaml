@@ -112,13 +112,6 @@ spec:
           secretName: {{ .Values.secrets.wallets.secretName }}
           defaultMode: 0600
 {{- end }}
-{{- if .Values.additionalVolumes.enabled | default false }}
-      {{ range .Values.additionalVolumes.pvcs }}
-      - name: {{ .name }}
-        persistentVolumeClaim:
-          claimName: {{ .claimName }}
-      {{ end }}
-{{ end }}
       - name: keystore-volume
         emptyDir:
           medium: Memory
