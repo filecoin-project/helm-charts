@@ -1,0 +1,78 @@
+{{- if .Values.check.enabled }}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-gateway-check
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: lotus-gateway-app
+    release: {{ .Release.Name }}
+spec:
+  schedule: {{ .Values.check.schedule | quote }}
+  successfulJobsHistoryLimit: 9
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        cronjob: {{ .Release.Name }}-gateway-check
+    spec:
+      backoffLimit: 3
+      template:
+        metadata:
+          labels:
+            cronjob: {{ .Release.Name }}-gateway-check
+        spec:
+          securityContext:
+            fsGroup: 532
+            runAsNonRoot: true
+            runAsUser: 532
+            runAsGroup: 532
+          restartPolicy: Never
+          initContainers:
+          - name: check
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            command: ["bash", "-c"]
+            args:
+              - |
+                pushd /scratch
+                {{- if .Values.check.checkService }}
+                if ! lotus-gateway check ws://{{ .Release.Name }}-lotus-gateway:{{ .Values.ports.rpc }}; then
+                  touch failed
+                fi
+                if ! lotus-gateway check http://{{ .Release.Name }}-lotus-gateway:{{ .Values.ports.rpc }}; then
+                  touch failed
+                fi
+                {{- end }}
+                {{- range .Values.check.items }}
+                if ! lotus-gateway check {{ . }}; then
+                  touch failed
+                fi
+                {{- end }}
+            volumeMounts:
+            - name: scratch
+              mountPath: "/scratch"
+          - name: record
+            image: "centos"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            command: ["bash", "-c"]
+            args:
+              - |
+                set -xe
+                pushd /scratch
+                echo "gateway_check_timestamp{} $(date +%s)" | curl --data-binary @- http://{{ .Values.check.pushGateway }}/metrics/job/{{ .Release.Name }}-gateway-check
+
+                if [ -f failed ]; then
+                  echo "gateway_check{} 0" | curl --data-binary @- http://{{ .Values.check.pushGateway }}/metrics/job/{{ .Release.Name }}-gateway-check
+                else
+                  echo "gateway_check{} 1" | curl --data-binary @- http://{{ .Values.check.pushGateway }}/metrics/job/{{ .Release.Name }}-gateway-check
+                fi
+            volumeMounts:
+            - name: scratch
+              mountPath: "/scratch"
+          containers:
+          volumes:
+          - name: scratch
+            emptyDir:
+              medium: Memory
+{{- end }}
