@@ -14,6 +14,15 @@ data:
   config.toml: |
     [API]
     ListenAddress = "/ip4/127.0.0.1/tcp/1234/http"
+    [Libp2p]
+    ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
+    ConnMgrLow = 400
+    ConnMgrHigh = 500
+    ConnMgrGrace = "5m0s"
+{{- if .Values.daemon.pubsub.ipwhitelist }}
+    [Pubsub]
+    IPColocationWhitelist = ["{{ join "\", \"" .Values.daemon.pubsub.ipwhitelist }}"]
+{{- end }}
     [Storage]
 {{- if .Values.daemon.storage.postgresql }}
       [Storage.Postgresql]
