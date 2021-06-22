@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}-{{ .Values.application.name }}
   labels:
@@ -9,11 +9,37 @@ metadata:
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
-  replicas: {{ .Values.deployment.replicas }}
+  replicas: {{ .Values.application.replicas }}
+  serviceName: {{ .Values.application.name }}
   selector:
     matchLabels:
       app: {{ .Values.application.name }}
       release: {{ .Release.Name }}
+  volumeClaimTemplates:
+    - metadata:
+        name: lotus-path
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2000Gi
+    - metadata:
+        name: parameter-cache
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 500Gi
+    - metadata:
+        name: shared-volume
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.application.storage.size }}
   template:
     metadata:
       labels:
@@ -24,12 +50,16 @@ spec:
 {{ toYaml . | indent 8 }}
 {{- end }}
     spec:
+      securityContext:
+        fsGroup: 532
       volumes:
+        # The wallet, mounted by the wallet importer
         - name: wallets-secret-volume
           secret:
             secretName: {{ .Release.Name }}-wallets
             defaultMode: 0600
         {{- range $sec := .Values.application.secrets }}
+        # secrets and configmaps, mounted by the application
         - name: {{ $sec.name }}-volume
           secret:
             {{- if $sec.external }}
@@ -48,6 +78,7 @@ spec:
             name: {{ .Release.Name }}-{{ $cm.name }}
             {{- end }}
         {{- end }}
+        
       containers:
         - name: {{ .Values.application.container.name }}
           image: {{ .Values.application.container.image }}
@@ -69,6 +100,8 @@ spec:
             - name: {{ $cm.name }}-volume
               mountPath: {{ $cm.mount }}
             {{- end }}
+            - name: shared-volume
+              mountPath: {{ .Values.application.storage.mount }}
         # lotus sidecar
         - name: lotus
           image: {{ .Values.lotus.image }}
@@ -97,12 +130,29 @@ spec:
               value: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
             {{- end }}
           resources:
+            {{- if .Values.lotus.lite.enabled }}
             requests:
-              memory: 32Gi
+              memory: 16Gi
               cpu: 8
             limits:
-              memory: 64Gi
+              memory: 32Gi
               cpu: 16
+            {{- else }}
+            requests:
+              memory: 64Gi
+              cpu: 8
+            limits:
+              memory: 96Gi
+              cpu: 16
+            {{- end }}
+          volumeMounts:
+            - name: lotus-path
+              mountPath: /var/lib/lotus
+            - name: parameter-cache
+              mountPath: /var/tmp/filecoin-proof-parameters
+            - name: shared-volume
+              mountPath: {{ .Values.application.storage.mount }}
+              readOnly: true
         # wallet importer
         # TODO: switch to a wallet server
         - name: wallet-importer
@@ -110,7 +160,7 @@ spec:
           imagePullPolicy: IfNotPresent
           command: [ "bash", "-c" ]
           args:
-            - 'while sleep 60; do for key in /wallets/*; do lotus wallet import "${key}" done; done'
+            - 'while sleep 60; do for key in /wallets/*; do lotus wallet import "${key}" || true; done; done'
           env:
             - name: FULLNODE_API_INFO
               value: "/ip4/127.0.0.1/tcp/1234/http"

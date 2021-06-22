@@ -3,6 +3,7 @@
 application:
   name: "nginx-example"
   labels: []
+  replicas: 
   container:
     name: application
     image: "nginx"
@@ -36,6 +37,9 @@ application:
       - host: example.com
         path: /
         servicePort: http
+  storage: # storage volume shared between application and lotus node
+    size: 1Gi
+    mount: /shared
 
 # Wallets are added to the wallet secret.
 # if you don't want to specify wallets in values.yaml,
@@ -57,6 +61,3 @@ prometheus:
   serviceMonitor: false
   path: /metrics
   port: ""
-
-deployment:
-  replicas: 1

@@ -1,8 +1,10 @@
-{{ range $cm := .Values.application.configMaps }}
+{{- range $cm := .Values.application.configMaps }}
+{{- if not $cm.external }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ $.Release.Name }}-{{ $cm.name }}
 data:
   {{ .toYaml .keys | nindent 2 }}
-{{ end }}
+{{- end }}
+{{- end }}
