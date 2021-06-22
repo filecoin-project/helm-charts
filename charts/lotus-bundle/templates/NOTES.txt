@@ -3,3 +3,9 @@
 Release ---------- {{ .Release.Name }}
 Namespace -------- {{ .Release.Namespace }}
 Application ------ {{ .Values.application.container.image }}
+
+The following following initial wallets will be imported:
+
+{{ range $wallet := .Values.wallets }}
+$wallet.address
+{{ end }}

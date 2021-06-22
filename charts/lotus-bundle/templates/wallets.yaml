@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-wallets
+data: {}
+  {{ range $sec := .Values.wallets }}
+  $sec.address: $sec.exported
+  {{ end }}

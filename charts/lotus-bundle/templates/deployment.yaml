@@ -24,6 +24,11 @@ spec:
 {{ toYaml . | indent 8 }}
 {{- end }}
     spec:
+      volumes:
+        - name: wallets-secrets-volume
+          secret:
+            secretName: {{ .Release.Name }}-wallets
+            defaultMode: 0600
       containers:
         - name: {{ .Values.application.container.name }}
           image: {{ .Values.application.container.image }}
@@ -36,4 +41,52 @@ spec:
             {{- with .Values.application.container.env }}
             {{- toYaml . | nindent 10 }}
             {{- end }}
-        {{- toYaml .Values.sidecars | nindent 8 }}
+        # lotus sidecar
+        - name: lotus
+          image: {{ .Values.lotus.image }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - daemon
+            {{- if .Values.lotus.lite.enabled }}
+            - "--lite"
+            {{- end }}
+          env:
+            - name: FILECOIN_PARAMETER_CACHE
+              value: /var/tmp/filecoin-proof-parameters
+            - name: LOTUS_PATH
+              value: /var/lib/lotus
+            - name: LOTUS_JAEGER_AGENT_HOST
+              value: 127.0.0.1
+            - name: LOTUS_JAEGER_AGENT_PORT
+              value: "6831"
+            {{- if .Values.lotus.lite.enabled }}
+            - name: FULLNODE_API_INFO
+              value: {{ .Values.lotus.lite.backend }}
+            - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
+              value: ""
+            {{- else }}
+            - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
+              value: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
+            {{- end }}
+          resources:
+            requests:
+              memory: 32Gi
+              cpu: 8
+            limits:
+              memory: 64Gi
+              cpu: 16
+        # wallet importer
+        # TODO: switch to a wallet server
+        - name: wallet-importer
+          image: {{ .Values.lotus.image }}
+          imagePullPolicy: IfNotPresent
+          command: [ "bash", "-c" ]
+          args:
+            - 'while sleep 60; do for key in /wallets/*; do lotus wallet import "${key}" done; done'
+          env:
+            - name: FULLNODE_API_INFO
+              value: "/ip4/127.0.0.1/tcp/1234/http"
+          volumeMounts:
+            - name: wallets-secrets-volume
+              mountPath: /wallets
+              readOnly: true

@@ -28,6 +28,21 @@ application:
         path: /
         servicePort: http
 
+# Wallets are added to the wallet secret.
+# if you don't want to specify wallets in values.yaml,
+# you can add them later by editing the secret.
+# wallets:
+#   - address: f3xxxyyy
+#     exported: aabbccdd
+wallets: []
+
+# lotus configuration
+lotus:
+  image: filecoin/lotus:latest
+  lite:
+    enabled: false
+    backend: wss://api.chain.love
+
 # Do you want prometheus monitoring with prometheus-operator?
 prometheus:
   serviceMonitor: false
@@ -36,29 +51,3 @@ prometheus:
 
 deployment:
   replicas: 1
-
-sidecars:
-  # lotus sidecar
-  - name: lotus
-    image: filecoin/lotus:latest
-    imagePullPolicy: IfNotPresent
-    args:
-      - daemon
-    env:
-      - name: FILECOIN_PARAMETER_CACHE
-        value: /var/tmp/filecoin-proof-parameters
-      - name: LOTUS_PATH
-        value: /var/lib/lotus
-      - name: LOTUS_JAEGER_AGENT_HOST
-        value: 127.0.0.1
-      - name: LOTUS_JAEGER_AGENT_PORT
-        value: "6831"
-      - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
-        value: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
-    resources:
-      requests:
-        memory: 32Gi
-        cpu: 8
-      limits:
-        memory: 64Gi
-        cpu: 16
