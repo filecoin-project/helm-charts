@@ -25,10 +25,29 @@ spec:
 {{- end }}
     spec:
       volumes:
-        - name: wallets-secrets-volume
+        - name: wallets-secret-volume
           secret:
             secretName: {{ .Release.Name }}-wallets
             defaultMode: 0600
+        {{- range $sec := .Values.application.secrets }}
+        - name: {{ $sec.name }}-volume
+          secret:
+            {{- if $sec.external }}
+            secretName: {{ $sec.name }}
+            {{- else }}
+            secretName: {{ $.Release.Name }}-{{ $sec.name }}
+            {{ end }}
+            defaultMode: 0600
+        {{- end }}
+        {{- range $cm := .Values.application.configMaps }}
+        - name: {{ $cm.name }}-volume
+          configMap:
+            {{- if $cm.external }}
+            name:  {{ $cm.name }}
+            {{- else }}
+            name: {{ .Release.Name }}-{{ $cm.name }}
+            {{- end }}
+        {{- end }}
       containers:
         - name: {{ .Values.application.container.name }}
           image: {{ .Values.application.container.image }}
@@ -40,6 +59,15 @@ spec:
               value: "/ip4/127.0.0.1/tcp/1234/http"
             {{- with .Values.application.container.env }}
             {{- toYaml . | nindent 10 }}
+            {{- end }}
+          volumeMounts:
+            {{- range $sec := .Values.application.secrets }}
+            - name: {{ $sec.name }}-volume
+              mountPath: {{ $sec.mount }}
+            {{- end }}
+            {{- range $cm := .Values.application.configMaps }}
+            - name: {{ $cm.name }}-volume
+              mountPath: {{ $cm.mount }}
             {{- end }}
         # lotus sidecar
         - name: lotus
@@ -87,6 +115,6 @@ spec:
             - name: FULLNODE_API_INFO
               value: "/ip4/127.0.0.1/tcp/1234/http"
           volumeMounts:
-            - name: wallets-secrets-volume
+            - name: wallets-secret-volume
               mountPath: /wallets
               readOnly: true

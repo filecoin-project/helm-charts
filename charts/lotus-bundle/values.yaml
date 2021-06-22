@@ -11,6 +11,15 @@ application:
     args: []
     env: {}
     resources: {}
+  secrets:
+    - name: example-secret # helm will create this secret
+      keys:
+        password: extraspecial
+      mount: /here
+    - name: external-secret # a pre-existing secret
+      external: true
+      mount: /there
+  configMaps: [] # same format as secrets
   service:
     enabled: true
     type: ClusterIP
