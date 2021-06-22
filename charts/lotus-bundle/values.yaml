@@ -1,0 +1,64 @@
+# required:
+# Your application. Replace with your own details.
+application:
+  name: "nginx-example"
+  labels: []
+  container:
+    name: application
+    image: "nginx"
+    imagePullPolicy: IfNotPresent
+    command: []
+    args: []
+    env: {}
+    resources: {}
+  service:
+    enabled: true
+    type: ClusterIP
+    ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 80
+        name: http
+  ingress:
+    enabled: false
+    class: nginx
+    annotations: {}
+    httpRules:
+      - host: example.com
+        path: /
+        servicePort: http
+
+# Do you want prometheus monitoring with prometheus-operator?
+prometheus:
+  serviceMonitor: false
+  path: /metrics
+  port: ""
+
+deployment:
+  replicas: 1
+
+sidecars:
+  # lotus sidecar
+  - name: lotus
+    image: filecoin/lotus:latest
+    imagePullPolicy: IfNotPresent
+    args:
+      - daemon
+    env:
+      - name: FILECOIN_PARAMETER_CACHE
+        value: /var/tmp/filecoin-proof-parameters
+      - name: LOTUS_PATH
+        value: /var/lib/lotus
+      - name: LOTUS_JAEGER_AGENT_HOST
+        value: 127.0.0.1
+      - name: LOTUS_JAEGER_AGENT_PORT
+        value: "6831"
+      - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
+        value: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
+    resources:
+      requests:
+        memory: 32Gi
+        cpu: 8
+      limits:
+        memory: 64Gi
+        cpu: 16

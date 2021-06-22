@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.application.name }}
+  labels:
+    app: {{ .Values.application.name }}
+{{- with .Values.application.labels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.application.name }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.application.name }}
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        release: {{ .Release.Name }}
+{{- with .Values.application.labels }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+    spec:
+      containers:
+        - name: {{ .Values.application.container.name }}
+          image: {{ .Values.application.container.image }}
+          imagePullPolicy: {{ .Values.application.container.imagePullPolicy }}
+          command: {{ .Values.application.container.command }}
+          args: {{ .Values.application.container.args }}
+          env:
+            - name: FULLNODE_API_INFO
+              value: "/ip4/127.0.0.1/tcp/1234/http"
+            {{- with .Values.application.container.env }}
+            {{- toYaml . | nindent 10 }}
+            {{- end }}
+        {{- toYaml .Values.sidecars | nindent 8 }}

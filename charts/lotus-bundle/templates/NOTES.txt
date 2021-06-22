@@ -1,0 +1,5 @@
+{{ .Values.application.name }} with lotus sidecars
+
+Release ---------- {{ .Release.Name }}
+Namespace -------- {{ .Release.Namespace }}
+Application ------ {{ .Values.application.container.image }}
