@@ -34,48 +34,51 @@ spec:
               - key: dealbot.key
                 path: dealbot.key
       containers:
-      - name: dealbot-controller
-        image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        ports:
-          - containerPort: 8764
-            name: dealbot
-          - containerPort: 8763
-            name: dealbotgraphql
-        args: ["controller"]
-        env:
-          - name: DEALBOT_LISTEN
-            value: "0.0.0.0:8764"
-          - name: DEALBOT_GRAPHQL_LISTEN
-            value: "0.0.0.0:8763"
-          - name: DEALBOT_METRICS
-            value: prometheus
-          - name: DEALBOT_IDENTITY_KEYPAIR
-            value: /dealbot.key
-          {{ if .Values.controller.postgres.enabled }}
-          - name: DEALBOT_PERSISTENCE_DRIVER
-            value: postgres
-          - name: PGHOST
-            value: {{ .Values.postgres.teamid }}-{{ .Release.Name }}-controllerdb
-          - name: PGPORT
-            value: "5432"
-          - name: PGUSER
-            value: {{ .Values.postgres.user }}
-          - name: PGPASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.postgres.user }}.{{.Values.postgres.teamid }}-{{ .Release.Name }}-controllerdb.credentials.postgresql.acid.zalan.do
-                key: password
-          - name: PGDATABASE
-            value: {{ .Values.postgres.database }}
-          {{ end }}
-        resources:
-{{ toYaml .Values.controller.resources | indent 10 }}
-        volumeMounts:
-          - name: dealbot-key-volume
-            mountPath: /dealbot.key
-            subPath: dealbot.key
-            readOnly: true
+        - name: dealbot-controller
+          image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          ports:
+            - containerPort: 8764
+              name: dealbot
+            - containerPort: 8763
+              name: dealbotgraphql
+          args: ["controller"]
+          env:
+            - name: DEALBOT_LISTEN
+              value: "0.0.0.0:8764"
+            - name: DEALBOT_GRAPHQL_LISTEN
+              value: "0.0.0.0:8763"
+            - name: DEALBOT_METRICS
+              value: prometheus
+            - name: DEALBOT_IDENTITY_KEYPAIR
+              value: /dealbot.key
+            {{- if .Values.controller.postgres.enabled }}
+            - name: DEALBOT_PERSISTENCE_DRIVER
+              value: postgres
+            - name: PGHOST
+              value: {{ .Values.postgres.teamid }}-{{ .Release.Name }}-controllerdb
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              value: {{ .Values.postgres.user }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.user }}.{{.Values.postgres.teamid }}-{{ .Release.Name }}-controllerdb.credentials.postgresql.acid.zalan.do
+                  key: password
+            - name: PGDATABASE
+              value: {{ .Values.postgres.database }}
+            {{- end }}
+{{- with .Values.controller.env }}
+{{ toYaml . | indent 12}}
+{{- end }}
+          resources:
+{{ toYaml .Values.controller.resources | indent 12 }}
+          volumeMounts:
+            - name: dealbot-key-volume
+              mountPath: /dealbot.key
+              subPath: dealbot.key
+              readOnly: true
 {{ end }}
 
 {{ if .Values.daemon.enabled }}
@@ -108,43 +111,46 @@ spec:
     spec:
       {{- if .Values.daemon.persistence.enabled }}
       volumes:
-      - name: deals-volume
-        persistentVolumeClaim:
-          claimName: {{ .Values.daemon.persistence.claimName }}
-      {{- end }}
-      containers:
-      - name: dealbot-daemon
-        image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        ports:
-          - containerPort: 8764
-            name: dealbot
-        args: ["daemon"]
-        env:
-        - name: LOTUS_API_MULTIADDR
-          value: {{ .Values.daemon.lotusAPI.lotusAPIMultiaddr }}
-        - name: LOTUS_API_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.daemon.lotusAPI.lotusAPITokenSecret }}
-              key: jwt-all-privs-token
-        - name: FULLNODE_API_INFO
-          value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
-        - name: DEALBOT_DATA_DIRECTORY
-          value: {{ .Values.daemon.persistence.data | default "/tmp" }}
-        - name: DEALBOT_NODE_DATA_DIRECTORY
-          value: {{ .Values.daemon.persistence.nodedata | default "/tmp" }}
-        - name: DEALBOT_WALLET_ADDRESS
-          value: {{ .Values.daemon.lotusAPI.wallet }}
-        - name: DEALBOT_LISTEN
-          value: "0.0.0.0:8764"
-        - name: DEALBOT_CONTROLLER_ENDPOINT
-          value: http://{{ .Release.Name }}-controller:8764
-        {{- if .Values.daemon.persistence.enabled }}
-        volumeMounts:
         - name: deals-volume
-          mountPath: {{ .Values.daemon.persistence.mountPath }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.daemon.persistence.claimName }}
         {{- end }}
-        resources:
-{{ toYaml .Values.daemon.resources | indent 10 }}
+      containers:
+        - name: dealbot-daemon
+          image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          ports:
+            - containerPort: 8764
+              name: dealbot
+          args: ["daemon"]
+          env:
+            - name: LOTUS_API_MULTIADDR
+              value: {{ .Values.daemon.lotusAPI.lotusAPIMultiaddr }}
+            - name: LOTUS_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.daemon.lotusAPI.lotusAPITokenSecret }}
+                  key: jwt-all-privs-token
+            - name: FULLNODE_API_INFO
+              value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
+            - name: DEALBOT_DATA_DIRECTORY
+              value: {{ .Values.daemon.persistence.data | default "/tmp" }}
+            - name: DEALBOT_NODE_DATA_DIRECTORY
+              value: {{ .Values.daemon.persistence.nodedata | default "/tmp" }}
+            - name: DEALBOT_WALLET_ADDRESS
+              value: {{ .Values.daemon.lotusAPI.wallet }}
+            - name: DEALBOT_LISTEN
+              value: "0.0.0.0:8764"
+            - name: DEALBOT_CONTROLLER_ENDPOINT
+              value: http://{{ .Release.Name }}-controller:8764
+{{- with .Values.daemon.env }}
+{{ toYaml . | indent 12}}
+{{- end }}
+            {{- if .Values.daemon.persistence.enabled }}
+          volumeMounts:
+          - name: deals-volume
+            mountPath: {{ .Values.daemon.persistence.mountPath }}
+          {{- end }}
+          resources:
+{{ toYaml .Values.daemon.resources | indent 12 }}
 {{ end }}

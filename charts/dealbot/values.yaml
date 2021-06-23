@@ -28,7 +28,7 @@ jaeger:
     type: "probabilistic"
     param: 0.0001
 
-controller: 
+controller:
   enabled: true
   postgres:
     enabled: true
@@ -48,6 +48,7 @@ controller:
       memory: 500Mi
   secrets:
     keySecret: ""
+  env: []
 
 postgres:
   enabled: true
@@ -82,3 +83,4 @@ daemon:
     requests:
       cpu: 500m
       memory: 1000Mi
+  env: []
