@@ -50,6 +50,17 @@ application:
 wallets: []
 
 # lotus configuration
+# By default, lotus will run as a full-node. In this mode, it will take
+# time to sync the block chain and additiona resources will be needed
+# to keep it in sync.
+# Lotus can also be run as a lite-node. In this mode, wallets are local
+# and lotus clients connect to the same lotus-lite node, but messages
+# must be passed to a back-end lotus node. The backend can be a fullnode
+# or gateway service you run yourself or a public endpoint
+#
+# note:
+# api.chain.love is a lotus-gateway instance managed by Protocol Labs.
+# It provides a limited set of lotus API endpoints.
 lotus:
   image: coryschwartz/lotus:sidecar
   lite:
