@@ -23,7 +23,11 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
+            {{- if .Values.lotus.lite.enabled }}
+            storage: 200Gi
+            {{- else }}
             storage: 2000Gi
+            {{- end }}
     - metadata:
         name: parameter-cache
       spec:
@@ -31,7 +35,7 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 500Gi
+            storage: 1Gi
     - metadata:
         name: shared-volume
       spec:
@@ -86,8 +90,8 @@ spec:
           command: {{ .Values.application.container.command }}
           args: {{ .Values.application.container.args }}
           env:
-            - name: FULLNODE_API_INFO
-              value: "/ip4/127.0.0.1/tcp/1234/http"
+            - name: LOTUS_PATH
+              value: "/var/lib/lotus"
             {{- with .Values.application.container.env }}
             {{- toYaml . | nindent 10 }}
             {{- end }}
@@ -102,6 +106,9 @@ spec:
             {{- end }}
             - name: shared-volume
               mountPath: {{ .Values.application.storage.mount }}
+            - name: lotus-path
+              mountPath: /var/lib/lotus
+              readOnly: true
         # lotus sidecar
         - name: lotus
           image: {{ .Values.lotus.image }}
@@ -162,9 +169,12 @@ spec:
           args:
             - 'while sleep 60; do for key in /wallets/*; do lotus wallet import "${key}" || true; done; done'
           env:
-            - name: FULLNODE_API_INFO
-              value: "/ip4/127.0.0.1/tcp/1234/http"
+            - name: LOTUS_PATH
+              value: /var/lib/lotus
           volumeMounts:
             - name: wallets-secret-volume
               mountPath: /wallets
+              readOnly: true
+            - name: lotus-path
+              mountPath: /var/lib/lotus
               readOnly: true
