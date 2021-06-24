@@ -58,6 +58,10 @@ spec:
           secret:
             secretName: {{ .Release.Name }}-wallets
             defaultMode: 0600
+        - name: filebeat-config-secret-volume
+          secret:
+            secretName: {{ .Release.Name }}-filebeat-config
+            defaultMode: 0600
         {{- range $sec := .Values.application.secrets }}
         # secrets and configmaps, mounted by the application
         - name: {{ $sec.name }}-volume
@@ -77,6 +81,10 @@ spec:
             {{- else }}
             name: {{ .Release.Name }}-{{ $cm.name }}
             {{- end }}
+        {{- end }}
+        {{- if .Values.filebeat.enabled }}
+        - name: filebeat-volume
+          emptyDir: {}
         {{- end }}
         
       containers:
@@ -102,6 +110,10 @@ spec:
             {{- end }}
             - name: shared-volume
               mountPath: {{ .Values.application.storage.mount }}
+            {{- if .Values.filebeat.enabled }}
+            - name: filebeat-volume
+              mountPath: {{ .Values.filebeat.path }}
+            {{- end }}
         # lotus sidecar
         - name: lotus
           image: {{ .Values.lotus.image }}
@@ -129,6 +141,14 @@ spec:
             - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
               value: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
             {{- end }}
+            - name: GOLOG_FORMAT
+              value: json
+            {{- if .Values.filebeat.enabled }}
+            - name: GOLOG_FILE
+              value: /var/log/lotus/lotus.log
+            - name: GOLOG_OUTPUT
+              value: file+stdout
+            {{- end }}
           resources:
             {{- if .Values.lotus.lite.enabled }}
             requests:
@@ -148,11 +168,16 @@ spec:
           volumeMounts:
             - name: lotus-path
               mountPath: /var/lib/lotus
+
             - name: parameter-cache
               mountPath: /var/tmp/filecoin-proof-parameters
             - name: shared-volume
               mountPath: {{ .Values.application.storage.mount }}
               readOnly: true
+            {{- if .Values.filebeat.enabled }}
+            - name: filebeat-volume
+              mountPath: /var/log/lotus
+            {{- end }}
         # wallet importer
         # TODO: switch to a wallet server
         - name: wallet-importer
@@ -168,3 +193,16 @@ spec:
             - name: wallets-secret-volume
               mountPath: /wallets
               readOnly: true
+        # filebeat sidecar
+        {{- if .Values.filebeat.enabled }}
+        - name: filebeat
+          image: {{ .Values.filebeat.image }}
+          args:
+            - "-c"
+            - "/etc/filebeat/filebeat.yaml"
+          volumeMounts:
+            - name: filebeat-config-secret-volume
+              mountPath: /etc/filebeat
+            - name: filebeat-volume
+              mountPath: {{ .Values.filebeat.path }}
+        {{- end }}

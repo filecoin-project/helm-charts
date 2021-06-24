@@ -51,7 +51,7 @@ wallets: []
 
 # lotus configuration
 lotus:
-  image: filecoin/lotus:latest
+  image: coryschwartz/lotus:sidecar
   lite:
     enabled: false
     backend: wss://api.chain.love
@@ -61,3 +61,41 @@ prometheus:
   serviceMonitor: false
   path: /metrics
   port: ""
+
+# Bring your own filebeat.
+# The network where you are running might already have great log hadling.
+# If it does, there's no need to enable this. For those who need customized
+# log handling, this is for you.
+#
+# Enabling filebeat will install a filebeat sidecar.
+# Lotus will write logs to a file so it can be handled by filebeat. If your
+# application writes log files as well, filebeat can pick them up.
+#
+# The example config works with logz.io.
+# Configuration tips:
+# hint: https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-reference-yml.html
+filebeat:
+  enabled: true
+  image: store/elastic/filebeat:7.13.2
+  path: /var/log/app
+  config: |
+    ######################## Filebeat Configuration ############################
+    ############################################################################
+    name: "a-lotus-dapp"
+    tags:
+      - filecoin
+      - lotus
+    fields:
+      env: staging
+      logzio_codec: json
+      token: <token>
+      cluster: <cluster>
+      type: filebeat
+    filebeat.inputs:
+      - type: log
+        enabled: true 
+        paths:
+          - /var/log/app/*.log
+    output:
+      logstash:
+        hosts: listener.logz.io:5015
