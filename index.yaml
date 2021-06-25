@@ -315,6 +315,16 @@ entries:
   lotus-gateway:
   - apiVersion: v2
     appVersion: 1.5.0
+    created: "2021-06-25T20:30:50.698266922Z"
+    description: Provision a lotus-gateway
+    digest: f712a9503e3ecc3258f01c7de1c070dba67889f9cc6c05dfbf8be6d2ce10fc15
+    name: lotus-gateway
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-gateway-0.1.5/lotus-gateway-0.1.5.tgz
+    version: 0.1.5
+  - apiVersion: v2
+    appVersion: 1.5.0
     created: "2021-05-05T19:22:21.818734339Z"
     description: Provision a lotus-gateway
     digest: f810adc4ca99e535f73b21532eb72c94e877081d4eedbf1df501a89f11bec0f6
