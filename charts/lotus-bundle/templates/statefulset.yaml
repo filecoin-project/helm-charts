@@ -66,8 +66,8 @@ spec:
           secret:
             secretName: {{ .Release.Name }}-filebeat-config
             defaultMode: 0600
-        {{- range $sec := .Values.application.secrets }}
         # secrets and configmaps, mounted by the application
+        {{- range $sec := .Values.application.secrets }}
         - name: {{ $sec.name }}-volume
           secret:
             {{- if $sec.external }}
@@ -83,12 +83,33 @@ spec:
             {{- if $cm.external }}
             name:  {{ $cm.name }}
             {{- else }}
-            name: {{ .Release.Name }}-{{ $cm.name }}
+            name: {{ $.Release.Name }}-{{ $cm.name }}
             {{- end }}
         {{- end }}
         {{- if .Values.filebeat.enabled }}
+        # volume where filebeat logs are stored
         - name: filebeat-volume
           emptyDir: {}
+        # filebeat secrets and configmaps
+        {{- range $sec := .Values.filebeat.secrets }}
+        - name: {{ $sec.name }}-filebeat-volume
+          secret:
+            {{- if $sec.external }}
+            secretName: {{ $sec.name }}
+            {{- else }}
+            secretName: {{ $.Release.Name }}-{{ $sec.name }}
+            {{ end }}
+            defaultMode: 0600
+        {{- end }}
+        {{- range $cm := .Values.filebeat.configMaps }}
+        - name: {{ $cm.name }}-filebeat-volume
+          configMap:
+            {{- if $cm.external }}
+            name:  {{ $cm.name }}
+            {{- else }}
+            name: {{ $.Release.Name }}-{{ $cm.name }}
+            {{- end }}
+        {{- end }}
         {{- end }}
         
       containers:
@@ -150,12 +171,6 @@ spec:
             {{- end }}
             - name: GOLOG_FORMAT
               value: json
-            {{- if .Values.filebeat.enabled }}
-            - name: GOLOG_FILE
-              value: /var/log/lotus/lotus.log
-            - name: GOLOG_OUTPUT
-              value: file+stdout
-            {{- end }}
           resources:
             {{- if .Values.lotus.lite.enabled }}
             requests:
@@ -175,7 +190,6 @@ spec:
           volumeMounts:
             - name: lotus-path
               mountPath: /var/lib/lotus
-
             - name: parameter-cache
               mountPath: /var/tmp/filecoin-proof-parameters
             - name: shared-volume
@@ -208,6 +222,7 @@ spec:
         - name: filebeat
           image: {{ .Values.filebeat.image }}
           args:
+            - "-e"
             - "-c"
             - "/etc/filebeat/filebeat.yaml"
           volumeMounts:
@@ -215,4 +230,12 @@ spec:
               mountPath: /etc/filebeat
             - name: filebeat-volume
               mountPath: {{ .Values.filebeat.path }}
+            {{- range $sec := .Values.filebeat.secrets }}
+            - name: {{ $sec.name }}-filebeat-volume
+              mountPath: {{ $sec.mount }}
+            {{- end }}
+            {{- range $cm := .Values.filebeat.configMaps }}
+            - name: {{ $cm.name }}-filebeat-volume
+              mountPath: {{ $cm.mount }}
+            {{- end }}
         {{- end }}

@@ -1,12 +1,27 @@
 {{- range $cm := .Values.application.configMaps }}
 {{- if not $cm.external }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ $.Release.Name }}-{{ $cm.name }}
 data:
   {{- range $k, $v := .keys }}
-  {{ $k }}: {{ $v | b64enc }}
+  {{ $k }}: {{ $v }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- range $cm := .Values.filebeat.configMaps }}
+{{- if not $cm.external }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-{{ $cm.name }}
+data:
+  {{- range $k, $v := .keys }}
+  {{ $k }}: {{ $v }}
   {{- end }}
 {{- end }}
 {{- end }}
