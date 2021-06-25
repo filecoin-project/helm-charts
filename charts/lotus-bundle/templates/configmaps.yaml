@@ -5,6 +5,8 @@ kind: ConfigMap
 metadata:
   name: {{ $.Release.Name }}-{{ $cm.name }}
 data:
-  {{ .toYaml .keys | nindent 2 }}
+  {{- range $k, $v := .keys }}
+  {{ $k }}: {{ $v | b64enc }}
+  {{- end }}
 {{- end }}
 {{- end }}
