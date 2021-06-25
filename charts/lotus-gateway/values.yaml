@@ -5,6 +5,11 @@ image:
 
 prometheusOperatorServiceMonitor: true
 
+# set additional arguments for run
+# runArgs:
+# - --api-max-lookback=100h
+# - --api-wait-lookback-limit=10000
+
 ports:
   rpc: 2346
 
