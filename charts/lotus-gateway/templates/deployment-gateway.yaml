@@ -33,9 +33,11 @@ spec:
       - name: gateway
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        command: ["/usr/local/bin/lotus-gateway"]
+        command: ["/usr/local/bin/lotus-gateway", "run"]
+        {{- with .Values.runArgs }}
         args:
-          - run
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         env:
         {{- with .Values.gatewayEnvs }}
           {{- toYaml . | nindent 10 }}
