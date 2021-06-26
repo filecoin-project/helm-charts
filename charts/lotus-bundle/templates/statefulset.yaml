@@ -117,11 +117,15 @@ spec:
           imagePullPolicy: {{ .Values.application.container.imagePullPolicy }}
           command: {{ .Values.application.container.command }}
           args: {{ .Values.application.container.args }}
+          ports:
+            {{- with .Values.application.container.ports }}
+            {{ toYaml . | indent 10 }}
+            {{- end }}
           env:
             - name: LOTUS_PATH
               value: "/var/lib/lotus"
             {{- with .Values.application.container.env }}
-            {{- toYaml . | nindent 10 }}
+            {{ toYaml . | indent 10 }}
             {{- end }}
           volumeMounts:
             {{- range $sec := .Values.application.secrets }}

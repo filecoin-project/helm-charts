@@ -12,6 +12,7 @@ application:
     args: []
     env: {}
     resources: {}
+    ports: []
   secrets:
     - name: example-secret # helm will create this secret
       keys:
