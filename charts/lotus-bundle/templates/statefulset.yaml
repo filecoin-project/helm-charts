@@ -111,7 +111,6 @@ spec:
             {{- end }}
         {{- end }}
         {{- end }}
-        
       containers:
         - name: {{ .Values.application.container.name }}
           image: {{ .Values.application.container.image }}
@@ -157,6 +156,10 @@ spec:
             - name: LOTUS_PATH
               value: /var/lib/lotus
             - name: LOTUS_JAEGER_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.hostIP
               value: 127.0.0.1
             - name: LOTUS_JAEGER_AGENT_PORT
               value: "6831"
@@ -199,6 +202,15 @@ spec:
             - name: filebeat-volume
               mountPath: /var/log/lotus
             {{- end }}
+          command: [ "bash", "-c" ]
+          args:
+            - |
+              chmod -R o-r $LOTUS_PATH
+              chmod -R o-w $LOTUS_PATH
+              chmod -R g-r $LOTUS_PATH
+              chmod -R g-w $LOTUS_PATH
+              /docker-lotus-entrypoint.sh daemon
+
         # wallet importer
         # TODO: switch to a wallet server
         - name: wallet-importer
