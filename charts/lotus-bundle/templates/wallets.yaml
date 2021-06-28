@@ -5,5 +5,5 @@ metadata:
   name: {{ .Release.Name }}-wallets
 data:
   {{- range $sec := .Values.wallets }}
-  $sec.address: $sec.exported
+  {{ $sec.address }}: {{ $sec.exported | b64enc }}
   {{- end }}
