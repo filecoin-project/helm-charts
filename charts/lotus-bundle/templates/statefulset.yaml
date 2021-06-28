@@ -115,17 +115,17 @@ spec:
         - name: {{ .Values.application.container.name }}
           image: {{ .Values.application.container.image }}
           imagePullPolicy: {{ .Values.application.container.imagePullPolicy }}
-          command: {{ .Values.application.container.command }}
-          args: {{ .Values.application.container.args }}
+          command: {{- toYaml .Values.application.container.command | nindent 12 }}
+          args: {{- toYaml .Values.application.container.args | nindent 12 }}
           ports:
             {{- with .Values.application.container.ports }}
-            {{ toYaml . | indent 10 }}
+{{ toYaml . | indent 12 }}
             {{- end }}
           env:
             - name: LOTUS_PATH
               value: "/var/lib/lotus"
             {{- with .Values.application.container.env }}
-            {{ toYaml . | indent 10 }}
+{{ toYaml . | indent 12 }}
             {{- end }}
           volumeMounts:
             {{- range $sec := .Values.application.secrets }}
@@ -159,14 +159,6 @@ spec:
               value: /var/tmp/filecoin-proof-parameters
             - name: LOTUS_PATH
               value: /var/lib/lotus
-            - name: LOTUS_JAEGER_AGENT_HOST
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: status.hostIP
-              value: 127.0.0.1
-            - name: LOTUS_JAEGER_AGENT_PORT
-              value: "6831"
             {{- if .Values.lotus.lite.enabled }}
             - name: FULLNODE_API_INFO
               value: {{ .Values.lotus.lite.backend }}

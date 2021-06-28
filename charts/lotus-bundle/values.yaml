@@ -10,7 +10,7 @@ application:
     imagePullPolicy: IfNotPresent
     command: []
     args: []
-    env: {}
+    env: []
     resources: {}
     ports: []
   secrets:
