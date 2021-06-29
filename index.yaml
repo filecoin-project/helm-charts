@@ -89,6 +89,17 @@ entries:
     urls:
     - https://github.com/filecoin-project/helm-charts/releases/download/efs-access-0.1.0/efs-access-0.1.0.tgz
     version: 0.1.0
+  lotus-bundle:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2021-06-29T07:32:15.139489455Z"
+    description: bundle your application with lotus
+    digest: 33828d3202497ac502d18e87927fac389f484966c36ad5ed48e33be9e3672311
+    name: lotus-bundle
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-bundle-0.0.1/lotus-bundle-0.0.1.tgz
+    version: 0.0.1
   lotus-chain-export:
   - apiVersion: v2
     appVersion: 0.8.0
