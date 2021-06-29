@@ -1,4 +1,4 @@
-{{- if .Values.filebeat.enabled }}
+{{- if and .Values.filebeat.enabled (not .Values.filebeat.external) }}
 ---
 apiVersion: v1
 kind: Secret

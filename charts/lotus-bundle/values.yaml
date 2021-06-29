@@ -71,7 +71,7 @@ lotus:
 # Do you want prometheus monitoring with prometheus-operator?
 prometheus:
   serviceMonitor: false
-  path: /metrics
+  ath: /metrics
   port: ""
 
 # Bring your own filebeat.
@@ -83,11 +83,19 @@ prometheus:
 # Lotus will write logs to a file so it can be handled by filebeat. If your
 # application writes log files as well, filebeat can pick them up.
 #
+# Some people might not want to include secrets (API tokens, etc) in a values
+# file. If this is you, enable "filebeat.external". When this is enabled,
+# the rest of the filebeat options are ignored, and you should create the secret
+# with your filebeat configuration on your own.
+# hint: see templates/filebeat-config.yaml
+#
 # The example config works with logz.io.
 # Configuration tips:
 # hint: https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-reference-yml.html
 filebeat:
   enabled: false
+  external: false
+  externalSecret: yoursecretname
   image: store/elastic/filebeat:7.13.2
   path: /var/log/app
   secrets:

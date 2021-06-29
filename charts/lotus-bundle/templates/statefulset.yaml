@@ -64,7 +64,11 @@ spec:
             defaultMode: 0600
         - name: filebeat-config-secret-volume
           secret:
+            {{- if .Values.filebeat.external }}
+            secretName: {{ .Values.filebeat.externalSecret }}
+            {{- else }}
             secretName: {{ .Release.Name }}-filebeat-config
+            {{- end }}
             defaultMode: 0600
         # secrets and configmaps, mounted by the application
         {{- range $sec := .Values.application.secrets }}

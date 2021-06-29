@@ -3,6 +3,7 @@
 Release ---------- {{ .Release.Name }}
 Namespace -------- {{ .Release.Namespace }}
 Application ------ {{ .Values.application.container.image }}
+Bundled with ----- {{ .Values.lotus.image }}
 
 The following following initial wallets will be imported:
 
