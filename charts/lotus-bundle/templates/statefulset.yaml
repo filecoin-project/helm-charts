@@ -117,8 +117,8 @@ spec:
         {{- end }}
       containers:
         - name: {{ .Values.application.container.name }}
-          image: {{ .Values.application.container.image }}
-          imagePullPolicy: {{ .Values.application.container.imagePullPolicy }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: {{- toYaml .Values.application.container.command | nindent 12 }}
           args: {{- toYaml .Values.application.container.args | nindent 12 }}
           ports:
