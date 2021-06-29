@@ -1,13 +1,18 @@
 # required:
 # Your application. Replace with your own details.
+
+# This is the image and repo of *YOUR* application.
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: Always
+
 application:
   name: "nginx-example"
   labels: []
   replicas: 
   container:
     name: application
-    image: "nginx"
-    imagePullPolicy: IfNotPresent
     command: []
     args: []
     env: []
