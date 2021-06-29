@@ -1,0 +1,253 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.application.name }}
+  labels:
+    app: {{ .Values.application.name }}
+{{- with .Values.application.labels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.application.replicas }}
+  serviceName: {{ .Values.application.name }}
+  selector:
+    matchLabels:
+      app: {{ .Values.application.name }}
+      release: {{ .Release.Name }}
+  volumeClaimTemplates:
+    - metadata:
+        name: lotus-path
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            {{- if .Values.lotus.lite.enabled }}
+            storage: 200Gi
+            {{- else }}
+            storage: 2000Gi
+            {{- end }}
+    - metadata:
+        name: parameter-cache
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: shared-volume
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.application.storage.size }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.application.name }}
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        release: {{ .Release.Name }}
+{{- with .Values.application.labels }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+    spec:
+      securityContext:
+        fsGroup: 532
+      volumes:
+        # The wallet, mounted by the wallet importer
+        - name: wallets-secret-volume
+          secret:
+            secretName: {{ .Release.Name }}-wallets
+            defaultMode: 0600
+        - name: filebeat-config-secret-volume
+          secret:
+            {{- if .Values.filebeat.external }}
+            secretName: {{ .Values.filebeat.externalSecret }}
+            {{- else }}
+            secretName: {{ .Release.Name }}-filebeat-config
+            {{- end }}
+            defaultMode: 0600
+        # secrets and configmaps, mounted by the application
+        {{- range $sec := .Values.application.secrets }}
+        - name: {{ $sec.name }}-volume
+          secret:
+            {{- if $sec.external }}
+            secretName: {{ $sec.name }}
+            {{- else }}
+            secretName: {{ $.Release.Name }}-{{ $sec.name }}
+            {{ end }}
+            defaultMode: 0600
+        {{- end }}
+        {{- range $cm := .Values.application.configMaps }}
+        - name: {{ $cm.name }}-volume
+          configMap:
+            {{- if $cm.external }}
+            name:  {{ $cm.name }}
+            {{- else }}
+            name: {{ $.Release.Name }}-{{ $cm.name }}
+            {{- end }}
+        {{- end }}
+        {{- if .Values.filebeat.enabled }}
+        # volume where filebeat logs are stored
+        - name: filebeat-volume
+          emptyDir: {}
+        # filebeat secrets and configmaps
+        {{- range $sec := .Values.filebeat.secrets }}
+        - name: {{ $sec.name }}-filebeat-volume
+          secret:
+            {{- if $sec.external }}
+            secretName: {{ $sec.name }}
+            {{- else }}
+            secretName: {{ $.Release.Name }}-{{ $sec.name }}
+            {{ end }}
+            defaultMode: 0600
+        {{- end }}
+        {{- range $cm := .Values.filebeat.configMaps }}
+        - name: {{ $cm.name }}-filebeat-volume
+          configMap:
+            {{- if $cm.external }}
+            name:  {{ $cm.name }}
+            {{- else }}
+            name: {{ $.Release.Name }}-{{ $cm.name }}
+            {{- end }}
+        {{- end }}
+        {{- end }}
+      containers:
+        - name: {{ .Values.application.container.name }}
+          image: {{ .Values.application.container.image }}
+          imagePullPolicy: {{ .Values.application.container.imagePullPolicy }}
+          command: {{- toYaml .Values.application.container.command | nindent 12 }}
+          args: {{- toYaml .Values.application.container.args | nindent 12 }}
+          ports:
+            {{- with .Values.application.container.ports }}
+{{ toYaml . | indent 12 }}
+            {{- end }}
+          env:
+            - name: LOTUS_PATH
+              value: "/var/lib/lotus"
+            {{- with .Values.application.container.env }}
+{{ toYaml . | indent 12 }}
+            {{- end }}
+          volumeMounts:
+            {{- range $sec := .Values.application.secrets }}
+            - name: {{ $sec.name }}-volume
+              mountPath: {{ $sec.mount }}
+            {{- end }}
+            {{- range $cm := .Values.application.configMaps }}
+            - name: {{ $cm.name }}-volume
+              mountPath: {{ $cm.mount }}
+            {{- end }}
+            - name: shared-volume
+              mountPath: {{ .Values.application.storage.mount }}
+            - name: lotus-path
+              mountPath: /var/lib/lotus
+              readOnly: true
+            {{- if .Values.filebeat.enabled }}
+            - name: filebeat-volume
+              mountPath: {{ .Values.filebeat.path }}
+            {{- end }}
+        # lotus sidecar
+        - name: lotus
+          image: {{ .Values.lotus.image }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - daemon
+            {{- if .Values.lotus.lite.enabled }}
+            - "--lite"
+            {{- end }}
+          env:
+            - name: FILECOIN_PARAMETER_CACHE
+              value: /var/tmp/filecoin-proof-parameters
+            - name: LOTUS_PATH
+              value: /var/lib/lotus
+            {{- if .Values.lotus.lite.enabled }}
+            - name: FULLNODE_API_INFO
+              value: {{ .Values.lotus.lite.backend }}
+            - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
+              value: ""
+            {{- else }}
+            - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
+              value: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
+            {{- end }}
+            - name: GOLOG_FORMAT
+              value: json
+          resources:
+            {{- if .Values.lotus.lite.enabled }}
+            requests:
+              memory: 16Gi
+              cpu: 8
+            limits:
+              memory: 32Gi
+              cpu: 16
+            {{- else }}
+            requests:
+              memory: 64Gi
+              cpu: 8
+            limits:
+              memory: 96Gi
+              cpu: 16
+            {{- end }}
+          volumeMounts:
+            - name: lotus-path
+              mountPath: /var/lib/lotus
+            - name: parameter-cache
+              mountPath: /var/tmp/filecoin-proof-parameters
+            - name: shared-volume
+              mountPath: {{ .Values.application.storage.mount }}
+              readOnly: true
+            {{- if .Values.filebeat.enabled }}
+            - name: filebeat-volume
+              mountPath: /var/log/lotus
+            {{- end }}
+          command: [ "bash", "-c" ]
+          args:
+            - |
+              chmod -R o-r $LOTUS_PATH
+              chmod -R o-w $LOTUS_PATH
+              chmod -R g-r $LOTUS_PATH
+              chmod -R g-w $LOTUS_PATH
+              /docker-lotus-entrypoint.sh daemon
+
+        # wallet importer
+        # TODO: switch to a wallet server
+        - name: wallet-importer
+          image: {{ .Values.lotus.image }}
+          imagePullPolicy: IfNotPresent
+          command: [ "bash", "-c" ]
+          args:
+            - 'while sleep 60; do for key in /wallets/*; do lotus wallet import "${key}" || true; done; done'
+          env:
+            - name: LOTUS_PATH
+              value: /var/lib/lotus
+          volumeMounts:
+            - name: wallets-secret-volume
+              mountPath: /wallets
+              readOnly: true
+            - name: lotus-path
+              mountPath: /var/lib/lotus
+              readOnly: true
+        # filebeat sidecar
+        {{- if .Values.filebeat.enabled }}
+        - name: filebeat
+          image: {{ .Values.filebeat.image }}
+          args:
+            - "-e"
+            - "-c"
+            - "/etc/filebeat/filebeat.yaml"
+          volumeMounts:
+            - name: filebeat-config-secret-volume
+              mountPath: /etc/filebeat
+            - name: filebeat-volume
+              mountPath: {{ .Values.filebeat.path }}
+            {{- range $sec := .Values.filebeat.secrets }}
+            - name: {{ $sec.name }}-filebeat-volume
+              mountPath: {{ $sec.mount }}
+            {{- end }}
+            {{- range $cm := .Values.filebeat.configMaps }}
+            - name: {{ $cm.name }}-filebeat-volume
+              mountPath: {{ $cm.mount }}
+            {{- end }}
+        {{- end }}

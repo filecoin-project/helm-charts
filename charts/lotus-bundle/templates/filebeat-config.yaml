@@ -1,0 +1,9 @@
+{{- if and .Values.filebeat.enabled (not .Values.filebeat.external) }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-filebeat-config
+data:
+  filebeat.yaml: {{ .Values.filebeat.config | b64enc }}
+{{- end }}
