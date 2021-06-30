@@ -148,23 +148,6 @@ spec:
           {{- else }}
             value: json
           {{- end }}
-          {{- if .Values.lens }}
-          {{- if .Values.lens.lotusAPI }}
-          - name: LOTUS_API_MULTIADDR
-            value: {{ required "visor:lens.lotusAPI.lotusAPIMultiaddr must be defined" .Values.lens.lotusAPI.lotusAPIMultiaddr }}
-          - name: LOTUS_API_TOKEN
-            valueFrom:
-              secretKeyRef:
-          {{- if .Values.lens.lotusAPI.lotusAPITokenSecret }}
-                name: {{ .Values.lens.lotusAPI.lotusAPITokenSecret }}
-          {{- else }}
-                name: {{ .Release.Name }}-jwt-secrets
-          {{- end }}
-                key: jwt-ro-privs-token
-          - name: VISOR_LENS_LOTUS_API
-            value: "$(LOTUS_API_TOKEN):$(LOTUS_API_MULTIADDR)"
-          {{- end }}
-          {{- end }}
           - name: PGPASSWORD
             valueFrom:
               secretKeyRef:

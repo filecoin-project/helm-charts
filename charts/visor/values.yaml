@@ -127,10 +127,13 @@ daemon:
       poolSize: 45
       allowUpsert: false
     file:
-    - name: db
+    - name: csv
       format: CSV
       path: /tmp
 
+  # pubsub settings
+  pubsub:
+    ipwhitelist: [] # list[string], maps to Pubsub.IPColocationWhitelist in config toml
 
 resources:
   requests:

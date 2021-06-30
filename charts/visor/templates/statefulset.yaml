@@ -133,12 +133,38 @@ spec:
           value: /var/lib/visor
         - name: VISOR_CONFIG
           value: /var/lib/visor/config.toml
-{{- range .Values.daemon.storage.postgresql }}
-        - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+        - name: PGPASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ .secret }}
-              key: url
+              name: {{ .Values.pgSecret }}
+              key: password
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.pgSecret }}
+              key: user
+        - name: PGHOST
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.pgSecret }}
+              key: host
+        - name: PGPORT
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.pgSecret }}
+              key: port
+        - name: PGDATABASE
+        {{- if .Values.pgDatabase }}
+          value: {{ .Values.pgDatabase }}
+        {{- else }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.pgSecret }}
+              key: database
+        {{- end }}
+{{- range .Values.daemon.storage.postgresql }}
+        - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+          value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode=require"
 {{- end }}
         ports:
         - containerPort: 1234

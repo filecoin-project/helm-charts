@@ -28,6 +28,7 @@ data:
       [Storage.Postgresql]
 {{- range .Values.daemon.storage.postgresql }}
         [Storage.Postgresql.{{ .name }}]
+          SchemaName = "visor"
           URLEnv = "VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL"
           ApplicationName = {{ .applicationName | default "visor" | quote }}
           PoolSize = {{ .poolSize | default 20 }}
