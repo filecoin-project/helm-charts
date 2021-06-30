@@ -49,10 +49,13 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      imagePullSecrets:
+      - name: regcred
       initContainers:
       - name: initfs
-        image: busybox
-        command: ["sh", "-c"]
+        image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        command: ["bash", "-c"]
         args:
           - |
             mkdir -p /var/lib/visor/keystore

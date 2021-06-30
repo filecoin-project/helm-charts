@@ -31,6 +31,8 @@ spec:
         heritage: {{ .Release.Service }}
         release: {{ .Release.Name }}
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: visor
         image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
