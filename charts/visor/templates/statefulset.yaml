@@ -62,6 +62,13 @@ spec:
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/visor
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 800m
+            memory: 512Mi
 {{- if .Values.daemon.importSnapshot.enabled }}
       - name: chain-import
         image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
@@ -107,6 +114,13 @@ spec:
         {{- if .Values.daemon.volumes.datastore.enabled }}
         - name: datastore-volume
           mountPath: /var/lib/visor/datastore
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 800m
+            memory: 512Mi
         {{- end }}
 {{- end }}
       containers:
@@ -210,6 +224,10 @@ spec:
                   visor {{ .command }} {{ join " " .args }}
                   {{- end }}
         {{- end }}
+{{- if .Values.resources }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+{{- end }}
 {{- if .Values.debug }}
       - name: debug
         image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
@@ -238,6 +256,13 @@ spec:
         - name: datastore-volume
           mountPath: /var/lib/visor/datastore
         {{- end }}
+        resources:
+          requests:
+            cpu: 2000m
+            memory: 12Gi
+          limits:
+            cpu: 8000m
+            memory: 16Gi
 {{- end }}
       volumes:
       - name: repo-volume

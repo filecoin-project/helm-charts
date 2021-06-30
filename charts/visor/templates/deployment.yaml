@@ -184,5 +184,7 @@ spec:
             value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode={{ .Values.pgSSLMode }}"
 
         resources:
+{{- if .Values.resources }}
 {{ toYaml .Values.resources | indent 10 }}
+{{- end }}
 {{- end }}
