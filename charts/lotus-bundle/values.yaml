@@ -68,6 +68,7 @@ wallets: []
 # api.chain.love is a lotus-gateway instance managed by Protocol Labs.
 # It provides a limited set of lotus API endpoints.
 lotus:
+  enabled: true
   image: filecoin/lotus:latest
   lite:
     enabled: false
