@@ -16,6 +16,7 @@ spec:
       app: {{ .Values.application.name }}
       release: {{ .Release.Name }}
   volumeClaimTemplates:
+    {{- if .Values.lotus.enabled }}
     - metadata:
         name: lotus-path
       spec:
@@ -36,6 +37,7 @@ spec:
         resources:
           requests:
             storage: 1Gi
+    {{- end }}
     - metadata:
         name: shared-volume
       spec:
@@ -126,8 +128,10 @@ spec:
 {{ toYaml . | indent 12 }}
             {{- end }}
           env:
+            {{- if .Values.lotus.enabled }}
             - name: LOTUS_PATH
               value: "/var/lib/lotus"
+            {{- end }}
             {{- with .Values.application.container.env }}
 {{ toYaml . | indent 12 }}
             {{- end }}
@@ -142,9 +146,11 @@ spec:
             {{- end }}
             - name: shared-volume
               mountPath: {{ .Values.application.storage.mount }}
+            {{- if .Values.lotus.enabled }}
             - name: lotus-path
               mountPath: /var/lib/lotus
               readOnly: true
+            {{- end }}
             {{- if .Values.filebeat.enabled }}
             - name: filebeat-volume
               mountPath: {{ .Values.filebeat.path }}
