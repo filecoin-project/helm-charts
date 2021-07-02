@@ -33,6 +33,32 @@ spec:
             items:
               - key: dealbot.key
                 path: dealbot.key
+        {{- if .Values.filebeat.enabled }}
+        - name: filebeat-config-secret-volume
+          secret:
+            secretName: {{ .Values.filebeat.externalSecret }}
+        - name: filebeat-volume
+          emptyDir: {}
+        # filebeat secrets and configmaps
+        {{- range $sec := .Values.filebeat.secrets }}
+        - name: {{ $sec.name }}-filebeat-volume
+          secret:
+            {{- if $sec.external }}
+            secretName: {{ $sec.name }}
+            {{- else }}
+            secretName: {{ $.Release.Name }}-{{ $sec.name }}
+            {{ end }}
+        {{- end }}
+        {{- range $cm := .Values.filebeat.configMaps }}
+        - name: {{ $cm.name }}-filebeat-volume
+          configMap:
+            {{- if $cm.external }}
+            name:  {{ $cm.name }}
+            {{- else }}
+            name: {{ $.Release.Name }}-{{ $cm.name }}
+            {{- end }}
+        {{- end }}
+        {{- end }}
       containers:
         - name: dealbot-controller
           image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
@@ -52,7 +78,7 @@ spec:
               value: prometheus
             - name: DEALBOT_IDENTITY_KEYPAIR
               value: /dealbot.key
-            {{- if .Values.controller.postgres.enabled }}
+            {{- if .Values.postgres.enabled }}
             - name: DEALBOT_PERSISTENCE_DRIVER
               value: postgres
             - name: PGHOST
@@ -69,6 +95,10 @@ spec:
             - name: PGDATABASE
               value: {{ .Values.postgres.database }}
             {{- end }}
+            {{- if .Values.filebeat.enabled }}
+            - name: DEALBOT_DATAPOINT_LOG
+              value: {{ .Values.filebeat.path }}/controller.log
+            {{- end }}
 {{- with .Values.controller.env }}
 {{ toYaml . | indent 12}}
 {{- end }}
@@ -79,6 +109,31 @@ spec:
               mountPath: /dealbot.key
               subPath: dealbot.key
               readOnly: true
+            {{- if .Values.filebeat.enabled }}
+            - name: filebeat-volume
+              mountPath: {{ .Values.filebeat.path }}
+            {{- end }}
+        {{- if .Values.filebeat.enabled }}
+        - name: filebeat
+          image: {{ .Values.filebeat.image }}
+          args:
+            - "-e"
+            - "-c"
+            - "/etc/filebeat/filebeat.yaml"
+          volumeMounts:
+            - name: filebeat-config-secret-volume
+              mountPath: /etc/filebeat
+            - name: filebeat-volume
+              mountPath: {{ .Values.filebeat.path }}
+            {{- range $sec := .Values.filebeat.secrets }}
+            - name: {{ $sec.name }}-filebeat-volume
+              mountPath: {{ $sec.mount }}
+            {{- end }}
+            {{- range $cm := .Values.filebeat.configMaps }}
+            - name: {{ $cm.name }}-filebeat-volume
+              mountPath: {{ $cm.mount }}
+            {{- end }}
+        {{- end }}
 {{ end }}
 
 {{ if .Values.daemon.enabled }}
