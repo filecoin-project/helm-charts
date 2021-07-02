@@ -149,6 +149,7 @@ spec:
             - name: filebeat-volume
               mountPath: {{ .Values.filebeat.path }}
             {{- end }}
+        {{- if .Values.lotus.enabled }}
         # lotus sidecar
         - name: lotus
           image: {{ .Values.lotus.image }}
@@ -229,6 +230,7 @@ spec:
             - name: lotus-path
               mountPath: /var/lib/lotus
               readOnly: true
+        {{- end }}
         # filebeat sidecar
         {{- if .Values.filebeat.enabled }}
         - name: filebeat
