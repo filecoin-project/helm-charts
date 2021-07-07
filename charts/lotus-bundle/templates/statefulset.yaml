@@ -204,7 +204,6 @@ spec:
               mountPath: /var/tmp/filecoin-proof-parameters
             - name: shared-volume
               mountPath: {{ .Values.application.storage.mount }}
-              readOnly: true
             {{- if .Values.filebeat.enabled }}
             - name: filebeat-volume
               mountPath: /var/log/lotus
