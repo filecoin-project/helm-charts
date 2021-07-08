@@ -46,6 +46,7 @@ controller:
       memory: 500Mi
   secrets:
     keySecret: ""
+    selfServeConfigSecret: ""
   env: []
 
 postgres:

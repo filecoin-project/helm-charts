@@ -33,6 +33,12 @@ spec:
             items:
               - key: dealbot.key
                 path: dealbot.key
+        - name: dealbot-selfserve-config-volume
+          secret:
+            secretName: {{ .Values.controller.secrets.selfServeConfigSecret }}
+            items:
+              - key: kubeconfig
+                path: kubeconfig
         {{- if .Values.filebeat.enabled }}
         - name: filebeat-config-secret-volume
           secret:
@@ -70,6 +76,8 @@ spec:
               name: dealbotgraphql
           args: ["controller"]
           env:
+            - name: KUBECONFIG
+              value: /kubeconfig
             - name: DEALBOT_LISTEN
               value: "0.0.0.0:8764"
             - name: DEALBOT_GRAPHQL_LISTEN
@@ -109,6 +117,9 @@ spec:
               mountPath: /dealbot.key
               subPath: dealbot.key
               readOnly: true
+            - name: dealbot-selfserve-config-volume
+              mountPath: /kubeconfig
+              subPath: kubeconfig
             {{- if .Values.filebeat.enabled }}
             - name: filebeat-volume
               mountPath: {{ .Values.filebeat.path }}
