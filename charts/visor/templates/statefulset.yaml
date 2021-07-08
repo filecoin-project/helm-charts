@@ -1,8 +1,5 @@
 ---
 {{- if .Values.daemon.enabled }}
-{{- if or .Values.watch.enabled .Values.walk.enabled }}
-  {{- fail "a visor deployment cannot enable more than one mode, please disable one" }}
-{{- end }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -10,9 +7,9 @@ metadata:
   labels:
     app: visor
     suite: sentinel
-{{- if .Values.labels }}
-{{ toYaml .Values.labels | indent 4 }}
-{{- end }}
+    {{- if .Values.labels }}
+      {{- toYaml .Values.labels | nindent 4 }}
+    {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   serviceName: {{ .Release.Name }}-visor-service
@@ -28,9 +25,9 @@ spec:
         chart: {{ .Chart.Name }}-{{ .Chart.Version }}
         heritage: {{ .Release.Service }}
         release: {{ .Release.Name }}
-{{- if .Values.labels }}
-{{ toYaml .Values.labels | indent 8 }}
-{{- end }}
+        {{- if .Values.labels }}
+          {{- toYaml .Values.labels | nindent 8 }}
+        {{- end }}
     spec:
       securityContext:
         fsGroup: 532
@@ -53,12 +50,10 @@ spec:
       - name: regcred
       initContainers:
       - name: initfs
-        image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        command: ["bash", "-c"]
-        args:
-          - |
-            mkdir -p /var/lib/visor/keystore
+        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/bin/sh", "-c"]
+        args: ["mkdir", "-p", "/var/lib/visor/keystore"]
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/visor
@@ -69,39 +64,16 @@ spec:
           limits:
             cpu: 800m
             memory: 512Mi
-{{- if .Values.daemon.importSnapshot.enabled }}
+      {{- if .Values.daemon.importSnapshot.enabled }}
       - name: chain-import
-        image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        command: ["bash", "-c"]
+        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/bin/sh", "-c"]
         args:
-          - |
-            if [ -f "/var/lib/visor/datastore/_imported" ]; then
-              echo "Skipping import, found /var/lib/visor/datastore/_imported file."
-              echo "Ensuring secrets have correct permissions."
-              chmod 0600 /var/lib/visor/keystore/*
-              exit 0
-            fi
-
-            echo importing snapshot from url {{ .Values.daemon.importSnapshot.url }}
-            visor init --import-snapshot={{ .Values.daemon.importSnapshot.url }}
-            status=$?
-
-            if [ $status -eq 0 ]; then
-              touch "/var/lib/visor/datastore/_imported"
-            fi
-
-            echo "Ensuring secrets have correct permissions."
-            chmod 0600 /var/lib/visor/keystore/*
-
-            exit $status
+          - |{{- include "sentinel-visor.chain-import-as-args" . | indent 10 }}
         env:
         - name: GOLOG_LOG_FMT
-        {{- if .Values.logFormat }}
-          value: {{ .Values.logFormat }}
-        {{- else }}
-          value: json
-        {{- end }}
+          value: {{ .Values.logFormat | default "json" }}
         - name: VISOR_REPO
           value: /var/lib/visor
         volumeMounts:
@@ -114,6 +86,8 @@ spec:
         {{- if .Values.daemon.volumes.datastore.enabled }}
         - name: datastore-volume
           mountPath: /var/lib/visor/datastore
+        {{- end }}
+        {{- /* Minimal resources as work is performed in daemon container. */}}
         resources:
           requests:
             cpu: 200m
@@ -121,27 +95,22 @@ spec:
           limits:
             cpu: 800m
             memory: 512Mi
-        {{- end }}
-{{- end }}
+      {{- end }}
       containers:
       - name: daemon
-        image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        command:
-        - visor
+        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["visor"]
         args:
         - daemon
+        {{- range .Values.daemon.args }}
+        - {{ . }}
+        {{- end }}
         env:
         - name: GOLOG_LOG_FMT
-        {{- if .Values.logFormat }}
-          value: {{ .Values.logFormat }}
-        {{- else }}
-          value: json
-        {{- end }}
-        {{- if .Values.logLevel }}
+          value: {{ .Values.logFormat | default "json" }}
         - name: GOLOG_LOG_LEVEL
-          value: {{ .Values.logLevel }}
-        {{- end }}
+          value: {{ .Values.logLevel | default "info" }}
         {{- if .Values.logLevelNamed }}
         - name: VISOR_LOG_LEVEL_NAMED
           value: {{ .Values.logLevelNamed }}
@@ -150,46 +119,22 @@ spec:
           value: /var/lib/visor
         - name: VISOR_CONFIG
           value: /var/lib/visor/config.toml
-        - name: PGPASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.pgSecret }}
-              key: password
-        - name: PGUSER
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.pgSecret }}
-              key: user
-        - name: PGHOST
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.pgSecret }}
-              key: host
-        - name: PGPORT
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.pgSecret }}
-              key: port
-        - name: PGDATABASE
-        {{- if .Values.pgDatabase }}
-          value: {{ .Values.pgDatabase }}
-        {{- else }}
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.pgSecret }}
-              key: database
-        {{- end }}
-{{- range .Values.daemon.storage.postgresql }}
+        {{- range .Values.daemon.storage.postgresql }}
         - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
-          value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode=require"
-{{- end }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ required "expected secret name which holds postgres connection url" .secretName }}
+              key: {{ .secretKey | default "url" }}
+        {{- end }}
         ports:
         - containerPort: 1234
           name: api
         - containerPort: 1347
           name: p2p
+        {{- if .Values.prometheusOperatorServiceMonitor }}
         - containerPort: 9991
           name: metrics
+        {{- end }}
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/visor
@@ -205,46 +150,38 @@ spec:
         lifecycle:
           postStart:
             exec:
-              command:
-                - "/bin/sh"
-                - "-c"
-                - |
-                  echo "Waiting for api to become ready"
-
-                  visor wait-api --timeout=60s
-                  status=$?
-
-                  if [ $status -ne 0 ]; then
-                    exit $status
-                  fi
-
-                  echo "Starting jobs"
-
-                  {{- range .Values.daemon.jobs }}
-                  visor {{ .command }} {{ join " " .args }}
-                  {{- end }}
+              command: ["/bin/sh", "-c"]
+              args:
+              - |{{- include "sentinel-visor.start-jobs-as-args" . | indent 14 }}
         {{- end }}
-{{- if .Values.resources }}
         resources:
-{{ toYaml .Values.resources | indent 10 }}
-{{- end }}
-{{- if .Values.debug }}
+        {{- if .Values.daemon.resources }}
+          {{- toYaml .Values.daemon.resources | nindent 10 }}
+        {{- else }}
+          requests:
+            cpu: 2000m
+            memory: 12Gi
+          limits:
+            cpu: 8000m
+            memory: 16Gi
+        {{- end }}
+      {{- if .Values.debug.enabled }}
       - name: debug
-        image: "{{ .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}"
-        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        command: ["sh", "-c", "tail -f /dev/null"]
+        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/bin/sh", "-c", "tail -f /dev/null"]
         env:
         - name: VISOR_REPO
           value: /var/lib/visor
         - name: VISOR_CONFIG
           value: /var/lib/visor/config.toml
-{{- range .Values.daemon.storage.postgresql }}
+        {{- range .Values.daemon.storage.postgresql }}
         - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
             secretKeyRef:
-              name: {{ .secret }}
-              key: url
-{{- end }}
+              name: {{ required "must have the secret name which holds postgres connection url" .secretName }}
+              key: {{ .secretKey | default "url" }}
+        {{- end }}
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/visor
@@ -257,13 +194,17 @@ spec:
           mountPath: /var/lib/visor/datastore
         {{- end }}
         resources:
+        {{- if .Values.debug.resources }}
+          {{- toYaml .Values.debug.resources | nindent 10 }}
+        {{- else }}
           requests:
             cpu: 2000m
             memory: 12Gi
           limits:
             cpu: 8000m
             memory: 16Gi
-{{- end }}
+        {{- end }}
+      {{- end }}
       volumes:
       - name: repo-volume
         emptyDir: {}

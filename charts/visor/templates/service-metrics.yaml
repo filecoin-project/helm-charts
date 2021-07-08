@@ -1,3 +1,5 @@
+{{- if .Values.prometheusOperatorServiceMonitor }}
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -19,3 +21,4 @@ spec:
       port: 9991
       targetPort: 9991
       name: metrics
+{{- end }}
