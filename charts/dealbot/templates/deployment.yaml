@@ -78,6 +78,8 @@ spec:
               value: prometheus
             - name: DEALBOT_IDENTITY_KEYPAIR
               value: /dealbot.key
+            - name: DEALBOT_DAEMON_DRIVER
+              value: "kubernetes"
             {{- if .Values.postgres.enabled }}
             - name: DEALBOT_PERSISTENCE_DRIVER
               value: postgres
