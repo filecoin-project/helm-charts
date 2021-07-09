@@ -9,7 +9,7 @@ labels:
 
 daemon:
   # Set enabled to true to run visor in daemon mode with its own data store
-  enabled: false
+  enabled: true
   args: []
 
   # importSnapshot controls the initialization of the daemon state. When
@@ -22,7 +22,7 @@ daemon:
   # next time the pod is restarted. This may be useful if the daemon has fallen
   # out of sync for a long period of time.
   importSnapshot:
-    enabled: false
+    enabled: true
     url: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
 
   # volumes enables control over the configuration of attached volumes
