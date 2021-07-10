@@ -40,8 +40,6 @@ helm.sh/chart: {{ include "lotus-mpool-stats.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-app: mpool
-release: {{ .Release.Name }}
 {{- end }}
 
 {{/*

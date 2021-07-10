@@ -4,7 +4,6 @@ metadata:
   name: {{ include "lotus-mpool-stats.fullname" . }}
   labels:
     {{- include "lotus-mpool-stats.labels" . | nindent 4 }}
-    {{- toYaml .Values.labels | indent 4 }}
 spec:
   replicas: 1
   selector:
@@ -16,6 +15,7 @@ spec:
         app: lotus-mpool-stats
         release: {{ .Release.Name }}
         {{- include "lotus-mpool-stats.labels" . | nindent 8 }}
+        {{- toYaml .Values.podLabels | indent 8 }}
     spec:
       serviceAccountName: {{ .Values.serviceAccountName }}
       securityContext:
