@@ -9,6 +9,7 @@ nameOverride: ""
 # Eg /dns/fullnode-0-lotus-daemon.<namespace>.svc.cluster.local/tcp/1234
 lotusApiInfo: ""
 
+labels: {}
 podAnnotations: {}
 podSecurityContext: []
 securityContext: {}

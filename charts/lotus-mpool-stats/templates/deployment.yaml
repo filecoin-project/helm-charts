@@ -4,6 +4,7 @@ metadata:
   name: {{ include "lotus-mpool-stats.fullname" . }}
   labels:
     {{- include "lotus-mpool-stats.labels" . | nindent 4 }}
+    {{- toYaml .Values.labels | indent 4 }}
 spec:
   replicas: 1
   selector:
