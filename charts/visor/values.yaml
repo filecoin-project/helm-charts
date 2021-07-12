@@ -30,12 +30,17 @@ daemon:
     # datastore is the volume used for persisting the daemon state. If disabled
     # then the volume will be set up on the pod's local storage which will is
     # usually too small.
+    # Note: Mainnet persistence will require significant IOPS. Default size of
+    # 500Gi will constrain available IOPS. Consider deploying as much as 3000Gi
+    # to saturate available IOPS for storage class GP2. Upgrade to storage class
+    # IO1 for even additional IOPS headroom (up to 64kIOPS).
+    # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
     # The datastore volume is mounted at /var/lib/visor/datastore
     datastore:
       enabled: false
-      size: "1000Gi"
+      size: "500Gi"
       accessModes:
-        - ReadWriteOnce
+      - ReadWriteOnce
       storageClassName: "gp2"
       #dataSource: {}
 
