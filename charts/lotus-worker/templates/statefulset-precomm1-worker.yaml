@@ -1,0 +1,140 @@
+{{- if .Values.lotusPrecomm1Worker.enabled }}
+{{ $this := . }}
+{{- $containerCount := .Values.lotusPrecomm1Worker.containerCount | int }}
+{{- $replicaCount := .Values.lotusPrecomm1Worker.replicaCount | int }}
+{{- range $r, $f := until $replicaCount }}
+{{- if $this.Values.lotusPrecomm1Worker.volumes.worker.enabled }}
+{{- range $i, $e := until $containerCount }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "{{ $this.Release.Name }}-precomm1-worker-{{ $r }}-{{ $i }}"
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: "{{ $this.Values.lotusPrecomm1Worker.volumes.worker.requests }}"
+  local:
+    path: "{{ $this.Values.lotusPrecomm1Worker.volumes.worker.basePath }}{{ add $i $this.Values.lotusPrecomm1Worker.volumes.worker.basePathOffset }}"
+  nodeAffinity:
+{{ toYaml $this.Values.lotusPrecomm1Worker.volumes.worker.nodeAffinity | indent 4 }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  volumeMode: Filesystem
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ $this.Release.Name }}-precomm1-worker-{{ $r }}-{{ $i }}"
+spec:
+  volumeName: "{{ $this.Release.Name }}-precomm1-worker-{{ $r }}-{{ $i }}"
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: "{{ $this.Values.lotusPrecomm1Worker.volumes.worker.requests }}"
+  storageClassName: local-storage
+  volumeMode: Filesystem
+{{- end }}
+{{- end }}
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $this.Release.Name }}-precomm1-worker-{{ $r }}
+  labels:
+    app: precomm1-worker-{{ $r }}
+spec:
+  replicas: 1
+  serviceName: {{ $this.Release.Name }}-precomm1-worker-service-{{ $r }}
+  selector:
+    matchLabels:
+      app: precomm1-worker-{{ $r }}
+  template:
+    metadata:
+      labels:
+        app: precomm1-worker-{{ $r }}
+        chart: {{ $this.Chart.Name }}-{{ $this.Chart.Version }}
+        heritage: {{ $this.Release.Service }}
+        release: {{ $this.Release.Name }}
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      hostNetwork: {{ $this.Values.hostNetwork }}
+{{- if $this.Values.securityContext.runAsNonRoot }}
+      securityContext:
+        fsGroup: 532
+        runAsNonRoot: true
+        runAsUser: 532
+        runAsGroup: 532
+{{- end }}
+      volumes:
+{{- if $this.Values.lotusPrecomm1Worker.volumes.proofParams.enabled }}
+        - name: proof-params
+          persistentVolumeClaim:
+            claimName: {{ $this.Values.lotusPrecomm1Worker.volumes.proofParams.claimName }}
+{{- end }}
+{{- range $i, $e := until $containerCount }}
+        - name: vol-worker-{{ $r }}-{{ $i }}
+          persistentVolumeClaim:
+            claimName: "{{ $this.Release.Name }}-precomm1-worker-{{ $r }}-{{ $i }}"
+{{- end }}
+      containers:
+{{- range $i, $e := until $containerCount }}
+      - name: {{ $this.Chart.Name }}-{{ $i }}
+        image: {{ $this.Values.image.repository }}:{{ $this.Values.image.tag }}
+        command: ["lotus-worker", "run", "--precommit2=false", "--commit=false", "--listen=0.0.0.0:345{{ $i }}"]
+        imagePullPolicy: {{ $this.Values.image.pullPolicy }}
+        env:
+          - name: LOTUS_MINER_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ $this.Values.lotusMinerSecret }}
+                key: {{ $this.Values.lotusMinerSecretKey }}
+          - name: MINER_API_INFO
+            value: "$(LOTUS_MINER_TOKEN):{{ $this.Values.lotusMinerAddress }}/http"
+          - name: LOTUS_WORKER_PATH
+            value: /var/lib/lotus-worker
+          - name: GOLOG_LOG_FMT
+            value: "json"
+          - name: GOLOG_LOG_LEVEL
+            value: "{{ $this.Values.lotusPrecomm1Worker.gologLogLevel }}"
+          - name: FIL_PROOFS_PARAMETER_CACHE
+{{- if $this.Values.lotusPrecomm1Worker.volumes.proofParams.enabled }}
+            value: "/proof-params"
+{{- else }}
+            value: "/var/lib/lotus-worker/proof-params"
+{{- end }}
+          - name: FIL_PROOFS_MAXIMIZE_CACHING
+            value: "1"
+          - name: FIL_PROOFS_PARENT_CACHE
+            value: "/var/lib/lotus-worker"
+        # - name: FIL_PROOFS_USE_MULTICORE_SDR
+            #value: "1"
+          - name: RUST_LOG
+            value: info
+        ports:
+        - containerPort: 345{{ $i }}
+          name: api-{{ $i }}
+        volumeMounts:
+          - name: vol-worker-{{ $r }}-{{ $i }}
+            mountPath: /var/lib/lotus-worker
+{{- if $this.Values.lotusPrecomm1Worker.volumes.proofParams.enabled }}
+          - name: proof-params
+            mountPath: /proof-params
+{{- end }}
+        resources:
+{{ toYaml $this.Values.lotusPrecomm1Worker.resources | indent 10 }}
+{{- end }}
+      nodeSelector:
+{{ toYaml $this.Values.lotusPrecomm1Worker.nodeSelector | indent 8 }}
+      tolerations:
+{{ toYaml $this.Values.lotusPrecomm1Worker.tolerations | indent 8 }}
+      affinity:
+        nodeAffinity:
+{{ toYaml $this.Values.lotusPrecomm1Worker.nodeAffinity | indent 10 }}
+{{- end }}
+{{- end }}
