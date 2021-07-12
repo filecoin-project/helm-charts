@@ -5,8 +5,7 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}-visor-metrics
   labels:
-    app: visor
-    release: {{ .Release.Name }}
+    {{- include "sentinel-visor.labels" . | nindent 4 }}
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9991"

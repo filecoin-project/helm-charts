@@ -5,29 +5,17 @@ kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}-visor
   labels:
-    app: visor
-    suite: sentinel
-    {{- if .Values.labels }}
-      {{- toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    {{- include "sentinel-visor.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   serviceName: {{ .Release.Name }}-visor-service
   selector:
     matchLabels:
-      app: visor
-      release: {{ .Release.Name }}
+      {{- include "sentinel-visor.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: visor
-        suite: sentinel
-        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-        heritage: {{ .Release.Service }}
-        release: {{ .Release.Name }}
-        {{- if .Values.labels }}
-          {{- toYaml .Values.labels | nindent 8 }}
-        {{- end }}
+        {{- include "sentinel-visor.selectorLabels" . | nindent 8 }}
     spec:
       securityContext:
         fsGroup: 532

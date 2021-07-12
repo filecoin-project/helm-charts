@@ -4,8 +4,8 @@ image:
   repo: filecoin/sentinel-visor
   tag: "v0.7.1"
   pullPolicy: IfNotPresent
-labels:
-  test: label
+#nameOverride:
+labels: {}
 
 daemon:
   # Set enabled to true to run visor in daemon mode with its own data store

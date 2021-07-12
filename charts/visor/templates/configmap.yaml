@@ -5,11 +5,7 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-visor-config
   labels:
-    app: visor
-    suite: sentinel
-    {{- if .Values.labels }}
-    {{- toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    {{- include "sentinel-visor.labels" . | nindent 4 }}
 data:
   config.toml: |
     [API]
