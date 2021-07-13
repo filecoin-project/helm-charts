@@ -41,7 +41,9 @@ spec:
         image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c"]
-        args: ["mkdir", "-p", "/var/lib/visor/keystore"]
+        args:
+          - |
+            mkdir -p /var/lib/visor/keystore
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/visor
@@ -79,10 +81,10 @@ spec:
         resources:
           requests:
             cpu: 200m
-            memory: 512Mi
+            memory: 2Gi
           limits:
             cpu: 800m
-            memory: 512Mi
+            memory: 4Gi
       {{- end }}
       containers:
       - name: daemon
@@ -138,9 +140,24 @@ spec:
         lifecycle:
           postStart:
             exec:
-              command: ["/bin/sh", "-c"]
-              args:
-              - |{{- include "sentinel-visor.start-jobs-as-args" . | indent 14 }}
+              command:
+                - "/bin/sh"
+                - "-c"
+                  # lifecycle.postStart.exec.command doesn't accept args
+                  # so we execute this script as a multiline string
+                - |
+                  echo "Waiting for api to become ready..."
+                  visor wait-api --timeout=60s
+                  status=$?
+
+                  if [ $status -ne 0 ]; then
+                    exit $status
+                  fi
+
+                  echo "Starting jobs..."
+                  {{- range .Values.daemon.jobs }}
+                  visor {{ .command }} {{ join " " .args }}
+                  {{- end }}
         {{- end }}
         resources:
         {{- if .Values.daemon.resources }}

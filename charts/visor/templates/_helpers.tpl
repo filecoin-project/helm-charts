@@ -47,17 +47,3 @@ release: {{ .Release.Name }}
   chmod 0600 /var/lib/visor/keystore/*
   exit $status
 {{- end }}
-
-{{- /* Starts daemon jobs when daemon is ready. */}}
-{{- define "sentinel-visor.start-jobs-as-args" }}
-  echo "Waiting for api to become ready..."
-  visor wait-api --timeout=60s
-  status=$?
-  if [ $status -ne 0 ]; then
-    exit $status
-  fi
-  echo "Starting jobs..."
-  {{- range .Values.daemon.jobs }}
-  visor {{ .command }} {{ join " " .args }}
-  {{- end }}
-{{- end }}
