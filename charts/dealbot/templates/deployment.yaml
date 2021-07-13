@@ -109,6 +109,23 @@ spec:
             - name: DEALBOT_DATAPOINT_LOG
               value: {{ .Values.filebeat.path }}/controller.log
             {{- end }}
+      {{- if .Values.controller.secrets.awsKeysSecret }}
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.controller.secrets.awsKeysSecret }}
+            key: aws-access-key-id
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.controller.secrets.awsKeysSecret }}
+            key: aws-secret-access-key
+      - name: AWS_REGION
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.controller.secrets.awsKeysSecret }}
+            key: aws-region
+      {{- end }}
 {{- with .Values.controller.env }}
 {{ toYaml . | indent 12}}
 {{- end }}

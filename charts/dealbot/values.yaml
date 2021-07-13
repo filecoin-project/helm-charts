@@ -47,6 +47,7 @@ controller:
   secrets:
     keySecret: ""
     selfServeConfigSecret: ""
+    awsKeysSecret: ""
   env: []
 
 postgres:
