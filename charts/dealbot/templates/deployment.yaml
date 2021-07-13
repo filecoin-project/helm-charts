@@ -39,11 +39,6 @@ spec:
             items:
               - key: kubeconfig
                 path: kubeconfig
-  {{- if .Values.controller.secrets.awsKeysSecret }}
-        - name: aws-keys 
-          secret:
-            secretName: {{ .Values.controller.secrets.awsKeysSecret }}
-  {{- end }}
         {{- if .Values.filebeat.enabled }}
         - name: filebeat-config-secret-volume
           secret:
@@ -117,19 +112,19 @@ spec:
       {{- if .Values.controller.secrets.awsKeysSecret }}
       - name: AWS_ACCESS_KEY_ID
         valueFrom:
-    secretKeyRef:
-      name: aws-secret-keys
-      key: aws-access-key-id
+          secretKeyRef:
+            name: {{ .Values.controller.secrets.awsKeysSecret }}
+            key: aws-access-key-id
       - name: AWS_SECRET_ACCESS_KEY
         valueFrom:
-    secretKeyRef:
-      name: aws-secret-keys
-      key: aws-secret-access-key
+          secretKeyRef:
+            name: {{ .Values.controller.secrets.awsKeysSecret }}
+            key: aws-secret-access-key
       - name: AWS_REGION
         valueFrom:
-    secretKeyRef:
-      name: aws-secret-keys
-      key: aws-region
+          secretKeyRef:
+            name: {{ .Values.controller.secrets.awsKeysSecret }}
+            key: aws-region
       {{- end }}
 {{- with .Values.controller.env }}
 {{ toYaml . | indent 12}}
