@@ -18,7 +18,7 @@ app.kubernetes.io/part-of: sentinel
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 {{- if .Values.labels }}
-{{- toYaml .Values.labels }}
+{{ toYaml .Values.labels }}
 {{- end }}
 {{- end }}
 
