@@ -11,8 +11,7 @@ spec:
       - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      app: visor
-      release: {{ .Release.Name }}
+      {{- include "sentinel-visor.selectorLabels" . | nindent 6 }}
   endpoints:
   - port: metrics
     path: /metrics

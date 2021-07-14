@@ -1,10 +1,11 @@
+{{- if .Values.prometheusOperatorServiceMonitor }}
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}-visor-metrics
   labels:
-    app: visor
-    release: {{ .Release.Name }}
+    {{- include "sentinel-visor.labels" . | nindent 4 }}
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9991"
@@ -19,3 +20,4 @@ spec:
       port: 9991
       targetPort: 9991
       name: metrics
+{{- end }}
