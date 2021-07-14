@@ -15,6 +15,7 @@ spec:
         app: lotus-mpool-stats
         release: {{ .Release.Name }}
         {{- include "lotus-mpool-stats.labels" . | nindent 8 }}
+        {{- toYaml .Values.podLabels | indent 8 }}
     spec:
       serviceAccountName: {{ .Values.serviceAccountName }}
       securityContext:
