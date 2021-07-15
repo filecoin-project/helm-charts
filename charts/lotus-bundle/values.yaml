@@ -44,9 +44,10 @@ application:
         path: /
         servicePort: http
   storage: # storage volume shared between application and lotus node
-    size: 1Gi
-    mount: /shared
-
+    - mount: /shared
+      volume:
+        - name: shared-volume
+          emptyDir: {} 
 # Wallets are added to the wallet secret.
 # if you don't want to specify wallets in values.yaml,
 # you can add them later by editing the secret.
