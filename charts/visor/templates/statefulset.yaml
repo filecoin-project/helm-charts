@@ -156,7 +156,7 @@ spec:
 
                   echo "Starting jobs..."
                   {{- range .Values.daemon.jobs }}
-                  visor {{ .command }} {{ join " " .args }}
+                  visor sync wait && visor {{ .command }} {{ join " " .args }}
                   {{- end }}
         {{- end }}
         resources:
