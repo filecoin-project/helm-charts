@@ -254,6 +254,11 @@ spec:
               mountPath: /etc/filebeat
             - name: filebeat-volume
               mountPath: {{ .Values.filebeat.path }}
+            {{- if .Values.lotus.enabled }}
+            - name: lotus-path
+              mountPath: /var/lib/lotus
+              readOnly: true
+            {{- end }}
             {{- range $sec := .Values.filebeat.secrets }}
             - name: {{ $sec.name }}-filebeat-volume
               mountPath: {{ $sec.mount }}

@@ -151,6 +151,7 @@ filebeat:
     - type: log
       paths:
         - /var/log/app/*
+        - /var/lib/lotus/journal/*
       fields:
         logzio_codec: plain
         token: abc123
