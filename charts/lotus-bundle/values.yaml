@@ -46,8 +46,9 @@ application:
   storage: # storage volume shared between application and lotus node
     - mount: /shared
       volume:
-        - name: shared-volume
-          emptyDir: {} 
+        - name: shared-volume 
+          persistentVolumeClaim:
+              claimName: chain-exports 
 # Wallets are added to the wallet secret.
 # if you don't want to specify wallets in values.yaml,
 # you can add them later by editing the secret.
