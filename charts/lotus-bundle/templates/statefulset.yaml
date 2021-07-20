@@ -159,7 +159,7 @@ spec:
         # lotus sidecar
         - name: lotus
           image: {{ .Values.lotus.image }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ .Values.lotus.imagePullPolicy }}
           args:
             - daemon
             {{- if .Values.lotus.lite.enabled }}
