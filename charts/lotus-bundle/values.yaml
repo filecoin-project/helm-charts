@@ -72,6 +72,7 @@ wallets: []
 lotus:
   enabled: true
   image: filecoin/lotus:latest
+  imagePullPolicy: Always
   lite:
     enabled: false
     backend: wss://api.chain.love
