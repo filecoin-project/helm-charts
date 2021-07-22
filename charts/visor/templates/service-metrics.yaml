@@ -13,8 +13,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-      app: visor
-      release: {{ .Release.Name }}
+    {{- include "sentinel-visor.selectorLabels" . | nindent 4 }}
   ports:
     - protocol: TCP
       port: 9991
