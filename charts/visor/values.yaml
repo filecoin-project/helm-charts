@@ -1,41 +1,93 @@
 # Default values for sentinel-visor
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
 replicaCount: 1
-logLevel: info
 image:
   repo: filecoin/sentinel-visor
-  tag: "v0.6.0" # required
+  tag: "v0.7.1"
   pullPolicy: IfNotPresent
+#nameOverride:
+labels: {}
 
-# Custom labels
-#labels:
-  #name: foo
+daemon:
+  # Set enabled to true to run visor in daemon mode with its own data store
+  enabled: true
+  args: []
 
-#
-# Global
-#
+  # importSnapshot controls the initialization of the daemon state. When
+  # enabled the deployment will start an init container that may call
+  # 'visor init' with the url specified. After the init is complete an empty
+  # file named '_imported' is placed in the data store directory to signify that
+  # the data store has been imported. The import process will be skipped if this
+  # file is present.
+  # Deleting /var/lib/visor/datastore/_imported will force the import to run the
+  # next time the pod is restarted. This may be useful if the daemon has fallen
+  # out of sync for a long period of time.
+  importSnapshot:
+    enabled: true
+    url: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
 
-# PostgreSQL options
-pgSecret: "" # required
-pgDatabase: "" # default `database` key from pgSecret
-pgSSLMode: "require"
-pgPoolSize: 45
-pgAppName: "" # default: "visor_<version>_<host>_<runtime_pid>"
+  # volumes enables control over the configuration of attached volumes
+  volumes:
+    # datastore is the volume used for persisting the daemon state. If disabled
+    # then the volume will be set up on the pod's local storage which will is
+    # usually too small.
+    # Note: Mainnet persistence will require significant IOPS. Default size of
+    # 500Gi will constrain available IOPS. Consider deploying as much as 3000Gi
+    # to saturate available IOPS for storage class GP2. Upgrade to storage class
+    # IO1 for even additional IOPS headroom (up to 64kIOPS).
+    # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
+    # The datastore volume is mounted at /var/lib/visor/datastore
+    datastore:
+      enabled: false
+      size: "500Gi"
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: "gp2"
+      #dataSource: {}
 
-# Debug Options
+  # jobs is a list of jobs to start on the daemon
+  jobs: []
+  #- command: watch
+    #args:
+    #- --confidence=10
+    #- --tasks=blocks,messages,chaineconomics
 
-# sleep container without exiting
-debug: false
+  # daemon storage is a list of storage configurations that will be added to
+  # the visor config and used when starting jobs
+  storage:
+    postgresql: []
+    #- name: db
+      #secretName: postgresql-secret
+      #secretKey: url
+      #applicationName: visor
+      #poolSize: 20
+      #allowUpsert: false
+    file: []
+    #- name: csv
+      #format: CSV
+      #path: /tmp
 
-# prometheus service monitor
-prometheusOperatorServiceMonitor: false
+  # daemon pubsub-specific settings
+  pubsub:
+    # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
+    ipwhitelist: []
+
+  # daemon resources
+  # Note: Running visor on mainnet requires SIGNIFICANT resources (>250Gb RAM)
+  # in order to operate comfortably. Test networks may be preferred if resources
+  # are limited.
+  resources:
+    requests:
+      cpu: 6000m
+      memory: 8Gi
+    limits:
+      cpu: 8000m
+      memory: 16Gi
+
+# service monitoring
+prometheusOperatorServiceMonitor: true
 prometheusPort: ":9991"
 
-logLevel: error
-#logFormat: json
-#logLevelNamed: "vm:error,badgerbs:error"
-
+# service tracing
 jaeger:
   enabled: false
   host: ""
@@ -45,48 +97,23 @@ jaeger:
     type: "probabilistic"
     param: 0.0001
 
-
-allowAutomaticMigration: true
-
-lens: # configure how visor sources its data
-  lotusAPI: # backed by a live node's API
-    # a lotus-fullnode secret containing jwt read-only token under key 'jwt-ro-privs-token'
-    # secret must be in the same namespace
-    lotusAPITokenSecret: "" # default: "{{ .Release.Name }}-jwt-secrets"
-    # lotus api multiaddr
-    lotusAPIMultiaddr: "" # required
-
-#
-# Mode-specific
-#
-watch:
-  enabled: true
-  confidence: 1
-  tasks:
-    - blocks
-    - messages
-    - chaineconomics
-    # for least confusion during runtime, pick only one actorStates task. (last one applies)
-    - actorstatesraw
-    #- actorstatesparsed
-    #- actorstatesboth
-walk:
+# debug feature config
+debug:
   enabled: false
-  #from: 0 # default: 0
-  #to: 1000 # default: host's MaxUint64
-  tasks:
-    - blocks
-    - messages
-    - chaineconomics
-    # for least confusion during runtime, pick only one actorStates task. (last one applies)
-    - actorstatesraw
-    #- actorstatesparsed
-    #- actorstatesboth
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 12Gi
+    limits:
+      cpu: 8000m
+      memory: 16Gi
 
-resources:
-  requests:
-    cpu: 8000m
-    memory: 32Gi
-  limits:
-    cpu: 16000m
-    memory: 64Gi
+logLevel: info
+logLevelNamed: "vm:error,badgerbs:error"
+logFormat: json
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
