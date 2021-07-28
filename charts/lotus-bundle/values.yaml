@@ -44,8 +44,20 @@ application:
         path: /
         servicePort: http
   storage: # storage volume shared between application and lotus node
+      # This is the directory where the volume is mounted on your application and in the lotus container.
     - mount: /shared
+      # when chownLotus is enabled, the mounted directory will have unix owner changed to "fc"
+      # this is required if the lotus daemon should write to this directory. i.e. if you are doing
+      # storage deals.
+      chownLotus: true
+      # when subdirPerRelease is enabled, the root volume is not mounted. Rather, a subdirectory
+      # will be created and the subdirectory will be mounted at the provided mount point.
+      # One reason you might want to do this is if you have a large, shared NFS, EFS or another ReadWriteMany
+      # volume and you want to restrict the pod to write to a private area. Having this enabled is unlikely
+      # to cause problems even for single-mount volumes, so it is recommended.
+      subdirPerRelease: true
       volume:
+        # kubernetes volumes.
         - name: shared-volume 
           persistentVolumeClaim:
               claimName: chain-exports 
@@ -71,7 +83,7 @@ wallets: []
 # It provides a limited set of lotus API endpoints.
 lotus:
   enabled: true
-  image: filecoin/lotus:latest
+  image: filecoin/lotus:nightly
   imagePullPolicy: Always
   lite:
     enabled: false
