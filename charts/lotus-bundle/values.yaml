@@ -88,6 +88,7 @@ lotus:
   lite:
     enabled: false
     backend: wss://api.chain.love
+  jaeger: true
 
 # Do you want prometheus monitoring with prometheus-operator?
 prometheus:

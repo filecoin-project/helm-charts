@@ -209,6 +209,15 @@ spec:
             {{- end }}
             - name: GOLOG_FORMAT
               value: json
+            {{- if .Values.lotus.jaeger }}
+            - name: LOTUS_JAEGER_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.hostIP
+            - name: LOTUS_JAEGER_AGENT_PORT
+              value: "6831"
+            {{- end }}
           resources:
             {{- if .Values.lotus.lite.enabled }}
             requests:
