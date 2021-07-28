@@ -112,6 +112,33 @@ spec:
         {{- range .Values.application.storage }}
         {{ toYaml .volume | nindent 8 }}
         {{- end }}
+      initContainers:
+        - name: shared-storage-preparer
+          image: {{ .Values.lotus.image }}
+          imagePullPolicy: {{ .Values.lotus.imagePullPolicy }}
+          securityContext:
+            runAsUser: 0
+          command: [ "bash", "-c" ]
+          args:
+            - |
+              {{- range $vol := .Values.application.storage }}
+              {{- if $vol.subdirPerRelease }}
+              mkdir -p {{ $vol.mount }}/{{ $.Release.Namespace }}/{{ $.Release.Name }}
+              {{- if $vol.chownLotus }}
+              chown fc {{ $vol.mount }}/{{ $.Release.Namespace }}/{{ $.Release.Name }}
+              {{- end }}
+              {{- else }}
+              {{- if $vol.chownLotus }}
+              chown fc {{ $vol.mount }}
+              {{- end }}
+              {{- end }}
+              {{- end }}
+          volumeMounts:
+            {{- range $st := $.Values.application.storage }}
+            {{- $vol := index $st.volume 0 }}
+            - name: {{ $vol.name }}
+              mountPath: {{ $st.mount }}
+            {{- end }}
       containers:
         - name: {{ .Values.application.container.name }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -139,12 +166,13 @@ spec:
             - name: {{ $cm.name }}-volume
               mountPath: {{ $cm.mount }}
             {{- end }}
-            {{- range .Values.application.storage }}
-            {{- $mountPath := .mount }}
-            {{- with index .volume 0 }}
-            - name: {{ .name }}
-              mountPath: {{ $mountPath }}
-            {{- end }}
+            {{- range $st := $.Values.application.storage }}
+            {{- $vol := index $st.volume 0 }}
+            - name: {{ $vol.name }}
+              mountPath: {{ $st.mount }}
+              {{- if $st.subdirPerRelease }}
+              subPath: {{ $.Release.Namespace }}/{{ $.Release.Name }}
+              {{- end }}
             {{- end }}
             {{- if .Values.lotus.enabled }}
             - name: lotus-path
@@ -202,12 +230,13 @@ spec:
               mountPath: /var/lib/lotus
             - name: parameter-cache
               mountPath: /var/tmp/filecoin-proof-parameters
-            {{- range .Values.application.storage }}
-            {{- $mountPath := .mount }}
-            {{- with index .volume 0 }}
-            - name: {{ .name }}
-              mountPath: {{ $mountPath }}
-            {{- end }}
+            {{- range $st := $.Values.application.storage }}
+            {{- $vol := index $st.volume 0 }}
+            - name: {{ $vol.name }}
+              mountPath: {{ $st.mount }}
+              {{- if $st.subdirPerRelease }}
+              subPath: {{ $.Release.Namespace }}/{{ $.Release.Name }}
+              {{- end }}
             {{- end }}
             {{- if .Values.filebeat.enabled }}
             - name: filebeat-volume
