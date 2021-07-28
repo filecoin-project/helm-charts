@@ -49,10 +49,8 @@ spec:
           mountPath: /var/lib/visor
         resources:
           requests:
-            cpu: 200m
             memory: 512Mi
           limits:
-            cpu: 800m
             memory: 512Mi
       {{- if .Values.daemon.importSnapshot.enabled }}
       - name: chain-import
@@ -80,10 +78,8 @@ spec:
         {{- /* Minimal resources as work is performed in daemon container. */}}
         resources:
           requests:
-            cpu: 200m
             memory: 2Gi
           limits:
-            cpu: 800m
             memory: 4Gi
       {{- end }}
       containers:
@@ -164,10 +160,8 @@ spec:
           {{- toYaml .Values.daemon.resources | nindent 10 }}
         {{- else }}
           requests:
-            cpu: 2000m
             memory: 12Gi
           limits:
-            cpu: 8000m
             memory: 16Gi
         {{- end }}
       {{- if .Values.debug.enabled }}
@@ -203,10 +197,8 @@ spec:
           {{- toYaml .Values.debug.resources | nindent 10 }}
         {{- else }}
           requests:
-            cpu: 2000m
             memory: 12Gi
           limits:
-            cpu: 8000m
             memory: 16Gi
         {{- end }}
       {{- end }}
