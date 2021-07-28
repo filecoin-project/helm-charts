@@ -147,6 +147,16 @@ entries:
   lotus-bundle:
   - apiVersion: v2
     appVersion: 0.0.1
+    created: "2021-07-28T04:01:15.067880163Z"
+    description: bundle your application with lotus
+    digest: 1fd53a3c5f3490b0b9a6b1d7c1b77a8d10209186b2154acd3f5cedbc73b8a7cd
+    name: lotus-bundle
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-bundle-0.0.7/lotus-bundle-0.0.7.tgz
+    version: 0.0.7
+  - apiVersion: v2
+    appVersion: 0.0.1
     created: "2021-07-20T23:13:20.670530979Z"
     description: bundle your application with lotus
     digest: 8f6e0c28cf2717b5c478540b41b916848f83a4c138ebd8a98eb6be8315a55544
