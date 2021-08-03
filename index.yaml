@@ -501,6 +501,16 @@ entries:
     version: 0.1.1
   lotus-mpool-stats:
   - apiVersion: v2
+    appVersion: 1.10.0
+    created: "2021-08-03T05:06:45.752493425Z"
+    description: Lotus Mpool stats
+    digest: f8ce59799e0c7971bc2ebd887632f78b2bf30c1de098e9e580f0a52f6aada131
+    name: lotus-mpool-stats
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-mpool-stats-0.1.1/lotus-mpool-stats-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
     appVersion: 1.5.3
     created: "2021-05-27T00:32:14.065799738Z"
     description: Lotus Mpool stats
