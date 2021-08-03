@@ -1,7 +1,7 @@
 image:
   repository: travisperson/lotus-shed
   pullPolicy: IfNotPresent
-  tag: mainnet-v1.5.3-rc2
+  tag: mainnet-v1.10.0
 nameOverride: ""
 
 # The lotus api info is the multiaddr for the backing lotus daemon.
@@ -9,6 +9,7 @@ nameOverride: ""
 # Eg /dns/fullnode-0-lotus-daemon.<namespace>.svc.cluster.local/tcp/1234
 lotusApiInfo: ""
 
+podLabels: {}
 podAnnotations: {}
 podSecurityContext: []
 securityContext: {}
