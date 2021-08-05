@@ -116,6 +116,9 @@ spec:
               name: {{ required "expected secret name which holds postgres connection url" .secretName }}
               key: {{ .secretKey | default "url" }}
         {{- end }}
+        {{- with .Values.daemon.env }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
         ports:
         - containerPort: 1234
           name: api

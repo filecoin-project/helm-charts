@@ -11,6 +11,7 @@ daemon:
   # Set enabled to true to run visor in daemon mode with its own data store
   enabled: true
   args: []
+  env: []
 
   # importSnapshot controls the initialization of the daemon state. When
   # enabled the deployment will start an init container that may call
