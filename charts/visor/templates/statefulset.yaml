@@ -38,7 +38,7 @@ spec:
       - name: regcred
       initContainers:
       - name: initfs
-        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c"]
         args:
@@ -49,24 +49,24 @@ spec:
           mountPath: /var/lib/visor
         resources:
           requests:
-            cpu: 200m
-            memory: 512Mi
+            cpu: "1000m"
+            memory: "512Mi"
           limits:
-            cpu: 800m
-            memory: 512Mi
+            cpu: "1000m"
+            memory: "512Mi"
       {{- if .Values.daemon.importSnapshot.enabled }}
       - name: chain-import
         image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c"]
         args:
-          - |{{- include "sentinel-visor.chain-import-as-args" . | indent 10 }}
+          - |{{- include "sentinel-visor.chainImportArgs" . | indent 10 }}
         env:
         {{- include "sentinel-visor.jaegerTracingEnvvars" . | indent 8 }}
         - name: GOLOG_LOG_FMT
-          value: {{ .Values.logFormat | default "json" }}
+          value: {{ .Values.logFormat | default "json" | quote }}
         - name: VISOR_REPO
-          value: /var/lib/visor
+          value: "/var/lib/visor"
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/visor
@@ -81,11 +81,11 @@ spec:
         {{- /* Minimal resources as work is performed in daemon container. */}}
         resources:
           requests:
-            cpu: 200m
-            memory: 2Gi
+            cpu: "1000m"
+            memory: "4Gi"
           limits:
-            cpu: 800m
-            memory: 4Gi
+            cpu: "1000m"
+            memory: "4Gi"
       {{- end }}
       containers:
       - name: daemon
@@ -102,17 +102,17 @@ spec:
         {{- end }}
         env:
         - name: GOLOG_LOG_FMT
-          value: {{ .Values.logFormat | default "json" }}
+          value: {{ .Values.logFormat | default "json" | quote }}
         - name: GOLOG_LOG_LEVEL
-          value: {{ .Values.logLevel | default "info" }}
+          value: {{ .Values.logLevel | default "info" | quote }}
         {{- if .Values.logLevelNamed }}
         - name: VISOR_LOG_LEVEL_NAMED
-          value: {{ .Values.logLevelNamed }}
+          value: {{ .Values.logLevelNamed | quote }}
         {{- end }}
         - name: VISOR_REPO
-          value: /var/lib/visor
+          value: "/var/lib/visor"
         - name: VISOR_CONFIG
-          value: /var/lib/visor/config.toml
+          value: "/var/lib/visor/config.toml"
         {{- range .Values.daemon.storage.postgresql }}
         - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
@@ -163,7 +163,13 @@ spec:
 
                   echo "Starting jobs..."
                   {{- range .Values.daemon.jobs }}
-                  visor sync wait && visor {{ .command }} {{ join " " .args }}
+                    {{- $jobName := "" }}
+                    {{- if .name }}
+                      {{- $jobName = printf "--name %s/%s-%s" (include "sentinel-visor.instanceName" $) .name (randAlphaNum 4) }}
+                    {{- else }}
+                      {{- $jobName = printf "--name \"%s/%s-%s/%s\"" (include "sentinel-visor.instanceName" $) .command (randAlphaNum 4) (include "sentinel-visor.fingerprintAllArgs" .args) }}
+                    {{- end }}
+                  visor sync wait && visor {{ .command }} {{ join " " .args }} {{ $jobName }}
                   {{- end }}
         {{- end }}
         resources:
@@ -171,11 +177,11 @@ spec:
           {{- toYaml .Values.daemon.resources | nindent 10 }}
         {{- else }}
           requests:
-            cpu: 2000m
-            memory: 12Gi
+            cpu: "8000m"
+            memory: "16Gi"
           limits:
-            cpu: 8000m
-            memory: 16Gi
+            cpu: "8000m"
+            memory: "16Gi"
         {{- end }}
       {{- if .Values.debug.enabled }}
       - name: debug
@@ -184,9 +190,9 @@ spec:
         command: ["/bin/sh", "-c", "tail -f /dev/null"]
         env:
         - name: VISOR_REPO
-          value: /var/lib/visor
+          value: "/var/lib/visor"
         - name: VISOR_CONFIG
-          value: /var/lib/visor/config.toml
+          value: "/var/lib/visor/config.toml"
         {{- range .Values.daemon.storage.postgresql }}
         - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
@@ -210,11 +216,11 @@ spec:
           {{- toYaml .Values.debug.resources | nindent 10 }}
         {{- else }}
           requests:
-            cpu: 2000m
-            memory: 12Gi
+            cpu: "8000m"
+            memory: "16Gi"
           limits:
-            cpu: 8000m
-            memory: 16Gi
+            cpu: "8000m"
+            memory: "16Gi"
         {{- end }}
       {{- end }}
       volumes:

@@ -24,9 +24,9 @@ data:
       [Storage.Postgresql]
         {{- range .Values.daemon.storage.postgresql }}
         [Storage.Postgresql.{{ .name }}]
-          SchemaName = "visor"
+          SchemaName = {{ .schema | default "visor" | quote }}
           URLEnv = "VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL"
-          ApplicationName = {{ .applicationName | default "visor" | quote }}
+          ApplicationName = {{ .applicationName | default (include "sentinel-visor.instanceName" $ ) | quote }}
           PoolSize = {{ .poolSize | default 20 }}
           AllowUpsert = {{ .allowUpsert | default false }}
         {{- end }}

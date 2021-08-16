@@ -17,7 +17,7 @@
 {{- end }}
 {{- end }}
 
-{{- /* Common labels */}}
+{{/* "sentinel-visor.labels" generates a list of common labels to be used across resources */}}
 {{- define "sentinel-visor.labels" -}}
 {{ include "sentinel-visor.selectorLabels" . }}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
@@ -32,14 +32,14 @@ app.kubernetes.io/part-of: sentinel
 {{- end }}
 {{- end }}
 
-{{- /* Selector labels */}}
+{{/* "sentinel-visor.selectorLabels" generates a list of selector labels to be used across resources */}}
 {{- define "sentinel-visor.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "sentinel-visor.name" . | quote }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-{{- /* Starts snapshot import within import-snapshot init container. */}}
-{{- define "sentinel-visor.chain-import-as-args" }}
+{{/* "sentinel-visor.chainImportArgs" creates the arguments for managing optional chain import */}}
+{{- define "sentinel-visor.chainImportArgs" }}
   if [ -f "/var/lib/visor/datastore/_imported" ]; then
     echo "Skipping import, found /var/lib/visor/datastore/_imported file."
     echo "Ensuring secrets have correct permissions."
@@ -79,4 +79,38 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 - name: JAEGER_SAMPLER_PARAM
   value: {{ .Values.jaeger.sampler.param | default "0.0001" | quote }}
 {{- end }}
+{{- end }}
+
+
+{{/* "sentinel-visor.fingerprintAllArgs" accepts a set of args and returns a string fingerprint to uniquely identify that set. This is useful for automatically generating unique job names based on their input for later identification. */}}
+{{/*
+  Example:
+    input: `--storage=db --confidence=100 --window=30s --tasks=blocks,messages,chaineconomics,actorstatesraw,actorstatespower,actorstatesreward,actorstatesmultisig,msapprovals`
+    output: `s=db,c=100,w=30s,t=blmechSraSpoSreSmums,`
+*/}}
+{{- define "sentinel-visor.fingerprintAllArgs" -}}
+{{- $fingerprint := "" }}
+{{- range . }}
+  {{- $t := lower (mustRegexReplaceAll "-+" . "") }}
+  {{- /* Detect task list and handle fingerprinting specially */}}
+  {{- if mustRegexMatch "^tasks=" $t }}
+    {{- $taskList := trimPrefix "tasks=" $t }}
+    {{- $taskFragment := "" }}
+    {{- /* Split and range over tasklist split on `,` */}}
+    {{- range (mustRegexSplit "," $taskList -1) }}
+      {{- if mustRegexMatch "^actorstates" . }}
+        {{- /* Detect `actorstates` tasks and prefix fragment w `S` to represent a task of this type in the fingerprint */}}
+        {{- $taskFragment = printf "%sS%s" $taskFragment (trunc 2 (trimPrefix "actorstates" .)) }}
+      {{- else }}
+        {{- $taskFragment = printf "%s%s" $taskFragment (trunc 2 .) }}
+      {{- end }}
+    {{- end }}
+    {{- $fingerprint = printf "%st=%s," $fingerprint $taskFragment }}
+  {{- else }}
+  {{- /* Otherwise, fingerprint w first letter of value before and value after */}}
+    {{- $fragment := mustRegexReplaceAll "([a-z0-9])[a-z0-9]*(=?)([0-9]*[a-z]{0,2})" $t "${1}${2}${3}"  }}
+    {{- $fingerprint = printf "%s%s," $fingerprint $fragment }}
+  {{- end }}
+{{- end }}
+{{- $fingerprint }}
 {{- end }}
