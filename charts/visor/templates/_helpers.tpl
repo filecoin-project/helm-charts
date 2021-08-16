@@ -20,25 +20,22 @@
 {{- /* Common labels */}}
 {{- define "sentinel-visor.labels" -}}
 {{ include "sentinel-visor.selectorLabels" . }}
-chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-heritage: {{ .Release.Service }}
-app: visor
-suite: sentinel
+helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/part-of: sentinel
-{{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
+app.kubernetes.io/part-of: sentinel
 {{- if .Values.labels }}
 {{ toYaml .Values.labels }}
+{{- end }}
+{{- if .Values.release }}
+{{ toYaml .Values.release }}
 {{- end }}
 {{- end }}
 
 {{- /* Selector labels */}}
 {{- define "sentinel-visor.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "sentinel-visor.name" . }}
+app.kubernetes.io/name: {{ include "sentinel-visor.name" . | quote }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-release: {{ .Release.Name }}
 {{- end }}
 
 {{- /* Starts snapshot import within import-snapshot init container. */}}
