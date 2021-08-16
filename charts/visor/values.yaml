@@ -4,8 +4,15 @@ image:
   repo: filecoin/sentinel-visor
   tag: "v0.7.1"
   pullPolicy: IfNotPresent
-#nameOverride:
 labels: {}
+release:
+  # nameOverride is used to name the instance in external systems. If empty,
+  # then the network, environment, and function values are used with the
+  # chart name to generate a name.
+  #nameOverride:
+  network: mainnet
+  environment: dev
+  function: indexer
 
 daemon:
   # Set enabled to true to run visor in daemon mode with its own data store
@@ -48,6 +55,7 @@ daemon:
   # jobs is a list of jobs to start on the daemon
   jobs: []
   #- command: watch
+    #name: ""
     #args:
     #- --confidence=10
     #- --tasks=blocks,messages,chaineconomics
@@ -59,6 +67,7 @@ daemon:
     #- name: db
       #secretName: postgresql-secret
       #secretKey: url
+      #schema: visor
       #applicationName: visor
       #poolSize: 20
       #allowUpsert: false
@@ -91,12 +100,12 @@ prometheusPort: ":9991"
 # service tracing
 jaeger:
   enabled: false
-  host: ""
-  port: 6831
-  serviceName: "" # default: "visor"
+  host: ""        # default: node.status.hostIP
+  serviceName: "" # default: include sentinel-visor.instanceName
+  port: "6831"
   sampler:
     type: "probabilistic"
-    param: 0.0001
+    param: "0.0001"
 
 # debug feature config
 debug:

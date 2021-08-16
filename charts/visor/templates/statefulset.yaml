@@ -62,6 +62,7 @@ spec:
         args:
           - |{{- include "sentinel-visor.chain-import-as-args" . | indent 10 }}
         env:
+        {{- include "sentinel-visor.jaegerTracingEnvvars" . | indent 8 }}
         - name: GOLOG_LOG_FMT
           value: {{ .Values.logFormat | default "json" }}
         - name: VISOR_REPO
@@ -92,6 +93,9 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["visor"]
         args:
+        {{- if .Values.jaeger.enabled }}
+        - --tracing
+        {{- end }}
         - daemon
         {{- range .Values.daemon.args }}
         - {{ . }}

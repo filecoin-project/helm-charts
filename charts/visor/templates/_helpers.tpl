@@ -1,8 +1,20 @@
-{{/*
-Expand the name of the chart.
-*/}}
+{{/* "sentinel-visor.name" is "instanceName" truncated for use within k8s values */}}
 {{- define "sentinel-visor.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- (include "sentinel-visor.instanceName" . ) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/* "sentinel-visor.instanceName" is generates a descriptive name of the instance based on release values or release.nameOverride */}}
+{{- define "sentinel-visor.instanceName" -}}
+{{- if and .Values.release .Values.release.nameOverride }}
+{{- .Values.release.nameOverride }}
+{{- else }}
+{{- printf "%s-%s-%s-%s"
+      .Chart.Name
+      (required "(root).release.environment expected" .Values.release.environment)
+      (required "(root).release.network expected" .Values.release.network)
+      (required "(root).release.function expected" .Values.release.function)
+}}
+{{- end }}
 {{- end }}
 
 {{- /* Common labels */}}
@@ -46,4 +58,28 @@ release: {{ .Release.Name }}
   echo "Ensuring secrets have correct permissions."
   chmod 0600 /var/lib/visor/keystore/*
   exit $status
+{{- end }}
+
+{{- /* Helpers */}}
+{{/* "sentinel-visor.jaegerTracingEnvvars" creates the envvars for supporting jaeger tracing */}}
+{{- define "sentinel-visor.jaegerTracingEnvvars" -}}
+{{- if and .Values.jaeger .Values.jaeger.enabled }}
+- name: JAEGER_AGENT_HOST
+{{- if .Values.jaeger.host }}
+  value: {{ .Values.jaeger.host }}
+{{- else }}
+  valueFrom:
+    fieldRef:
+      apiVersion: v1
+      fieldPath: status.hostIP
+{{- end }}
+- name: JAEGER_AGENT_PORT
+  value: {{ .Values.jaeger.port | default "6831" | quote }}
+- name: JAEGER_SERVICE_NAME
+  value: {{ .Values.jaeger.serviceName | default (include "sentinel-visor.instanceName" . ) | quote }}
+- name: JAEGER_SAMPLER_TYPE
+  value: {{ .Values.jaeger.sampler.type | default "probabilistic" | quote }}
+- name: JAEGER_SAMPLER_PARAM
+  value: {{ .Values.jaeger.sampler.param | default "0.0001" | quote }}
+{{- end }}
 {{- end }}
