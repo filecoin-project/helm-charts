@@ -44,6 +44,10 @@ spec:
         args:
           - |
             mkdir -p /var/lib/visor/keystore
+            # generate 6-char random uid to be used in job report names
+            if [ ! -f "/var/lib/visor/uid" ]; then
+              tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w ${1:-6} | head -n 1 > /var/lib/visor/uid
+            fi
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/visor
@@ -165,9 +169,9 @@ spec:
                   {{- range .Values.daemon.jobs }}
                     {{- $jobName := "" }}
                     {{- if .name }}
-                      {{- $jobName = printf "--name %s/%s-%s" (include "sentinel-visor.instanceName" $) .name (randAlphaNum 4) }}
+                      {{- $jobName = printf "--name %s/%s-`cat /var/lib/visor/uid`" (include "sentinel-visor.instanceName" $) .name }}
                     {{- else }}
-                      {{- $jobName = printf "--name \"%s/%s-%s/%s\"" (include "sentinel-visor.instanceName" $) .command (randAlphaNum 4) (include "sentinel-visor.fingerprintAllArgs" .args) }}
+                      {{- $jobName = printf "--name \"%s/%s-`cat /var/lib/visor/uid`/%s\"" (include "sentinel-visor.instanceName" $) .command (include "sentinel-visor.fingerprintAllArgs" .args) }}
                     {{- end }}
                   visor sync wait && visor {{ .command }} {{ join " " .args }} {{ $jobName }}
                   {{- end }}
