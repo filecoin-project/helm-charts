@@ -215,16 +215,9 @@ spec:
         - name: datastore-volume
           mountPath: /var/lib/visor/datastore
         {{- end }}
-        resources:
         {{- if .Values.debug.resources }}
+        resources:
           {{- toYaml .Values.debug.resources | nindent 10 }}
-        {{- else }}
-          requests:
-            cpu: "8000m"
-            memory: "16Gi"
-          limits:
-            cpu: "8000m"
-            memory: "16Gi"
         {{- end }}
       {{- end }}
       volumes:
