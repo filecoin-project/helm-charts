@@ -1,0 +1,254 @@
+---
+{{- if .Values.daemon.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-visor
+  labels:
+    {{- include "sentinel-visor.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ .Release.Name }}-visor-service
+  selector:
+    matchLabels:
+      {{- include "sentinel-visor.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sentinel-visor.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        fsGroup: 532
+        runAsNonRoot: true
+        runAsUser: 532
+        runAsGroup: 532
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+      - name: regcred
+      initContainers:
+      - name: initfs
+        image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /var/lib/visor/keystore
+            # generate 6-char random uid to be used in job report names
+            if [ ! -f "/var/lib/visor/uid" ]; then
+              tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w ${1:-6} | head -n 1 > /var/lib/visor/uid
+            fi
+        volumeMounts:
+        - name: repo-volume
+          mountPath: /var/lib/visor
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "512Mi"
+      {{- if .Values.daemon.importSnapshot.enabled }}
+      - name: chain-import
+        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/bin/sh", "-c"]
+        args:
+          - |{{- include "sentinel-visor.chainImportArgs" . | indent 10 }}
+        env:
+        {{- include "sentinel-visor.jaegerTracingEnvvars" . | indent 8 }}
+        - name: GOLOG_LOG_FMT
+          value: {{ .Values.logFormat | default "json" | quote }}
+        - name: VISOR_REPO
+          value: "/var/lib/visor"
+        volumeMounts:
+        - name: repo-volume
+          mountPath: /var/lib/visor
+        - name: config-volume
+          mountPath: /var/lib/visor/config.toml
+          subPath: config.toml
+          readOnly: true
+        {{- if .Values.daemon.volumes.datastore.enabled }}
+        - name: datastore-volume
+          mountPath: /var/lib/visor/datastore
+        {{- end }}
+        {{- /* Minimal resources as work is performed in daemon container. */}}
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "4Gi"
+          limits:
+            cpu: "1000m"
+            memory: "4Gi"
+      {{- end }}
+      containers:
+      - name: daemon
+        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["visor"]
+        args:
+        {{- if .Values.jaeger.enabled }}
+        - --tracing
+        {{- end }}
+        - daemon
+        {{- range .Values.daemon.args }}
+        - {{ . }}
+        {{- end }}
+        env:
+        - name: GOLOG_LOG_FMT
+          value: {{ .Values.logFormat | default "json" | quote }}
+        - name: GOLOG_LOG_LEVEL
+          value: {{ .Values.logLevel | default "info" | quote }}
+        {{- if .Values.logLevelNamed }}
+        - name: VISOR_LOG_LEVEL_NAMED
+          value: {{ .Values.logLevelNamed | quote }}
+        {{- end }}
+        - name: VISOR_REPO
+          value: "/var/lib/visor"
+        - name: VISOR_CONFIG
+          value: "/var/lib/visor/config.toml"
+        {{- range .Values.daemon.storage.postgresql }}
+        - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ required "expected secret name which holds postgres connection url" .secretName }}
+              key: {{ .secretKey | default "url" }}
+        {{- end }}
+        {{- with .Values.daemon.env }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        ports:
+        - containerPort: 1234
+          name: api
+        - containerPort: 1347
+          name: p2p
+        {{- if .Values.prometheusOperatorServiceMonitor }}
+        - containerPort: 9991
+          name: metrics
+        {{- end }}
+        volumeMounts:
+        - name: repo-volume
+          mountPath: /var/lib/visor
+        - name: config-volume
+          mountPath: /var/lib/visor/config.toml
+          subPath: config.toml
+          readOnly: true
+        {{- if .Values.daemon.volumes.datastore.enabled }}
+        - name: datastore-volume
+          mountPath: /var/lib/visor/datastore
+        {{- end }}
+        {{- if .Values.daemon.jobs }}
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - "/bin/sh"
+                - "-c"
+                  # lifecycle.postStart.exec.command doesn't accept args
+                  # so we execute this script as a multiline string
+                - |
+                  echo "Waiting for api to become ready..."
+                  visor wait-api --timeout=60s
+                  status=$?
+
+                  if [ $status -ne 0 ]; then
+                    exit $status
+                  fi
+
+                  echo "Starting jobs..."
+                  {{- range .Values.daemon.jobs }}
+                    {{- $jobName := "" }}
+                    {{- if .name }}
+                      {{- $jobName = printf "--name %s/%s-`cat /var/lib/visor/uid`" (include "sentinel-visor.instanceName" $) .name }}
+                    {{- else }}
+                      {{- $jobName = printf "--name \"%s/%s-`cat /var/lib/visor/uid`/%s\"" (include "sentinel-visor.instanceName" $) .command (include "sentinel-visor.fingerprintAllArgs" .args) }}
+                    {{- end }}
+                  visor sync wait && visor {{ .command }} {{ join " " .args }} {{ $jobName }}
+                  {{- end }}
+        {{- end }}
+        resources:
+        {{- if .Values.daemon.resources }}
+          {{- toYaml .Values.daemon.resources | nindent 10 }}
+        {{- else }}
+          requests:
+            cpu: "8000m"
+            memory: "16Gi"
+          limits:
+            cpu: "8000m"
+            memory: "16Gi"
+        {{- end }}
+      {{- if .Values.debug.enabled }}
+      - name: debug
+        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["/bin/sh", "-c", "tail -f /dev/null"]
+        env:
+        - name: VISOR_REPO
+          value: "/var/lib/visor"
+        - name: VISOR_CONFIG
+          value: "/var/lib/visor/config.toml"
+        {{- range .Values.daemon.storage.postgresql }}
+        - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ required "must have the secret name which holds postgres connection url" .secretName }}
+              key: {{ .secretKey | default "url" }}
+        {{- end }}
+        volumeMounts:
+        - name: repo-volume
+          mountPath: /var/lib/visor
+        - name: config-volume
+          mountPath: /var/lib/visor/config.toml
+          subPath: config.toml
+          readOnly: true
+        {{- if .Values.daemon.volumes.datastore.enabled }}
+        - name: datastore-volume
+          mountPath: /var/lib/visor/datastore
+        {{- end }}
+        {{- if .Values.debug.resources }}
+        resources:
+          {{- toYaml .Values.debug.resources | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      volumes:
+      - name: repo-volume
+        emptyDir: {}
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-visor-config
+          items:
+          - key: config.toml
+            path: config.toml
+  volumeClaimTemplates:
+  {{- if .Values.daemon.volumes.datastore.enabled }}
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: datastore-volume
+    spec:
+      accessModes:
+      {{- range .Values.daemon.volumes.datastore.accessModes }}
+      - {{ . | quote }}
+      {{- end }}
+      storageClassName: {{ .Values.daemon.volumes.datastore.storageClassName }}
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: {{ .Values.daemon.volumes.datastore.size | quote }}
+      {{- with .Values.daemon.volumes.datastore.dataSource }}
+      dataSource:
+        {{- toYaml . | nindent 10 }}
+      {{- end }}
+  {{- end}}
+{{- end }}
+

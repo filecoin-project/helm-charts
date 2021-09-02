@@ -1,0 +1,6 @@
+apiVersion: v2
+name: visor
+description: A Helm chart for Kubernetes to run visor
+type: application
+version: "5.0.1"
+appVersion: "0.7.5"
