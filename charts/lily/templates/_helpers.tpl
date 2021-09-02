@@ -88,7 +88,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
     input: `--storage=db --confidence=100 --window=30s --tasks=blocks,messages,chaineconomics,actorstatesraw,actorstatespower,actorstatesreward,actorstatesmultisig,msapprovals`
     output: `s=db,c=100,w=30s,t=blmechSraSpoSreSmums,`
 */}}
-r{- define "sentinel-lily.fingerprintAllArgs" -}}
+{{- define "sentinel-lily.fingerprintAllArgs" -}}
 {{- $fingerprint := "" }}
 {{- range . }}
   {{- $t := lower (mustRegexReplaceAll "-+" . "") }}
