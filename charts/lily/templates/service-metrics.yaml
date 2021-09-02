@@ -3,9 +3,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-visor-metrics
+  name: {{ .Release.Name }}-lily-metrics
   labels:
-    {{- include "sentinel-visor.labels" . | nindent 4 }}
+    {{- include "sentinel-lily.labels" . | nindent 4 }}
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9991"
@@ -13,7 +13,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    {{- include "sentinel-visor.selectorLabels" . | nindent 4 }}
+    {{- include "sentinel-lily.selectorLabels" . | nindent 4 }}
   ports:
     - protocol: TCP
       port: 9991

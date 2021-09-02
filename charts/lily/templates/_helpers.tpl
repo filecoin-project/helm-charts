@@ -1,10 +1,10 @@
-{{/* "sentinel-visor.name" is "instanceName" truncated for use within k8s values */}}
-{{- define "sentinel-visor.name" -}}
-{{- (include "sentinel-visor.instanceName" . ) | trunc 63 | trimSuffix "-" }}
+{{/* "sentinel-lily.name" is "instanceName" truncated for use within k8s values */}}
+{{- define "sentinel-lily.name" -}}
+{{- (include "sentinel-lily.instanceName" . ) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{/* "sentinel-visor.instanceName" is generates a descriptive name of the instance based on release values or release.nameOverride */}}
-{{- define "sentinel-visor.instanceName" -}}
+{{/* "sentinel-lily.instanceName" is generates a descriptive name of the instance based on release values or release.nameOverride */}}
+{{- define "sentinel-lily.instanceName" -}}
 {{- if and .Values.release .Values.release.nameOverride }}
 {{- .Values.release.nameOverride }}
 {{- else }}
@@ -17,9 +17,9 @@
 {{- end }}
 {{- end }}
 
-{{/* "sentinel-visor.labels" generates a list of common labels to be used across resources */}}
-{{- define "sentinel-visor.labels" -}}
-{{ include "sentinel-visor.selectorLabels" . }}
+{{/* "sentinel-lily.labels" generates a list of common labels to be used across resources */}}
+{{- define "sentinel-lily.labels" -}}
+{{ include "sentinel-lily.selectorLabels" . }}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
@@ -32,34 +32,34 @@ app.kubernetes.io/part-of: sentinel
 {{- end }}
 {{- end }}
 
-{{/* "sentinel-visor.selectorLabels" generates a list of selector labels to be used across resources */}}
-{{- define "sentinel-visor.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "sentinel-visor.name" . | quote }}
+{{/* "sentinel-lily.selectorLabels" generates a list of selector labels to be used across resources */}}
+{{- define "sentinel-lily.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "sentinel-lily.name" . | quote }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-{{/* "sentinel-visor.chainImportArgs" creates the arguments for managing optional chain import */}}
-{{- define "sentinel-visor.chainImportArgs" }}
-  if [ -f "/var/lib/visor/datastore/_imported" ]; then
-    echo "Skipping import, found /var/lib/visor/datastore/_imported file."
+{{/* "sentinel-lily.chainImportArgs" creates the arguments for managing optional chain import */}}
+{{- define "sentinel-lily.chainImportArgs" }}
+  if [ -f "/var/lib/lily/datastore/_imported" ]; then
+    echo "Skipping import, found /var/lib/lily/datastore/_imported file."
     echo "Ensuring secrets have correct permissions."
-    chmod 0600 /var/lib/visor/keystore/*
+    chmod 0600 /var/lib/lily/keystore/*
     exit 0
   fi
   echo "Importing snapshot from url {{ .Values.daemon.importSnapshot.url }}..."
-  visor init --import-snapshot={{ .Values.daemon.importSnapshot.url }}
+  lily init --import-snapshot={{ .Values.daemon.importSnapshot.url }}
   status=$?
   if [ $status -eq 0 ]; then
-    touch "/var/lib/visor/datastore/_imported"
+    touch "/var/lib/lily/datastore/_imported"
   fi
   echo "Ensuring secrets have correct permissions."
-  chmod 0600 /var/lib/visor/keystore/*
+  chmod 0600 /var/lib/lily/keystore/*
   exit $status
 {{- end }}
 
 {{- /* Helpers */}}
-{{/* "sentinel-visor.jaegerTracingEnvvars" creates the envvars for supporting jaeger tracing */}}
-{{- define "sentinel-visor.jaegerTracingEnvvars" -}}
+{{/* "sentinel-lily.jaegerTracingEnvvars" creates the envvars for supporting jaeger tracing */}}
+{{- define "sentinel-lily.jaegerTracingEnvvars" -}}
 {{- if and .Values.jaeger .Values.jaeger.enabled }}
 - name: JAEGER_AGENT_HOST
 {{- if .Values.jaeger.host }}
@@ -73,7 +73,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 - name: JAEGER_AGENT_PORT
   value: {{ .Values.jaeger.port | default "6831" | quote }}
 - name: JAEGER_SERVICE_NAME
-  value: {{ .Values.jaeger.serviceName | default (include "sentinel-visor.instanceName" . ) | quote }}
+  value: {{ .Values.jaeger.serviceName | default (include "sentinel-lily.instanceName" . ) | quote }}
 - name: JAEGER_SAMPLER_TYPE
   value: {{ .Values.jaeger.sampler.type | default "probabilistic" | quote }}
 - name: JAEGER_SAMPLER_PARAM
@@ -82,13 +82,13 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 
-{{/* "sentinel-visor.fingerprintAllArgs" accepts a set of args and returns a string fingerprint to uniquely identify that set. This is useful for automatically generating unique job names based on their input for later identification. */}}
+{{/* "sentinel-lily.fingerprintAllArgs" accepts a set of args and returns a string fingerprint to uniquely identify that set. This is useful for automatically generating unique job names based on their input for later identification. */}}
 {{/*
   Example:
     input: `--storage=db --confidence=100 --window=30s --tasks=blocks,messages,chaineconomics,actorstatesraw,actorstatespower,actorstatesreward,actorstatesmultisig,msapprovals`
     output: `s=db,c=100,w=30s,t=blmechSraSpoSreSmums,`
 */}}
-{{- define "sentinel-visor.fingerprintAllArgs" -}}
+r{- define "sentinel-lily.fingerprintAllArgs" -}}
 {{- $fingerprint := "" }}
 {{- range . }}
   {{- $t := lower (mustRegexReplaceAll "-+" . "") }}

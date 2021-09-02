@@ -1,7 +1,7 @@
-# Default values for sentinel-visor
+# Default values for Sentinel Lily
 replicaCount: 1
 image:
-  repo: filecoin/sentinel-visor
+  repo: filecoin/lily
   tag: "v0.7.5"
   pullPolicy: IfNotPresent
 labels: {}
@@ -15,18 +15,18 @@ release:
   function: indexer
 
 daemon:
-  # Set enabled to true to run visor in daemon mode with its own data store
+  # Set enabled to true to run lily in daemon mode with its own data store
   enabled: true
   args: []
   env: []
 
   # importSnapshot controls the initialization of the daemon state. When
   # enabled the deployment will start an init container that may call
-  # 'visor init' with the url specified. After the init is complete an empty
+  # 'lily init' with the url specified. After the init is complete an empty
   # file named '_imported' is placed in the data store directory to signify that
   # the data store has been imported. The import process will be skipped if this
   # file is present.
-  # Deleting /var/lib/visor/datastore/_imported will force the import to run the
+  # Deleting /var/lib/lily/datastore/_imported will force the import to run the
   # next time the pod is restarted. This may be useful if the daemon has fallen
   # out of sync for a long period of time.
   importSnapshot:
@@ -43,7 +43,7 @@ daemon:
     # to saturate available IOPS for storage class GP2. Upgrade to storage class
     # IO1 for even additional IOPS headroom (up to 64kIOPS).
     # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
-    # The datastore volume is mounted at /var/lib/visor/datastore
+    # The datastore volume is mounted at /var/lib/lily/datastore
     datastore:
       enabled: false
       size: "500Gi"
@@ -61,14 +61,14 @@ daemon:
     #- --tasks=blocks,messages,chaineconomics
 
   # daemon storage is a list of storage configurations that will be added to
-  # the visor config and used when starting jobs
+  # the lily config and used when starting jobs
   storage:
     postgresql: []
     #- name: db
       #secretName: postgresql-secret
       #secretKey: url
-      #schema: visor
-      #applicationName: visor
+      #schema: lily
+      #applicationName: lily
       #poolSize: 20
       #allowUpsert: false
     file: []
@@ -82,7 +82,7 @@ daemon:
     ipwhitelist: []
 
   # daemon resources
-  # Note: Running visor on mainnet requires SIGNIFICANT resources (>250Gb RAM)
+  # Note: Running lily on mainnet requires SIGNIFICANT resources (>250Gb RAM)
   # in order to operate comfortably. Test networks may be preferred if resources
   # are limited.
   resources:
@@ -101,7 +101,7 @@ prometheusPort: ":9991"
 jaeger:
   enabled: false
   host: ""        # default: node.status.hostIP
-  serviceName: "" # default: include sentinel-visor.instanceName
+  serviceName: "" # default: include sentinel-lily.instanceName
   port: "6831"
   sampler:
     type: "probabilistic"

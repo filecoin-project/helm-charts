@@ -3,7 +3,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ .Release.Name }}-visor
+  name: {{ .Release.Name }}-lily
   namespace: {{ .Release.Namespace }}
 spec:
   namespaceSelector:
@@ -11,7 +11,7 @@ spec:
       - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      {{- include "sentinel-visor.selectorLabels" . | nindent 6 }}
+      {{- include "sentinel-lily.selectorLabels" . | nindent 6 }}
   endpoints:
   - port: metrics
     path: /metrics

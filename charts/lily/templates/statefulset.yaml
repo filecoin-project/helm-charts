@@ -3,19 +3,19 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Release.Name }}-visor
+  name: {{ .Release.Name }}-lily
   labels:
-    {{- include "sentinel-visor.labels" . | nindent 4 }}
+    {{- include "sentinel-lily.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  serviceName: {{ .Release.Name }}-visor-service
+  serviceName: {{ .Release.Name }}-lily-service
   selector:
     matchLabels:
-      {{- include "sentinel-visor.selectorLabels" . | nindent 6 }}
+      {{- include "sentinel-lily.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "sentinel-visor.selectorLabels" . | nindent 8 }}
+        {{- include "sentinel-lily.selectorLabels" . | nindent 8 }}
     spec:
       securityContext:
         fsGroup: 532
@@ -43,14 +43,14 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - |
-            mkdir -p /var/lib/visor/keystore
+            mkdir -p /var/lib/lily/keystore
             # generate 6-char random uid to be used in job report names
-            if [ ! -f "/var/lib/visor/uid" ]; then
-              tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w ${1:-6} | head -n 1 > /var/lib/visor/uid
+            if [ ! -f "/var/lib/lily/uid" ]; then
+              tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w ${1:-6} | head -n 1 > /var/lib/lily/uid
             fi
         volumeMounts:
         - name: repo-volume
-          mountPath: /var/lib/visor
+          mountPath: /var/lib/lily
         resources:
           requests:
             cpu: "1000m"
@@ -64,23 +64,23 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c"]
         args:
-          - |{{- include "sentinel-visor.chainImportArgs" . | indent 10 }}
+          - |{{- include "sentinel-lily.chainImportArgs" . | indent 10 }}
         env:
-        {{- include "sentinel-visor.jaegerTracingEnvvars" . | indent 8 }}
+        {{- include "sentinel-lily.jaegerTracingEnvvars" . | indent 8 }}
         - name: GOLOG_LOG_FMT
           value: {{ .Values.logFormat | default "json" | quote }}
-        - name: VISOR_REPO
+        - name: LILY_REPO
           value: "/var/lib/visor"
         volumeMounts:
         - name: repo-volume
-          mountPath: /var/lib/visor
+          mountPath: /var/lib/lily
         - name: config-volume
-          mountPath: /var/lib/visor/config.toml
+          mountPath: /var/lib/lily/config.toml
           subPath: config.toml
           readOnly: true
         {{- if .Values.daemon.volumes.datastore.enabled }}
         - name: datastore-volume
-          mountPath: /var/lib/visor/datastore
+          mountPath: /var/lib/lily/datastore
         {{- end }}
         {{- /* Minimal resources as work is performed in daemon container. */}}
         resources:
@@ -95,7 +95,7 @@ spec:
       - name: daemon
         image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        command: ["visor"]
+        command: ["lily"]
         args:
         {{- if .Values.jaeger.enabled }}
         - --tracing
@@ -110,15 +110,15 @@ spec:
         - name: GOLOG_LOG_LEVEL
           value: {{ .Values.logLevel | default "info" | quote }}
         {{- if .Values.logLevelNamed }}
-        - name: VISOR_LOG_LEVEL_NAMED
+        - name: LILY_LOG_LEVEL_NAMED
           value: {{ .Values.logLevelNamed | quote }}
         {{- end }}
-        - name: VISOR_REPO
-          value: "/var/lib/visor"
-        - name: VISOR_CONFIG
-          value: "/var/lib/visor/config.toml"
+        - name: LILY_REPO
+          value: "/var/lib/lily"
+        - name: LILY_CONFIG
+          value: "/var/lib/lily/config.toml"
         {{- range .Values.daemon.storage.postgresql }}
-        - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+        - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
             secretKeyRef:
               name: {{ required "expected secret name which holds postgres connection url" .secretName }}
@@ -138,14 +138,14 @@ spec:
         {{- end }}
         volumeMounts:
         - name: repo-volume
-          mountPath: /var/lib/visor
+          mountPath: /var/lib/lily
         - name: config-volume
-          mountPath: /var/lib/visor/config.toml
+          mountPath: /var/lib/lily/config.toml
           subPath: config.toml
           readOnly: true
         {{- if .Values.daemon.volumes.datastore.enabled }}
         - name: datastore-volume
-          mountPath: /var/lib/visor/datastore
+          mountPath: /var/lib/lily/datastore
         {{- end }}
         {{- if .Values.daemon.jobs }}
         lifecycle:
@@ -158,7 +158,7 @@ spec:
                   # so we execute this script as a multiline string
                 - |
                   echo "Waiting for api to become ready..."
-                  visor wait-api --timeout=60s
+                  lily wait-api --timeout=60s
                   status=$?
 
                   if [ $status -ne 0 ]; then
@@ -169,11 +169,11 @@ spec:
                   {{- range .Values.daemon.jobs }}
                     {{- $jobName := "" }}
                     {{- if .name }}
-                      {{- $jobName = printf "--name %s/%s-`cat /var/lib/visor/uid`" (include "sentinel-visor.instanceName" $) .name }}
+                      {{- $jobName = printf "--name %s/%s-`cat /var/lib/lily/uid`" (include "sentinel-lily.instanceName" $) .name }}
                     {{- else }}
-                      {{- $jobName = printf "--name \"%s/%s-`cat /var/lib/visor/uid`/%s\"" (include "sentinel-visor.instanceName" $) .command (include "sentinel-visor.fingerprintAllArgs" .args) }}
+                      {{- $jobName = printf "--name \"%s/%s-`cat /var/lib/lily/uid`/%s\"" (include "sentinel-lily.instanceName" $) .command (include "sentinel-lily.fingerprintAllArgs" .args) }}
                     {{- end }}
-                  visor sync wait && visor {{ .command }} {{ join " " .args }} {{ $jobName }}
+                  lily sync wait && lily {{ .command }} {{ join " " .args }} {{ $jobName }}
                   {{- end }}
         {{- end }}
         resources:
@@ -193,12 +193,12 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c", "tail -f /dev/null"]
         env:
-        - name: VISOR_REPO
-          value: "/var/lib/visor"
-        - name: VISOR_CONFIG
-          value: "/var/lib/visor/config.toml"
+        - name: LILY_REPO
+          value: "/var/lib/lily"
+        - name: LILY_CONFIG
+          value: "/var/lib/lily/config.toml"
         {{- range .Values.daemon.storage.postgresql }}
-        - name: VISOR_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+        - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
             secretKeyRef:
               name: {{ required "must have the secret name which holds postgres connection url" .secretName }}
@@ -206,14 +206,14 @@ spec:
         {{- end }}
         volumeMounts:
         - name: repo-volume
-          mountPath: /var/lib/visor
+          mountPath: /var/lib/lily
         - name: config-volume
-          mountPath: /var/lib/visor/config.toml
+          mountPath: /var/lib/lily/config.toml
           subPath: config.toml
           readOnly: true
         {{- if .Values.daemon.volumes.datastore.enabled }}
         - name: datastore-volume
-          mountPath: /var/lib/visor/datastore
+          mountPath: /var/lib/lily/datastore
         {{- end }}
         {{- if .Values.debug.resources }}
         resources:
@@ -225,7 +225,7 @@ spec:
         emptyDir: {}
       - name: config-volume
         configMap:
-          name: {{ .Release.Name }}-visor-config
+          name: {{ .Release.Name }}-lily-config
           items:
           - key: config.toml
             path: config.toml
