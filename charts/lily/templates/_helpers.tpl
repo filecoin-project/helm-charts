@@ -12,7 +12,7 @@
       .Chart.Name
       (required "(root).release.environment expected" .Values.release.environment)
       (required "(root).release.network expected" .Values.release.network)
-      (required "(root).release.function expected" .Values.release.function)
+      .Release.Name
 }}
 {{- end }}
 {{- end }}

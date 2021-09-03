@@ -7,12 +7,11 @@ image:
 labels: {}
 release:
   # nameOverride is used to name the instance in external systems. If empty,
-  # then the network, environment, and function values are used with the
+  # then the network, environment, and release name values are used with the
   # chart name to generate a name.
   #nameOverride:
   network: mainnet
   environment: dev
-  function: indexer
 
 daemon:
   # Set enabled to true to run lily in daemon mode with its own data store
@@ -37,7 +36,7 @@ daemon:
   volumes:
     # datastore is the volume used for persisting the daemon state. If disabled
     # then the volume will be set up on the pod's local storage which will is
-    # usually too small.
+    # usually too small but useful to avoid managing volume claims.
     # Note: Mainnet persistence will require significant IOPS. Default size of
     # 500Gi will constrain available IOPS. Consider deploying as much as 3000Gi
     # to saturate available IOPS for storage class GP2. Upgrade to storage class
@@ -123,7 +122,5 @@ logLevelNamed: "vm:error,badgerbs:error"
 logFormat: json
 
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}
