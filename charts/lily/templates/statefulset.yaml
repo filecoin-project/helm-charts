@@ -70,7 +70,7 @@ spec:
         - name: GOLOG_LOG_FMT
           value: {{ .Values.logFormat | default "json" | quote }}
         - name: LILY_REPO
-          value: "/var/lib/visor"
+          value: "/var/lib/lily"
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/lily
