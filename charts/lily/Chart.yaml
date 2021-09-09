@@ -1,0 +1,6 @@
+apiVersion: v2
+name: lily
+description: A Helm chart for Kubernetes to run Sentinel Lily
+type: application
+version: "0.0.1"
+appVersion: "0.8.0"
