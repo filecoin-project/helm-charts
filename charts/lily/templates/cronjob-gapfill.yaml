@@ -1,0 +1,136 @@
+---
+{{- if .Values.daemon.gapfill.enabled }}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-gapfiller
+  labels:
+    {{- include "sentinel-lily.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.daemon.gapfill.schedule }}"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "sentinel-lily.selectorLabels" . | nindent 8 }}
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "sentinel-lily.selectorLabels" . | nindent 12 }}
+        spec:
+          restartPolicy: OnFailure
+          {{- if .Values.imagePullSecrets }}
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          securityContext:
+            fsGroup: 562
+            runAsNonRoot: true
+            runAsUser: 562
+            runAsGroup: 562
+          containers:
+          - name: gapfill
+            image: "{{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            command: ["bash", "-c"]
+            args:
+              - |
+                sleep 100000
+            resources:
+              {{- toYaml .Values.debug.resources | nindent 14 }}
+            ports:
+            - containerPort: 1234
+              name: api
+            - containerPort: 1347
+              name: p2p
+            {{- if .Values.prometheusOperatorServiceMonitor }}
+            - containerPort: 9991
+              name: metrics
+            {{- end }}
+            env:
+            - name: GOLOG_LOG_FMT
+              value: {{ .Values.logFormat | default "json" | quote }}
+            - name: GOLOG_LOG_LEVEL
+              value: {{ .Values.logLevel | default "info" | quote }}
+            {{- if .Values.logLevelNamed }}
+            - name: LILY_LOG_LEVEL_NAMED
+              value: {{ .Values.logLevelNamed | quote }}
+            {{- end }}
+            - name: LILY_REPO
+              value: "/var/lib/lily"
+            - name: LILY_CONFIG
+              value: "/var/lib/lily/config.toml"
+            {{- range .Values.daemon.storage.postgresql }}
+            - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "expected secret name which holds postgres connection url" .secretName }}
+                  key: {{ .secretKey | default "url" }}
+            {{- end }}
+            {{- with .Values.daemon.env }}
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            volumeMounts:
+            - name: repo-volume
+              mountPath: /var/lib/lily
+            - name: config-volume
+              mountPath: /var/lib/lily/config.toml
+              subPath: config.toml
+              readOnly: true
+            lifecycle:
+              postStart:
+                exec:
+                  command:
+                    - "/bin/sh"
+                    - "-c"
+                      # lifecycle.postStart.exec.command doesn't accept args
+                      # so we execute this script as a multiline string
+                    - |
+                      echo "Waiting for api to become ready..."
+                      lily wait-api --timeout=60s
+                      status=$?
+
+                      if [ $status -ne 0 ]; then
+                        exit $status
+                      fi
+
+                      # TODO: check when last cron job was executed successfully
+                      # TODO: determine to/from window from last job exec
+                      # use default window of last 26 hours (overlap to
+                      # account for spin-up duration)
+
+                      $((to=($(date +%s) - {{ .Values.daemon.genesisUnix }}) / 30))
+                      $((from=($(date -d "26 hours ago" +%s) - {{ .Values.daemon.genesisUnix }}) / 30))
+                      echo "Starting gapfill jobs..."
+                      {{- range .Values.daemon.gapfill.taskSets }}
+                      {{- $jobPrint := include "sentinel-lily.fingerprintAllArgs" (regexSplit "," . -1) }}
+                      {{- $jobName := printf "--name \"%s/gapfind-`cat /var/lib/lily/uid`/%s\"" (include "sentinel-lily.instanceName" $) $jobPrint }}
+                      lily sync wait && lily gap find --from=$(from) --to=$(to) --tasks="{{ . }}" --storage={{ $.Values.daemon.gapfill.db }} {{ $jobName }}
+                      {{- $jobName = printf "--name \"%s/gapfill-`cat /var/lib/lily/uid`/%s\"" (include "sentinel-lily.instanceName" $) $jobPrint }}
+                      lily sync wait && lily gap fill --from=$(from) --to=$(to) --tasks="{{ . }}" --storage={{ $.Values.daemon.gapfill.db }} {{ $jobName }}
+                      {{- end }}
+          volumes:
+          - name: repo-volume
+            emptyDir: {}
+          - name: config-volume
+            configMap:
+              name: {{ .Release.Name }}-lily-config
+              items:
+              - key: config.toml
+                path: config.toml
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}
