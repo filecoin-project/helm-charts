@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name}}-nginx-sidecar
+  namespace: {{ .Release.Namespace }}
+data:
+  nginx.conf: |
+    server {
+      listen 8000;
+      server_name {{ .Values.domain }};
+      location / {
+        proxy_pass http://localhost:3000;
+      }
+      location  = / {
+        expires 1h;
+        return 301 https://{{ .Values.domain }}/d/{{ .Values.main_dashboard_id }}/{{ .Values.main_dashboard_slug }}?orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk;
+      }
+      location ~ ^/({{ .Values.main_dashboard_slug }}|login|user) {
+        expires 1h;
+        return 301 https://{{ .Values.domain }}/d/{{ .Values.main_dashboard_id }}/{{ .Values.main_dashboard_slug }}?orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk;
+      }
+      location ~ ^/d/ {
+        if ($args = "orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk") {
+          proxy_pass http://localhost:3000/$uri$args;
+        }
+        if ($args != "orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk") {
+          expires 1h;
+          return 301 https://{{ .Values.domain }}/d/{{ .Values.main_dashboard_id }}/{{ .Values.main_dashboard_slug }}?orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk;
+        }
+      }
+    }
+
+    server {
+      listen 8000;
+      server_name {{ .Values.domainInternal }};
+      location / {
+        auth_basic "Internal Dashboards";
+        auth_basic_user_file /opt/bitnami/nginx/htpasswd/.htpasswd;
+        proxy_pass http://localhost:3000;
+      }
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name}}-nginx-htpasswd
+  namespace: {{ .Release.Namespace }}
+data:
+  .htpasswd: |
+    {{ .Values.htpasswd }}
