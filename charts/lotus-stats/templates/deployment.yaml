@@ -1,3 +1,40 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lotus-stats.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "lotus-stats.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "lotus-stats.labels" . | nindent 4 }}
+  ports:
+    - protocol: TCP
+      port: 6688
+      targetPort: 6688
+      name: metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "lotus-stats.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "lotus-stats.labels" . | nindent 4 }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "lotus-stats.labels" . | nindent 6 }}
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,6 +87,9 @@ spec:
               secretKeyRef:
                 name: {{ .Values.influxSecrets }}
                 key: influx_password
+        ports:
+        - containerPort: 6688
+          name: metrics
         {{- with .Values.resources }}
         resources:
           {{- toYaml . | nindent 8 }}
