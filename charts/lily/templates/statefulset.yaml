@@ -17,11 +17,13 @@ spec:
       labels:
         {{- include "sentinel-lily.allLabels" . | nindent 8 }}
     spec:
-      securityContext:
-        fsGroup: 532
-        runAsNonRoot: true
-        runAsUser: 532
-        runAsGroup: 532
+      # we're going to need root for a little while until
+      # we can package some helper binaries into the image
+      #securityContext:
+        #fsGroup: 532
+        #runAsNonRoot: true
+        #runAsUser: 532
+        #runAsGroup: 532
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -157,6 +159,9 @@ spec:
                   # lifecycle.postStart.exec.command doesn't accept args
                   # so we execute this script as a multiline string
                 - |
+                  # TODO: include jq in lily image
+                  apt-get update && apt-get install -y jq
+
                   echo "Waiting for api to become ready..."
                   lily wait-api --timeout=60s
                   status=$?
