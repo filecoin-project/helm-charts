@@ -5,11 +5,11 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-lily-config
   labels:
-    {{- include "sentinel-lily.labels" . | nindent 4 }}
+    {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 data:
   config.toml: |
     [API]
-      ListenAddress = "/ip4/127.0.0.1/tcp/1234/http"
+      ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
     [Libp2p]
       ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
       ConnMgrLow = 400
