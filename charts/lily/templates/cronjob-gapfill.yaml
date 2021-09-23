@@ -1,23 +1,33 @@
+{{- if and .Values.daemon.enabled .Values.daemon.gapfill.enabled }}
 ---
-{{- if .Values.daemon.gapfill.enabled }}
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: {{ .Release.Name }}-gapfiller
   labels:
-    {{- include "sentinel-lily.labels" . | nindent 4 }}
+    {{- include "sentinel-lily.releaseLabels" . | nindent 4 }}
+    {{- if .Values.labels }}
+    {{- toYaml .Values.labels | nindent 4 }}
+    {{- end }}
 spec:
-  schedule: "{{ .Values.daemon.gapfill.schedule }}"
+  # TODO: make cron schedule configurable
+  schedule: "0 0 * * *"
   concurrencyPolicy: Forbid
   jobTemplate:
     metadata:
       labels:
-        {{- include "sentinel-lily.selectorLabels" . | nindent 8 }}
+        {{- include "sentinel-lily.releaseLabels" . | nindent 8 }}
+        {{- if .Values.labels }}
+        {{- toYaml .Values.labels | nindent 8 }}
+        {{- end }}
     spec:
       template:
         metadata:
           labels:
-            {{- include "sentinel-lily.selectorLabels" . | nindent 12 }}
+            {{- include "sentinel-lily.releaseLabels" . | nindent 12 }}
+            {{- if .Values.labels }}
+            {{- toYaml .Values.labels | nindent 12 }}
+            {{- end }}
         spec:
           restartPolicy: OnFailure
           {{- if .Values.imagePullSecrets }}

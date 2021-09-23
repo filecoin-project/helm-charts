@@ -5,7 +5,7 @@ kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}-lily
   labels:
-    {{- include "sentinel-lily.labels" . | nindent 4 }}
+    {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   serviceName: {{ .Release.Name }}-lily-service
@@ -15,7 +15,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "sentinel-lily.selectorLabels" . | nindent 8 }}
+        {{- include "sentinel-lily.allLabels" . | nindent 8 }}
     spec:
       securityContext:
         fsGroup: 532

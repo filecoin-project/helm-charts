@@ -17,16 +17,21 @@
 {{- end }}
 {{- end }}
 
-{{/* "sentinel-lily.labels" generates a list of common labels to be used across resources */}}
-{{- define "sentinel-lily.labels" -}}
+{{/* "sentinel-lily.allLabels" generates a list of all labels to be used across statefulset resources */}}
+{{- define "sentinel-lily.allLabels" -}}
 {{ include "sentinel-lily.selectorLabels" . }}
+{{ include "sentinel-lily.releaseLabels" . }}
+{{- if .Values.labels }}
+{{ toYaml .Values.labels }}
+{{- end }}
+{{- end }}
+
+{{/* "sentinel-lily.releaseLabels" generates a list of common labels to be used across resources */}}
+{{- define "sentinel-lily.releaseLabels" -}}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/part-of: sentinel
-{{- if .Values.labels }}
-{{ toYaml .Values.labels }}
-{{- end }}
 {{- if .Values.release }}
 {{ toYaml .Values.release }}
 {{- end }}
