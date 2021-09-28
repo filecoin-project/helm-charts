@@ -59,6 +59,26 @@ daemon:
     #- --confidence=10
     #- --tasks=blocks,messages,chaineconomics
 
+  # genesisUnix should be the unix time of the genesis epoch
+  # and is used to calculate relative to/from windows for
+  # each gapfill job. Default genesis is set for mainnet.
+  genesisUnix: "1598306400"
+
+  # gapfill describes a list of gapfill jobs to start on the daemon once
+  # every 24 hours
+  gapfill:
+    enabled: false
+    # storage is the storage.postgresql[].name on which execute the gapfill job
+    storage: "db"
+    # taskSets is a list of comma-separated strings indicating the tasks for each
+    # gapfill job. Each item will start as an indpendent job with the tasks listed.
+    # Default is defined in `lily gap <find|fill> --help`
+    taskSets:
+    # examples
+    #- actorstatesmultisig,actorstatespower,actorstatesraw,actorstatesreward,actorstatesverifreg,blocks,chaineconomics,consensus,implicitmessage,messages,msapprovals
+    #- actorstatesinit,actorstatesmarket
+    #- messages
+
   # daemon storage is a list of storage configurations that will be added to
   # the lily config and used when starting jobs
   storage:

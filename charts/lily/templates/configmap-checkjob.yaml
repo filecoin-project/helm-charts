@@ -1,0 +1,37 @@
+{{- if and .Values.daemon.enabled .Values.daemon.gapfill.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-lily-waitjob-script
+  labels:
+    {{- include "sentinel-lily.allLabels" . | nindent 4 }}
+data:
+  waitjob.sh: |
+    #!/usr/bin/env bash
+
+    set -eo pipefail
+
+    jobCheckWait=60
+
+    if [[ ! "$1" =~ ^[0-9]+$ ]]; then
+      echo "Non-numeric ID"
+      exit 1
+    fi
+
+    lily wait-api --timeout=60s
+
+    while true; do
+      jobState=`lily job list | awk -- 'FNR >= 2 { print }' | jq -c -e ".[] | select(.ID == $1) | {ID,Running}"`
+      if [[ $jobState == "" ]]; then
+        echo "No job found with ID $1"
+        exit 2
+      fi
+      if [[ $jobState =~ \"ID\":${1},\"Running\":false ]]; then
+        echo "Check: ${jobState}: exiting"
+        exit 0
+      fi
+      echo "Check: ${jobState}: sleeping ~$(($jobCheckWait / 60))min..."
+      sleep $jobCheckWait
+    done
+{{- end }}

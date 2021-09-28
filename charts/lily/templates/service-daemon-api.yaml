@@ -1,0 +1,17 @@
+{{- if .Values.daemon.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-lily-daemon-api
+  labels:
+    {{- include "sentinel-lily.allLabels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "sentinel-lily.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: api-port
+      protocol: TCP
+      port: 1234
+{{- end }}
