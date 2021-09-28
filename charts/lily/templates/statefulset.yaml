@@ -68,7 +68,6 @@ spec:
         args:
           - |{{- include "sentinel-lily.chainImportArgs" . | indent 10 }}
         env:
-        {{- include "sentinel-lily.jaegerTracingEnvvars" . | indent 8 }}
         - name: GOLOG_LOG_FMT
           value: {{ .Values.logFormat | default "json" | quote }}
         - name: LILY_REPO
@@ -107,6 +106,7 @@ spec:
         - {{ . }}
         {{- end }}
         env:
+        {{- include "sentinel-lily.jaegerTracingEnvvars" . | indent 8 }}
         - name: GOLOG_LOG_FMT
           value: {{ .Values.logFormat | default "json" | quote }}
         - name: GOLOG_LOG_LEVEL
