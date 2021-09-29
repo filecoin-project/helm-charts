@@ -40,7 +40,7 @@ spec:
       - name: regcred
       initContainers:
       - name: initfs
-        image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c"]
         args:
@@ -62,13 +62,12 @@ spec:
             memory: "512Mi"
       {{- if .Values.daemon.importSnapshot.enabled }}
       - name: chain-import
-        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c"]
         args:
           - |{{- include "sentinel-lily.chainImportArgs" . | indent 10 }}
         env:
-        {{- include "sentinel-lily.jaegerTracingEnvvars" . | indent 8 }}
         - name: GOLOG_LOG_FMT
           value: {{ .Values.logFormat | default "json" | quote }}
         - name: LILY_REPO
@@ -95,7 +94,7 @@ spec:
       {{- end }}
       containers:
       - name: daemon
-        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["lily"]
         args:
@@ -107,6 +106,7 @@ spec:
         - {{ . }}
         {{- end }}
         env:
+        {{- include "sentinel-lily.jaegerTracingEnvvars" . | indent 8 }}
         - name: GOLOG_LOG_FMT
           value: {{ .Values.logFormat | default "json" | quote }}
         - name: GOLOG_LOG_LEVEL
@@ -194,7 +194,7 @@ spec:
         {{- end }}
       {{- if .Values.debug.enabled }}
       - name: debug
-        image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
+        image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c", "tail -f /dev/null"]
         env:

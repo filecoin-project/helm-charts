@@ -2,8 +2,8 @@
 replicaCount: 1
 image:
   repo: filecoin/lily
-  tag: "v0.7.5"
   pullPolicy: IfNotPresent
+  #tag: ""
 labels: {}
 release:
   # nameOverride is used to name the instance in external systems. If empty,
