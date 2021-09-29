@@ -17,7 +17,7 @@ spec:
       paths:
       - path: {{ $rule.path }}
         backend:
-          serviceName: {{ .Release.Name }}-{{ .Values.application.name }}
-          servicePort: $rule.servicePort 
+          serviceName: {{ $.Release.Name }}-{{ $.Values.application.name }}
+          servicePort: {{ $rule.servicePort }}
   {{- end }}
 {{- end }}

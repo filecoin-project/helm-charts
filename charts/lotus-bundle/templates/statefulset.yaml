@@ -112,6 +112,7 @@ spec:
         {{- range .Values.application.storage }}
         {{ toYaml .volume | nindent 8 }}
         {{- end }}
+      {{- if .Values.lotus.enabled }}
       initContainers:
         - name: shared-storage-preparer
           image: {{ .Values.lotus.image }}
@@ -139,6 +140,7 @@ spec:
             - name: {{ $vol.name }}
               mountPath: {{ $st.mount }}
             {{- end }}
+      {{- end }}
       containers:
         - name: {{ .Values.application.container.name }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
