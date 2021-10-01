@@ -281,8 +281,8 @@ spec:
               mountPath: /var/lib/lotus
               readOnly: true
         {{- end }}
-        # filebeat sidecar
         {{- if .Values.filebeat.enabled }}
+        # filebeat sidecar
         - name: filebeat
           image: {{ .Values.filebeat.image }}
           args:
