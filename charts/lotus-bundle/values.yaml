@@ -11,6 +11,8 @@ application:
   name: "nginx-example"
   labels: []
   replicas: 
+  # a kubernetes container.
+  # hint: https://github.com/kubernetes/api/blob/master/core/v1/types.go#L2227
   container:
     name: application
     command: []
@@ -27,8 +29,11 @@ application:
       external: true
       mount: /there
   configMaps: [] # same format as secrets
+  # define a single service.
+  # depreciated.
+  # Instead, use services, []service.
   service:
-    enabled: true
+    enabled: false
     type: ClusterIP
     ports:
       - protocol: TCP
@@ -43,6 +48,22 @@ application:
       - host: example.com
         path: /
         servicePort: http
+  # a list of services
+  # hint: https://github.com/kubernetes/api/blob/master/core/v1/types.go#L4093
+  # services: []
+  services: 
+    - type: ClusterIP
+      ports:
+        - Protocol: TCP
+          port: 80
+          targetPort: 80
+          name: http
+    - type: NodePort
+      ports:
+        - Protocol: TCP
+          port: 80
+          targetPort: 80
+          name: http
   storage: # storage volume shared between application and lotus node
       # This is the directory where the volume is mounted on your application and in the lotus container.
     - mount: /shared
