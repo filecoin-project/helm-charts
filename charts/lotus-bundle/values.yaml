@@ -64,7 +64,7 @@ application:
           port: 80
           targetPort: 80
           name: http
-  storage: # storage volume shared between application and lotus node
+  storage: # storage volume shared between application and lotus node or ipfs node, when enabled.
       # This is the directory where the volume is mounted on your application and in the lotus container.
     - mount: /shared
       # when chownLotus is enabled, the mounted directory will have unix owner changed to "fc"
@@ -111,10 +111,24 @@ lotus:
     backend: wss://api.chain.love
   jaeger: true
 
+
+# ipfs configuration
+# This is not enabled by default
+# When enabled, an IPFS daemon will run as a sidecar.
+# The API endpoint of this sidecar is reachable by
+# the dns name "ipfs". Using a multiaddr, it is reachable
+# with this string: /dns/ipfs/tcp/5001/http
+ipfs:
+  enabled: false
+  image: ipfs/go-ipfs:latest
+  imagePullPolicy: Always
+  size: 10Gi
+
+
 # Do you want prometheus monitoring with prometheus-operator?
 prometheus:
   serviceMonitor: false
-  ath: /metrics
+  path: /metrics
   port: ""
 
 # Bring your own filebeat.
