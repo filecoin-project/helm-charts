@@ -38,6 +38,16 @@ spec:
           requests:
             storage: 1Gi
     {{- end }}
+    {{- if .Values.ipfs.enabled }}
+    - metadata:
+        name: ipfs-path
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.ipfs.size }}
+    {{- end }}
   template:
     metadata:
       labels:
@@ -280,6 +290,24 @@ spec:
             - name: lotus-path
               mountPath: /var/lib/lotus
               readOnly: true
+        {{- end }}
+        {{- if .Values.ipfs.enabled }}
+        - name: ipfs
+          image: {{ .Values.ipfs.image }}
+          imagePullPolicy: {{ .Values.ipfs.imagePullPolicy }}
+          ports:
+            - protocol: TCP
+              containerPort: 4001
+              name: libp2p-tcp
+            - protocol: UDP
+              containerPort: 4001
+              name: libp2p-udp
+            - protocol: TCP
+              containerPort: 8081
+              name: libp2p-ws
+          volumeMounts:
+            - name: ipfs-path
+              mountPath: /data/ipfs
         {{- end }}
         {{- if .Values.filebeat.enabled }}
         # filebeat sidecar
