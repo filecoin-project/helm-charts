@@ -22,7 +22,7 @@ data:
     lily wait-api --timeout=60s
 
     while true; do
-      jobState=`lily job list | awk -- 'FNR >= 2 { print }' | jq -c -e ".[] | select(.ID == $1) | {ID,Running}"`
+      jobState=`lily job list | jq -c -e ".[] | select(.ID == $1) | {ID,Running}"`
       if [[ $jobState == "" ]]; then
         echo "No job found with ID $1"
         exit 2
