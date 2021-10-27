@@ -3,6 +3,12 @@ image:
   pullPolicy: IfNotPresent
   tag: v0.7.1
 
+# replicas will increase number of replicas for the statefulset of lotus daemons
+# it should never be used when supplying an external libp2p secret, or with wallets.
+# Sharing libp2p host ids is not a valid configuration, and sharing wallets may lead
+# to nonce issues.
+replicas: 1
+
 prometheusOperatorServiceMonitor: true
 
 # daemonConfig allows for defining the config.toml for the lotus daemon
