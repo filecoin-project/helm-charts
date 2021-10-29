@@ -16,6 +16,8 @@ release:
 daemon:
   # Set enabled to true to run lily in daemon mode with its own data store
   enabled: true
+  # How long to wait for the daemon to start before failing
+  apiWaitTimeout: "60s"
   args: []
   env: []
 
