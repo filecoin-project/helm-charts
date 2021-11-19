@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-lotus-config
+data:
+  config.toml: |
+    [API]
+    ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
+    [Libp2p]
+    ListenAddresses = ["/ip4/0.0.0.0/tcp/1235", "/ip6/::/tcp/1235"]
+    {{- if .Values.lotus.externalDns.enabled }}
+    AnnounceAddresses = ["/dns/{{ .Values.lotus.externalDns.name }}/tcp/1235"]
+    {{- end }}
+    {{ .Values.lotus.config | indent 4 }}

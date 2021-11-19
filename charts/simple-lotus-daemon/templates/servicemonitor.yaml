@@ -1,0 +1,16 @@
+{{- if .Values.prometheus.serviceMonitor }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-lotus-daemon
+spec:
+  endpoints:
+  - interval: 30s
+    path: /debug/metrics
+    port: api
+  selector:
+    matchLabels:
+      app: lotus-daemon
+      release: {{ .Release.Name }}
+{{- end }}

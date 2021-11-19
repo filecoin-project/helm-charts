@@ -1,0 +1,36 @@
+# By default, lotus will run as a lite node
+# Disabling lite mode will force lotus to run
+# as a full node.
+lotus:
+  image: filecoin/lotus:nightly
+  imagePullPolicy: Always
+  jaeger: false
+  lite:
+    enabled: true
+    backend: wss://api.chain.love
+  # This is the lotus config.toml, except without the API and Libp2p section
+  config: |
+    [Pubsub]
+    [Client]
+    [Wallet]
+    [Fees]
+    [Chainstore]
+      [Chainstore.Splitstore]
+  # If externalDns is enabled, we will create a LoadBalancer service and will
+  # attempt to announce this address on libp2p
+  externalDns:
+    enabled: false
+    # name: example.org
+
+
+# Wallets are added to the wallet secret.
+# If you don't want to specify wallets in values.yaml,
+# you can add them later by editing the secret.
+# wallets:
+#   - address: f3xxxyyy
+#     exported: aabbccdd
+wallets: []
+
+# Should we create serviceMonitors?
+prometheus:
+  serviceMonitor: true

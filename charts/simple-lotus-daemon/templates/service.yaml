@@ -1,0 +1,51 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-lotus-api
+spec:
+  type: ClusterIP
+  selector:
+    app: lotus-daemon
+    release: {{ .Release.Name }}
+  ports:
+    - name: api
+      protocol: TCP
+      port: 1234
+      targetPort: 1234
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-lotus-api-internal
+spec:
+  type: ClusterIP
+  selector:
+    app: lotus-daemon
+    release: {{ .Release.Name }}
+  ports:
+    - name: libp2p-internal
+      protocol: TCP
+      port: 1235
+      targetPort: 1235
+
+{{- if .Values.lotus.externalDns.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-lotus-api-{{ .Values.lotus.externalDns.name }}
+  annotations:
+    external-dns.alpha.kubernetes.io/internal-hostname: {{ .Values.lotus.externalDns.name }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: lotus-daemon
+    release: {{ .Release.Name }}
+  ports:
+    - name: libp2p-external
+      protocol: TCP
+      port: 1235
+      targetPort: 1235
+{{- end }}
