@@ -97,9 +97,11 @@ spec:
               port: 1234
             failureThreshold: 60
             periodSeconds: 60
+          {{- if not .Values.lotus.lite.enabled }}
           readinessProbe:
             exec:
               command: [ "lotus", "sync", "wait" ]
+          {{- end }}
           resources:
             {{- if .Values.lotus.lite.enabled }}
             requests:
