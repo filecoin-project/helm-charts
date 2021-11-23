@@ -53,6 +53,9 @@ spec:
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/lily
+        - name: waitjob-script-volume
+          mountPath: /var/lib/lily/waitjob.sh
+          subPath: waitjob.sh
         resources:
           requests:
             cpu: "1000m"
@@ -145,6 +148,9 @@ spec:
           mountPath: /var/lib/lily/config.toml
           subPath: config.toml
           readOnly: true
+        - name: waitjob-script-volume
+          mountPath: /var/lib/lily/waitjob.sh
+          subPath: waitjob.sh
         {{- if .Values.daemon.volumes.datastore.enabled }}
         - name: datastore-volume
           mountPath: /var/lib/lily/datastore
@@ -163,7 +169,7 @@ spec:
                   apt-get update && apt-get install -y jq
 
                   echo "Waiting for api to become ready..."
-                  lily wait-api --timeout=60s
+                  lily wait-api --timeout={{ .Values.daemon.apiWaitTimeout | quote }} > /dev/null 2>&1
                   status=$?
 
                   if [ $status -ne 0 ]; then
@@ -216,6 +222,9 @@ spec:
           mountPath: /var/lib/lily/config.toml
           subPath: config.toml
           readOnly: true
+        - name: waitjob-script-volume
+          mountPath: /var/lib/lily/waitjob.sh
+          subPath: waitjob.sh
         {{- if .Values.daemon.volumes.datastore.enabled }}
         - name: datastore-volume
           mountPath: /var/lib/lily/datastore
@@ -234,6 +243,13 @@ spec:
           items:
           - key: config.toml
             path: config.toml
+      - name: waitjob-script-volume
+        configMap:
+          name: {{ .Release.Name }}-lily-waitjob-script
+          items:
+          - key: waitjob.sh
+            path: waitjob.sh
+            mode: 0755
   volumeClaimTemplates:
   {{- if .Values.daemon.volumes.datastore.enabled }}
   - apiVersion: v1

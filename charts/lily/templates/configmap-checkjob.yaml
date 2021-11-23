@@ -1,4 +1,3 @@
-{{- if and .Values.daemon.enabled .Values.daemon.gapfill.enabled }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -22,7 +21,7 @@ data:
     lily wait-api --timeout=60s
 
     while true; do
-      jobState=`lily job list | awk -- 'FNR >= 2 { print }' | jq -c -e ".[] | select(.ID == $1) | {ID,Running}"`
+      jobState=`lily job list | jq -c -e ".[] | select(.ID == $1) | {ID,Running}"`
       if [[ $jobState == "" ]]; then
         echo "No job found with ID $1"
         exit 2
@@ -34,4 +33,3 @@ data:
       echo "Check: ${jobState}: sleeping ~$(($jobCheckWait / 60))min..."
       sleep $jobCheckWait
     done
-{{- end }}
