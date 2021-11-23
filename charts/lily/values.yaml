@@ -51,6 +51,10 @@ daemon:
       storageClassName: "gp2"
       #dataSource: {}
 
+  # waitApiTimeout is the length of time to wait for the lily api to become available.
+  # It should be a duration in the format of an integer followed by a unit of time such as s for seconds, m for minutes
+  waitApiTimeout: 60s
+
   # jobs is a list of jobs to start on the daemon
   jobs: []
   #- command: watch

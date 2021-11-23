@@ -163,7 +163,7 @@ spec:
                   apt-get update && apt-get install -y jq
 
                   echo "Waiting for api to become ready..."
-                  lily wait-api --timeout=60s
+                  lily wait-api --timeout={{ .Values.daemon.waitApiTimeout }}
                   status=$?
 
                   if [ $status -ne 0 ]; then
