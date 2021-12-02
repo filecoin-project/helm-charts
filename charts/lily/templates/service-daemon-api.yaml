@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-lily-daemon-api
+  name: {{ include "sentinel-lily.service-name-daemon-api" . }}
   labels:
     {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 spec:

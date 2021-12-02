@@ -58,9 +58,6 @@ spec:
                   fi
                 }
 
-                # TODO: include jq in lily image
-                apt-get update && apt-get install -y jq
-
                 lily wait-api --timeout=60s
                 check $?
 
@@ -75,22 +72,24 @@ spec:
                 echo "Starting gapfill jobs...from $from to $to"
 
                 {{ range .Values.daemon.gapfill.taskSets }}
-                {{- $jobPrint := include "sentinel-lily.fingerprintAllArgs" (printf "--tasks=%s" . | list ) }}
-                {{- $jobName := printf "%s/gapfind-${uid}/%s" (include "sentinel-lily.instanceName" $) $jobPrint }}
-                echo "lily gap find --from=$from --to=$to --tasks=\"{{ . }}\" --storage={{ $.Values.daemon.gapfill.storage }} --name \"{{ $jobName }}f=${from},t=${to}\""
-                lily sync wait >/dev/null 2>&1
-                check $?
-                jobid=`lily gap find --from=$from --to=$to --tasks="{{ . }}" --storage={{ $.Values.daemon.gapfill.storage }} --name "{{ $jobName }}f=${from},t=${to}" | grep -o '[0-9]*$'`
-                /var/lib/lily/waitjob.sh $jobid
+                  {{- $jobPrint := include "sentinel-lily.fingerprintAllArgs" (printf "--tasks=%s" . | list ) }}
+                  {{- $jobName := printf "%s/gapfind-${uid}/%s" (include "sentinel-lily.instanceName" $) $jobPrint }}
+                  echo "lily gap find --from=$from --to=$to --tasks=\"{{ . }}\" --storage={{ $.Values.daemon.gapfill.storage }} --name \"{{ $jobName }}f=${from},t=${to}\""
+                  lily sync wait >/dev/null 2>&1
+                  check $?
+                  jobid=`lily gap find --from=$from --to=$to --tasks="{{ . }}" --storage={{ $.Values.daemon.gapfill.storage }} --name "{{ $jobName }}f=${from},t=${to}" | jq .ID`
+                  check $?
+                  /var/lib/lily/waitjob.sh $jobid
+                  check $?
 
-                {{ $jobName = printf "%s/gapfill-${uid}/%s" (include "sentinel-lily.instanceName" $) $jobPrint }}
-                echo "lily gap fill --from=$from --to=$to --tasks=\"{{ . }}\" --storage={{ $.Values.daemon.gapfill.storage }} --name \"{{ $jobName }}f=${from},t=${to}\""
-                lily sync wait >/dev/null 2>&1
-                check $?
-                jobid=`lily gap fill --from=$from --to=$to --tasks="{{ . }}" --storage={{ $.Values.daemon.gapfill.storage }} --name "{{ $jobName }}f=${from},t=${to}" | grep -o '[0-9]*$'`
-                /var/lib/lily/waitjob.sh $jobid
-
-
+                  {{ $jobName = printf "%s/gapfill-${uid}/%s" (include "sentinel-lily.instanceName" $) $jobPrint }}
+                  echo "lily gap fill --from=$from --to=$to --tasks=\"{{ . }}\" --storage={{ $.Values.daemon.gapfill.storage }} --name \"{{ $jobName }}f=${from},t=${to}\""
+                  lily sync wait >/dev/null 2>&1
+                  check $?
+                  jobid=`lily gap fill --from=$from --to=$to --tasks="{{ . }}" --storage={{ $.Values.daemon.gapfill.storage }} --name "{{ $jobName }}f=${from},t=${to}" | jq .ID`
+                  check $?
+                  /var/lib/lily/waitjob.sh $jobid
+                  check $?
                 {{ end }}
             volumeMounts:
             - name: repo-volume
@@ -116,7 +115,7 @@ spec:
             - name: LILY_REPO
               value: "/var/lib/lily"
             - name: LILY_API
-              value: "/dns4/{{ .Release.Name }}-lily-daemon/tcp/1234/http"
+              value: "/dns4/{{- include "sentinel-lily.service-name-daemon-api" . }}/tcp/1234/http"
             - name: LILY_CONFIG
               value: "/var/lib/lily/config.toml"
             {{- range .Values.daemon.storage.postgresql }}

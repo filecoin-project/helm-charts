@@ -119,3 +119,8 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 {{- $fingerprint }}
 {{- end }}
+
+{{/* "sentinel-lily.service-name-daemon-api" returns the full service name of the Lily daemon API endpoint. This is useful for DNS lookup of the API service. */}}
+{{- define "sentinel-lily.service-name-daemon-api" -}}
+  {{- printf "%s-%s" .Release.Name "lily-daemon-api" }}
+{{- end }}
