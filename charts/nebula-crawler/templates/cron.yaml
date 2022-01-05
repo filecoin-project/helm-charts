@@ -9,6 +9,12 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          labels:
+            app: nebula-crawler
+            chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+            heritage: {{ .Release.Service }}
+            release: {{ .Release.Name }}
         spec:
           restartPolicy: OnFailure
           containers:
@@ -70,6 +76,12 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          labels:
+            app: nebula-ping
+            chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+            heritage: {{ .Release.Service }}
+            release: {{ .Release.Name }}
         spec:
           restartPolicy: OnFailure
           containers:
@@ -135,6 +147,9 @@ spec:
             - name: resolve
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
               imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+              ports:
+                - containerPort: 6666
+                  name: metrics
               command: [ "nebula" ]
               args: [ "resolve" ]
               env:
@@ -155,6 +170,10 @@ spec:
                 - name: NEBULA_DATABASE_SSL
                   value: {{ .Values.postgres.ssl }}
                 {{- end }}
+                - name: NEBULA_PROMETHEUS_PORT
+                  value: "6666"
+                - name: NEBULA_PROMETHEUS_HOST
+                  value: 0.0.0.0
                 - name: NEBULA_RESOLVE_BATCH_SIZE
                   value: {{ quote .Values.resolve.config.batch }}
 {{- with .Values.resolve.env }}
