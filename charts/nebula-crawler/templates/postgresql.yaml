@@ -24,4 +24,7 @@ spec:
 {{- with .Values.postgres.resources }}
   {{- toYaml . | nindent 4 }}
 {{- end }}
+{{- if .Values.postgres.masterLoadbalancer }}
+  enableMasterLoadBalancer: true
+{{- end }}
 {{ end }}

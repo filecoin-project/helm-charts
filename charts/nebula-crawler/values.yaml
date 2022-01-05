@@ -9,8 +9,13 @@ image:
 # When this is enabled, environment variables will be created
 # automatically to provide access to the postgres database. When
 # disabled, you must provide the envionment variables yourself.
+#
+# If masterLoadbalancer is true, an external loadbalancer will be
+# created, which will allow the database to be reachable over the
+# internet!
 postgres:
   enabled: true
+  masterLoadbalancer: true
   version: 13
   instances: 1
   teamid: nebulateam
