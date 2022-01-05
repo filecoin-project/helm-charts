@@ -1,8 +1,129 @@
+# CRAWL
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: resolve
+  name: {{ .Release.Name }}-crawl
+spec:
+  schedule: {{ .Values.crawler.schedule }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: crawl
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+              ports:
+                - containerPort: 6666
+                  name: metrics
+              command: [ "nebula" ]
+              args: [ "crawl" ]
+              env:
+                {{- if .Values.postgres.enabled }}
+                - name: NEBULA_DATABASE_HOST
+                  value: {{ .Values.postgres.teamid }}-{{ .Release.Name }}-crawldb
+                - name: NEBULA_DATABASE_PORT
+                  value: "5432"
+                - name: NEBULA_DATABASE_NAME
+                  value: {{ .Values.postgres.database }}
+                - name: NEBULA_DATABASE_USER
+                  value: {{ .Values.postgres.user }}
+                - name: NEBULA_DATABASE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.postgres.user }}.{{.Values.postgres.teamid }}-{{ .Release.Name }}-crawldb.credentials.postgresql.acid.zalan.do
+                      key: password
+                - name: NEBULA_DATABASE_SSL
+                  value: {{ .Values.postgres.ssl }}
+                {{- end }}
+                - name: NEBULA_DIAL_TIMEOUT
+                  value: {{ .Values.crawler.config.dialTimeout }}
+                - name: NEBULA_PROTOCOLS
+                  value: {{ .Values.crawler.config.protocols }}
+                - name: NEBULA_PROMETHEUS_PORT
+                  value: "6666"
+                - name: NEBULA_PROMETHEUS_HOST
+                  value: 0.0.0.0
+                - name: NEBULA_CRAWL_WORKER_COUNT
+                  value: {{ quote .Values.crawler.config.workers }}
+                - name: NEBULA_CRAWL_PEER_LIMIT
+                  value: {{ quote .Values.crawler.config.limit }}
+                - name: NEBULA_CRAWL_NEIGHBORS
+                  value: {{ quote .Values.crawler.config.neighbors }}
+{{- with .Values.crawler.env }}
+{{ toYaml . | indent 16}}
+{{- end }}
+              resources:
+{{ toYaml .Values.crawler.resources | indent 16 }}
+
+
+# PING
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-ping
+spec:
+  schedule: {{ .Values.ping.schedule }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: ping
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+              ports:
+                - containerPort: 6666
+                  name: metrics
+              command: [ "nebula" ]
+              args: [ "ping" ]
+              env:
+                {{- if .Values.postgres.enabled }}
+                - name: NEBULA_DATABASE_HOST
+                  value: {{ .Values.postgres.teamid }}-{{ .Release.Name }}-crawldb
+                - name: NEBULA_DATABASE_PORT
+                  value: "5432"
+                - name: NEBULA_DATABASE_NAME
+                  value: {{ .Values.postgres.database }}
+                - name: NEBULA_DATABASE_USER
+                  value: {{ .Values.postgres.user }}
+                - name: NEBULA_DATABASE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.postgres.user }}.{{.Values.postgres.teamid }}-{{ .Release.Name }}-crawldb.credentials.postgresql.acid.zalan.do
+                      key: password
+                - name: NEBULA_DATABASE_SSL
+                  value: {{ .Values.postgres.ssl }}
+                {{- end }}
+                - name: NEBULA_DIAL_TIMEOUT
+                  value: {{ .Values.ping.config.dialTimeout }}
+                - name: NEBULA_PROTOCOLS
+                  value: {{ .Values.ping.config.protocols }}
+                - name: NEBULA_PROMETHEUS_PORT
+                  value: "6666"
+                - name: NEBULA_PROMETHEUS_HOST
+                  value: 0.0.0.0
+                - name: NEBULA_PING_WORKER_COUNT
+                  value: {{ quote .Values.ping.config.workers }}
+                - name: NEBULA_PING_PEER_LIMIT
+                  value: {{ quote .Values.ping.config.limit }}
+{{- with .Values.ping.env }}
+{{ toYaml . | indent 16}}
+{{- end }}
+              resources:
+{{ toYaml .Values.ping.resources | indent 16 }}
+
+
+# RESOLVE
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-resolve
 spec:
   schedule: {{ .Values.resolve.schedule }}
   jobTemplate:
@@ -36,12 +157,17 @@ spec:
                 {{- end }}
                 - name: NEBULA_RESOLVE_BATCH_SIZE
                   value: {{ quote .Values.resolve.config.batch }}
+{{- with .Values.resolve.env }}
+{{ toYaml . | indent 16}}
+{{- end }}
+              resources:
+{{ toYaml .Values.resolve.resources | indent 16 }}
 
 # ---
 # apiVersion: batch/v1
 # kind: CronJob
 # metadata:
-#   name: report
+#   name: {{ .Release.Name }}-report
 # spec:
 #   schedule: {{ .Values.report.schedule }}
 #   jobTemplate:

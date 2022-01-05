@@ -3,13 +3,14 @@ image:
   tag: latest
   pullPolicy: Always
 
+
 # If you are using the postgresql operator, enable this to create
 # a postgres instance.
 # When this is enabled, environment variables will be created
 # automatically to provide access to the postgres database. When
 # disabled, you must provide the envionment variables yourself.
 postgres:
-  enabled: false
+  enabled: true
   version: 13
   instances: 1
   teamid: nebulateam
@@ -25,15 +26,39 @@ postgres:
       cpu: 2000m
       memory: 2000Mi
 
+
 # if you are using the postgres operator, enable this to create
 # a ServiceMonitor
 serviceMonitor:
-  enabled: false
+  enabled: true
+
+
+monitor:
+  config:
+    workers: 1000
+  # Uncomment environment variables to point to an existing postgres database.
+  env: []
+    # - name: NEBULA_DATABASE_HOST
+    #   value: ""
+    # - name: NEBULA_DATABASE_PORT
+    #   value: ""
+    # - name: NEBULA_DATABASE_NAME
+    #   value: ""
+    # - name: NEBULA_DATABASE_USER
+    #   value: ""
+    # - name: NEBULA_DATABASE_PASSWORD
+    #   value: ""
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4000Mi
+    requests:
+      cpu: 2000m
+      memory: 2000Mi
 
 
 crawler:
-  # default config values:
-  # https://github.com/dennis-tra/nebula-crawler/blob/main/pkg/config/config.go
+  schedule: "0 * * * *"
   config:
     workers: "1000"
     limit: "0"
@@ -60,30 +85,9 @@ crawler:
       cpu: 2000m
       memory: 2000Mi
 
-monitor:
-  config:
-    workers: 1000
-  # Uncomment environment variables to point to an existing postgres database.
-  env: []
-    # - name: NEBULA_DATABASE_HOST
-    #   value: ""
-    # - name: NEBULA_DATABASE_PORT
-    #   value: ""
-    # - name: NEBULA_DATABASE_NAME
-    #   value: ""
-    # - name: NEBULA_DATABASE_USER
-    #   value: ""
-    # - name: NEBULA_DATABASE_PASSWORD
-    #   value: ""
-  resources:
-    limits:
-      cpu: 4000m
-      memory: 4000Mi
-    requests:
-      cpu: 2000m
-      memory: 2000Mi
 
 ping:
+  schedule: "30 * * * *"
   config:
     workers: 1000
     limit: 0
@@ -108,7 +112,7 @@ ping:
       memory: 2000Mi
 
 resolve:
-  schedule: "0 * * * *"
+  schedule: "30 * * * *"
   config:
     batch: 100
   # Uncomment environment variables to point to an existing postgres database.

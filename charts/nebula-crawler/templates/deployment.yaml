@@ -2,11 +2,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-crawler
+  name: {{ .Release.Name }}-monitor
   labels:
-    app: nebula-crawler
-{{- if .Values.crawler.labels }}
-{{ toYaml .Values.crawler.labels | indent 4 }}
+    app: nebula-monitor
+{{- if .Values.monitor.labels }}
+{{ toYaml .Values.monitor.labels | indent 4 }}
 {{- end }}
 
 spec:
@@ -15,12 +15,12 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: nebula-crawler
+      app: nebula-monitor
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: nebula-crawler
+        app: nebula-monitor
         chart: {{ .Chart.Name }}-{{ .Chart.Version }}
         heritage: {{ .Release.Service }}
         release: {{ .Release.Name }}
@@ -54,80 +54,6 @@ spec:
 {{- with .Values.crawler.env }}
 {{ toYaml . | indent 12}}
 {{- end }}
-      containers:
-        - name: crawl
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-          ports:
-            - containerPort: 6666
-              name: metrics
-          command: [ "nebula" ]
-          args: [ "crawl" ]
-          env:
-            {{- if .Values.postgres.enabled }}
-            - name: NEBULA_DATABASE_HOST
-              value: {{ .Values.postgres.teamid }}-{{ .Release.Name }}-crawldb
-            - name: NEBULA_DATABASE_PORT
-              value: "5432"
-            - name: NEBULA_DATABASE_NAME
-              value: {{ .Values.postgres.database }}
-            - name: NEBULA_DATABASE_USER
-              value: {{ .Values.postgres.user }}
-            - name: NEBULA_DATABASE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.postgres.user }}.{{.Values.postgres.teamid }}-{{ .Release.Name }}-crawldb.credentials.postgresql.acid.zalan.do
-                  key: password
-            - name: NEBULA_DATABASE_SSL
-              value: {{ .Values.postgres.ssl }}
-            {{- end }}
-            - name: NEBULA_DIAL_TIMEOUT
-              value: {{ .Values.crawler.config.dialTimeout }}
-            - name: NEBULA_PROTOCOLS
-              value: {{ .Values.crawler.config.protocols }}
-            - name: NEBULA_PROMETHEUS_PORT
-              value: "6666"
-            - name: NEBULA_PROMETHEUS_HOST
-              value: 0.0.0.0
-            - name: NEBULA_CRAWL_WORKER_COUNT
-              value: {{ quote .Values.crawler.config.workers }}
-            - name: NEBULA_CRAWL_PEER_LIMIT
-              value: {{ quote .Values.crawler.config.limit }}
-            - name: NEBULA_CRAWL_NEIGHBORS
-              value: {{ quote .Values.crawler.config.neighbors }}
-{{- with .Values.crawler.env }}
-{{ toYaml . | indent 12}}
-{{- end }}
-          resources:
-{{ toYaml .Values.crawler.resources | indent 12 }}
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ .Release.Name }}-monitor
-  labels:
-    app: nebula-monitor
-{{- if .Values.monitor.labels }}
-{{ toYaml .Values.monitor.labels | indent 4 }}
-{{- end }}
-
-spec:
-  replicas: 1
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app: nebula-monitor
-      release: {{ .Release.Name }}
-  template:
-    metadata:
-      labels:
-        app: nebula-monitor
-        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-        heritage: {{ .Release.Service }}
-        release: {{ .Release.Name }}
-    spec:
       containers:
         - name: monitor
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
