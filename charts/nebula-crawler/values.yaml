@@ -22,7 +22,7 @@ postgres:
   database: nebuladb
   user: nebulauser
   volume: 10Gi
-  ssl: require
+  sslmode: require
   resources:
     limits:
       cpu: 4000m
@@ -141,4 +141,4 @@ report:
     pullPolicy: Always
   # secret that will contain the db.toml file
   configSecret:  supersecret
-  ipfs: /ip4/x.x.x.x/tcp/5001
+  ipfs: /dns/ipfs-ipfs-api/tcp/5001

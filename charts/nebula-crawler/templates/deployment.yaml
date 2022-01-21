@@ -32,7 +32,7 @@ spec:
           command: [ "sh" ]
           args:
             - -c
-            - 'migrate -database "postgres://$NEBULA_DATABASE_USER:$NEBULA_DATABASE_PASSWORD@$NEBULA_DATABASE_HOST:$NEBULA_DATABASE_PORT/$NEBULA_DATABASE_NAME?sslmode=$NEBULA_DATABASE_SSL" -path migrations up'
+            - 'migrate -database "postgres://$NEBULA_DATABASE_USER:$NEBULA_DATABASE_PASSWORD@$NEBULA_DATABASE_HOST:$NEBULA_DATABASE_PORT/$NEBULA_DATABASE_NAME?sslmode=$NEBULA_DATABASE_SSL_MODE" -path migrations up'
           env:
             {{- if .Values.postgres.enabled }}
             - name: NEBULA_DATABASE_HOST
@@ -49,8 +49,8 @@ spec:
                   name: {{ .Values.postgres.user }}.{{.Values.postgres.teamid }}-{{ .Release.Name }}-crawldb.credentials.postgresql.acid.zalan.do
                   key: password
             {{- end}}
-            - name: NEBULA_DATABASE_SSL
-              value: {{ .Values.postgres.ssl }}
+            - name: NEBULA_DATABASE_SSL_MODE
+              value: {{ .Values.postgres.sslmode }}
 {{- with .Values.crawler.env }}
 {{ toYaml . | indent 12}}
 {{- end }}
@@ -78,8 +78,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.postgres.user }}.{{.Values.postgres.teamid }}-{{ .Release.Name }}-crawldb.credentials.postgresql.acid.zalan.do
                   key: password
-            - name: NEBULA_DATABASE_SSL
-              value: {{ .Values.postgres.ssl }}
+            - name: NEBULA_DATABASE_SSL_MODE
+              value: {{ .Values.postgres.sslmode }}
             {{- end }}
             - name: NEBULA_DIAL_TIMEOUT
               value: {{ .Values.monitor.config.dialTimeout }}
