@@ -1,0 +1,26 @@
+{{- if or .Values.lily.prometheus.enabled .Values.archiver.prometheus.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-archiver
+  namespace: {{ .Release.Namespace }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "sentinel-archiver.selectorLabels" . | nindent 6 }}
+  endpoints:
+  {{- if .Values.lily.prometheus.enabled }}
+  - path: /metrics
+    port: "lily-metrics"
+    interval: 30s
+  {{- end }}
+  {{- if .Values.archiver.prometheus.enabled }}
+  - path: /metrics
+    port: "archiver-metrics"
+    interval: 30s
+  {{- end }}
+{{- end }}

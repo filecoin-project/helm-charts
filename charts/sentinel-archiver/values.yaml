@@ -1,0 +1,160 @@
+# Default values for Sentinel Archiver
+replicaCount: 1
+labels: {}
+release:
+  # nameOverride is used to name the instance in external systems. If empty,
+  # then the network, environment, and release name values are used with the
+  # chart name to generate a name.
+  #nameOverride:
+  network: mainnet
+  environment: dev
+
+
+network:
+  name: mainnet
+  # unix timestamp of genesis epoch for this network
+  genesisUnix: "1598306400"
+
+  # snapshotUrl is the url of a car file used to initialize the lily daemon
+  snapshotUrl: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
+
+  # snapshotHeight is the lowest height in the snapshot that contains full state. The archiver cannot export
+  # state from before this height.
+  snapshotHeight: 1620402
+
+
+
+lily:
+  image:
+    repo: filecoin/lily
+    pullPolicy: IfNotPresent
+    tag: v0.8.5
+
+  # How long to wait for the daemon to start before failing
+  apiWaitTimeout: "60s"
+  args: []
+  env: []
+
+  # importSnapshot controls the initialization of the daemon state. When
+  # enabled the deployment will start an init container that may call
+  # 'lily init' with the url specified. After the init is complete an empty
+  # file named '_imported' is placed in the data store directory to signify that
+  # the data store has been imported. The import process will be skipped if this
+  # file is present.
+  # Deleting /var/lib/lily/datastore/_imported will force the import to run the
+  # next time the pod is restarted. This may be useful if the daemon has fallen
+  # out of sync for a long period of time.
+  importSnapshot:
+    enabled: true
+
+  # volumes enables control over the configuration of attached volumes
+  volumes:
+    # datastore is the volume used for persisting the daemon state.
+    # The datastore volume is mounted at /var/lib/lily/datastore
+    datastore:
+      size: "4000Gi"
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: "gp2"
+      #dataSource: {}
+
+    # spool is the volume used for writing csv output from jobs.
+    # The spool volume is mounted at /var/spool/lily/csv
+    spool:
+      size: "256Gi"
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: "gp2"
+      #dataSource: {}
+
+    # ship is the volume used for writing the final compressed files.
+    # The ship volume is mounted at /var/lib/archiver/shipped
+    ship:
+      size: "256Gi"
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: "gp2"
+      #dataSource: {}
+
+  # daemon pubsub-specific settings
+  pubsub:
+    # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
+    ipwhitelist: []
+
+  # daemon resources
+  # Note: Running lily on mainnet requires SIGNIFICANT resources (>250Gb RAM)
+  # in order to operate comfortably. Test networks may be preferred if resources
+  # are limited.
+  resources:
+    requests:
+      cpu: "8000m"
+      memory: "16Gi"
+    limits:
+      cpu: "8000m"
+      memory: "16Gi"
+
+  logLevel: info
+  logLevelNamed: "vm:error,badgerbs:error"
+  logFormat: json
+
+  prometheus:
+    enabled: true
+
+archiver:
+  image:
+    repo: filecoin/sentinel-archiver
+    pullPolicy: IfNotPresent
+    tag: latest
+
+  # tasks is a comma separated list of tasks that this archiver node will be responsible for
+  tasks: "blocks"
+
+  # args specifies a list of additional command arguments to pass to the archiver
+  args: []
+
+  # env specifies a list of additional environment variables to pass to the archiver
+  env: []
+
+  # logLevel specifies the verbosity of the archiver's logging output
+  logLevel: debug
+
+  # schemaVersion is major schema version of the CSV output produced by lily
+  schemaVersion: 1
+
+  resources:
+    requests:
+      cpu: "2000m"
+      memory: "2Gi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+
+  prometheus:
+    enabled: true
+
+
+# service tracing
+jaeger:
+  enabled: false
+  host: ""        # default: node.status.hostIP
+  serviceName: "" # default: include sentinel-lily.instanceName
+  port: "6831"
+  sampler:
+    type: "probabilistic"
+    param: "0.0001"
+
+# debug feature config
+debug:
+  enabled: false
+  resources:
+    requests:
+      cpu: "8000m"
+      memory: "16Gi"
+    limits:
+      cpu: "8000m"
+      memory: "16Gi"
+
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

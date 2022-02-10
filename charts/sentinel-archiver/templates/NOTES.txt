@@ -1,0 +1,6 @@
+Release ---------- {{ .Release.Name }}
+Namespace -------- {{ .Release.Namespace }}
+Network ---------- {{ .Values.network.name }}
+Lily Image ------- {{ .Values.lily.image.repo }}:{{ .Values.lily.image.tag }}
+Archiver Image --- {{ .Values.archiver.image.repo }}:{{ .Values.archiver.image.tag }}
+Instance Name ---- {{ include "sentinel-archiver.instanceName" . }}

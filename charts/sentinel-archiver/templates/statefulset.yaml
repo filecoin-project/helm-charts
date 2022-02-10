@@ -1,0 +1,345 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-archiver
+  labels:
+    {{- include "sentinel-archiver.allLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ .Release.Name }}-archiver-service
+  selector:
+    matchLabels:
+      {{- include "sentinel-archiver.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sentinel-archiver.allLabels" . | nindent 8 }}
+    spec:
+      # we're going to need root for a little while until
+      # we can package some helper binaries into the image
+      #securityContext:
+        #fsGroup: 532
+        #runAsNonRoot: true
+        #runAsUser: 532
+        #runAsGroup: 532
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+      - name: regcred
+      initContainers:
+      - name: initfs
+        image: {{ required "(root).image.repo expected" .Values.lily.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.lily.image.tag }}
+        imagePullPolicy: {{ .Values.lily.image.pullPolicy }}
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /var/lib/lily/keystore
+            # generate 6-char random uid to be used in job report names
+            if [ ! -f "/var/lib/lily/uid" ]; then
+              tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w ${1:-6} | head -n 1 > /var/lib/lily/uid
+            fi
+        volumeMounts:
+        - name: repo-volume
+          mountPath: /var/lib/lily
+        - name: waitjob-script-volume
+          mountPath: /var/lib/lily/waitjob.sh
+          subPath: waitjob.sh
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "512Mi"
+      {{- if .Values.lily.importSnapshot.enabled }}
+      - name: chain-import
+        image: {{ required "(root).image.repo expected" .Values.lily.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.lily.image.tag }}
+        imagePullPolicy: {{ .Values.lily.image.pullPolicy }}
+        command: ["/bin/sh", "-c"]
+        args:
+          - |{{- include "sentinel-archiver.chainImportArgs" . | indent 10 }}
+        env:
+        - name: GOLOG_LOG_FMT
+          value: {{ .Values.logFormat | default "json" | quote }}
+        - name: LILY_REPO
+          value: "/var/lib/lily"
+        volumeMounts:
+        - name: repo-volume
+          mountPath: /var/lib/lily
+        - name: config-volume
+          mountPath: /var/lib/lily/config.toml
+          subPath: config.toml
+          readOnly: true
+        {{- if .Values.lily.volumes.datastore.enabled }}
+        - name: datastore-volume
+          mountPath: /var/lib/lily/datastore
+        {{- end }}
+        {{- /* Same resources as lily container. */}}
+        resources:
+        {{- if .Values.lily.resources }}
+          {{- toYaml .Values.lily.resources | nindent 10 }}
+        {{- else }}
+          requests:
+            cpu: "2000m"
+            memory: "16Gi"
+          limits:
+            cpu: "2000m"
+            memory: "16Gi"
+        {{- end }}
+        volumeMounts:
+        - name: repo-volume
+          mountPath: /var/lib/lily
+        - name: config-volume
+          mountPath: /var/lib/lily/config.toml
+          subPath: config.toml
+          readOnly: true
+        - name: waitjob-script-volume
+          mountPath: /var/lib/lily/waitjob.sh
+          subPath: waitjob.sh
+        - name: datastore-volume
+          mountPath: /var/lib/lily/datastore
+        - name: spool-volume
+          mountPath: /var/spool/lily/csv
+      {{- end }}
+      containers:
+      - name: lily
+        image: {{ required "(root).image.repo expected" .Values.lily.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.lily.image.tag }}
+        imagePullPolicy: {{ .Values.lily.image.pullPolicy }}
+        command: ["lily"]
+        args:
+        {{- if .Values.jaeger.enabled }}
+        - --tracing
+        {{- end }}
+        - daemon
+        {{- range .Values.lily.args }}
+        - {{ . }}
+        {{- end }}
+        env:
+        {{- include "sentinel-archiver.jaegerTracingEnvvars" . | indent 8 }}
+        - name: GOLOG_LOG_FMT
+          value: {{ .Values.lily.logFormat | default "json" | quote }}
+        - name: GOLOG_LOG_LEVEL
+          value: {{ .Values.lily.logLevel | default "info" | quote }}
+        {{- if .Values.lily.logLevelNamed }}
+        - name: LILY_LOG_LEVEL_NAMED
+          value: {{ .Values.lily.logLevelNamed | quote }}
+        {{- end }}
+        - name: LILY_REPO
+          value: "/var/lib/lily"
+        - name: LILY_CONFIG
+          value: "/var/lib/lily/config.toml"
+        {{- if .Values.lily.prometheus.enabled }}
+        - name: LILY_PROMETHEUS_PORT
+          value: ":9991"
+        {{- end }}
+        {{- with .Values.lily.env }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        ports:
+        - containerPort: 1234
+          name: api
+        - containerPort: 1347
+          name: p2p
+        {{- if .Values.lily.prometheus.enabled }}
+        - containerPort: 9991
+          name: metrics
+        {{- end }}
+        volumeMounts:
+        - name: repo-volume
+          mountPath: /var/lib/lily
+        - name: config-volume
+          mountPath: /var/lib/lily/config.toml
+          subPath: config.toml
+          readOnly: true
+        - name: waitjob-script-volume
+          mountPath: /var/lib/lily/waitjob.sh
+          subPath: waitjob.sh
+        - name: datastore-volume
+          mountPath: /var/lib/lily/datastore
+        - name: spool-volume
+          mountPath: /var/spool/lily/csv
+        resources:
+        {{- if .Values.lily.resources }}
+          {{- toYaml .Values.lily.resources | nindent 10 }}
+        {{- else }}
+          requests:
+            cpu: "8000m"
+            memory: "16Gi"
+          limits:
+            cpu: "8000m"
+            memory: "16Gi"
+        {{- end }}
+      - name: archiver
+        image: {{ required "archiver.image.repo expected" .Values.archiver.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.archiver.image.tag }}
+        imagePullPolicy: {{ .Values.archiver.image.pullPolicy }}
+        command: ["sentinel-archiver"]
+        args:
+        - run
+        {{- if .Values.jaeger.enabled }}
+        - --tracing
+        {{- end }}
+        {{- range .Values.archiver.args }}
+        - {{ . }}
+        {{- end }}
+        env:
+        {{- include "sentinel-archiver.jaegerTracingEnvvars" . | indent 8 }}
+        - name: ARCHIVER_TASKS
+          value: {{ .Values.archiver.tasks | quote }}
+        - name: ARCHIVER_LOG_LEVEL
+          value: {{ .Values.archiver.logLevel | default "info" | quote }}
+        - name: ARCHIVER_NETWORK
+          value: {{ .Values.network.name | default "mainnet" }}
+        - name: ARCHIVER_GENESIS_TS
+          value: {{ .Values.network.genesisUnix | default 1598306400 | quote }}
+        - name: ARCHIVER_MIN_HEIGHT
+          value: {{ .Values.network.snapshotHeight | default 1620402 | quote }}
+        - name: ARCHIVER_STORAGE_PATH
+          value: "/var/spool/lily/csv"
+        - name: ARCHIVER_STORAGE_NAME
+          value: "ARCHIVER"
+        - name: ARCHIVER_STORAGE_SCHEMA
+          value: {{ .Values.archiver.schemaVersion | quote }}
+        # TODO: mount efs ship path
+        - name: ARCHIVER_SHIP_PATH
+          value: "/var/lib/archiver/shipped"
+        {{- if .Values.archiver.prometheus.enabled }}
+        - name: ARCHIVER_PROMETHEUS_ADDR
+          value: ":9990"
+        {{- end }}
+        {{- with .Values.archiver.env }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        ports:
+        {{- if .Values.archiver.prometheus.enabled }}
+        - containerPort: 9990
+          name: metrics
+        {{- end }}
+        volumeMounts:
+        - name: spool-volume
+          mountPath: /var/spool/lily/csv
+        - name: ship-volume
+          mountPath: /var/lib/archiver/shipped
+        resources:
+        {{- if .Values.archiver.resources }}
+          {{- toYaml .Values.archiver.resources | nindent 10 }}
+        {{- else }}
+          requests:
+            cpu: "2000m"
+            memory: "4Gi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+        {{- end }}      {{- if .Values.debug.enabled }}
+      - name: debug
+        image: {{ required "(root).image.repo expected" .Values.lily.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.lily.image.tag }}
+        imagePullPolicy: {{ .Values.lily.image.pullPolicy }}
+        command: ["/bin/sh", "-c", "tail -f /dev/null"]
+        env:
+        - name: LILY_REPO
+          value: "/var/lib/lily"
+        - name: LILY_CONFIG
+          value: "/var/lib/lily/config.toml"
+        volumeMounts:
+        - name: repo-volume
+          mountPath: /var/lib/lily
+        - name: config-volume
+          mountPath: /var/lib/lily/config.toml
+          subPath: config.toml
+          readOnly: true
+        - name: waitjob-script-volume
+          mountPath: /var/lib/lily/waitjob.sh
+          subPath: waitjob.sh
+        - name: datastore-volume
+          mountPath: /var/lib/lily/datastore
+        - name: spool-volume
+          mountPath: /var/spool/lily/csv
+        - name: ship-volume
+          mountPath: /var/lib/archiver/shipped
+        {{- if .Values.debug.resources }}
+        resources:
+          {{- toYaml .Values.debug.resources | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      volumes:
+      - name: repo-volume
+        emptyDir: {}
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-lily-config
+          items:
+          - key: config.toml
+            path: config.toml
+      - name: waitjob-script-volume
+        configMap:
+          name: {{ .Release.Name }}-lily-waitjob-script
+          items:
+          - key: waitjob.sh
+            path: waitjob.sh
+            mode: 0755
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: datastore-volume
+    spec:
+      accessModes:
+      {{- range .Values.lily.volumes.datastore.accessModes }}
+      - {{ . | quote }}
+      {{- end }}
+      storageClassName: {{ .Values.lily.volumes.datastore.storageClassName }}
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: {{ .Values.lily.volumes.datastore.size | quote }}
+      {{- with .Values.lily.volumes.datastore.dataSource }}
+      dataSource:
+        {{- toYaml . | nindent 10 }}
+      {{- end }}
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: spool-volume
+    spec:
+      accessModes:
+      {{- range .Values.lily.volumes.spool.accessModes }}
+      - {{ . | quote }}
+      {{- end }}
+      storageClassName: {{ .Values.lily.volumes.spool.storageClassName }}
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: {{ .Values.lily.volumes.spool.size | quote }}
+      {{- with .Values.lily.volumes.spool.dataSource }}
+      dataSource:
+        {{- toYaml . | nindent 10 }}
+      {{- end }}
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ship-volume
+    spec:
+      accessModes:
+      {{- range .Values.lily.volumes.ship.accessModes }}
+      - {{ . | quote }}
+      {{- end }}
+      storageClassName: {{ .Values.lily.volumes.ship.storageClassName }}
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: {{ .Values.lily.volumes.ship.size | quote }}
+      {{- with .Values.lily.volumes.ship.dataSource }}
+      dataSource:
+        {{- toYaml . | nindent 10 }}
+      {{- end }}
+

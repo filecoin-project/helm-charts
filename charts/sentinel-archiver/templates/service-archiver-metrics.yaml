@@ -1,0 +1,22 @@
+{{- if .Values.archiver.prometheus.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-archiver-metrics
+  labels:
+    {{- include "sentinel-archiver.allLabels" . | nindent 4 }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9991"
+    prometheus.io/path: /metrics
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "sentinel-archiver.selectorLabels" . | nindent 4 }}
+  ports:
+    - protocol: TCP
+      port: 9990
+      targetPort: 9990
+      name: archiver-metrics
+{{- end }}

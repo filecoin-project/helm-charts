@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-lily-config
+  labels:
+    {{- include "sentinel-archiver.allLabels" . | nindent 4 }}
+data:
+  config.toml: |
+    [API]
+      ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
+    [Libp2p]
+      ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
+      ConnMgrLow = 400
+      ConnMgrHigh = 500
+      ConnMgrGrace = "5m0s"
+    {{- if .Values.lily.pubsub.ipwhitelist }}
+    [Pubsub]
+      IPColocationWhitelist = ["{{ join "\", \"" .Values.lily.pubsub.ipwhitelist }}"]
+    {{- end }}
+    [Storage]
+      [Storage.File]
+        [Storage.File.ARCHIVER]
+          Format = "CSV"
+          Path = "/var/spool/lily/csv"
+          OmitHeader = true
+          FilePattern = "{jobname}-{table}.csv"

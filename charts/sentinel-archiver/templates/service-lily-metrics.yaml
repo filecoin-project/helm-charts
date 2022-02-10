@@ -1,0 +1,22 @@
+{{- if .Values.lily.prometheus.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-lily-metrics
+  labels:
+    {{- include "sentinel-archiver.allLabels" . | nindent 4 }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9991"
+    prometheus.io/path: /metrics
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "sentinel-archiver.selectorLabels" . | nindent 4 }}
+  ports:
+    - protocol: TCP
+      port: 9991
+      targetPort: 9991
+      name: lily-metrics
+{{- end }}
