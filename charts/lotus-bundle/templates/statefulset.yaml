@@ -122,8 +122,11 @@ spec:
         {{- range .Values.application.storage }}
         {{ toYaml .volume | nindent 8 }}
         {{- end }}
-      {{- if .Values.lotus.enabled }}
       initContainers:
+{{- if gt (len .Values.initContainers) 0 -}}
+{{ toYaml .Values.initContainers | nindent 8}}
+{{- end }}
+      {{- if .Values.lotus.enabled }}
         - name: shared-storage-preparer
           image: {{ .Values.lotus.image }}
           imagePullPolicy: {{ .Values.lotus.imagePullPolicy }}

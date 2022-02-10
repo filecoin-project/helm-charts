@@ -82,6 +82,28 @@ application:
         - name: shared-volume 
           persistentVolumeClaim:
               claimName: chain-exports 
+
+# Any containers in this list will be added to to the pod initContainers.
+# ex:
+#
+# initContainers:
+#   - name: setup1
+#     command:
+#       - command1
+#     args: []
+#     env: []
+#     resources: {}
+#     ports: []
+#   - name: setup2
+#     command:
+#       - command2
+#     args: []
+#     env: []
+#     resources: {}
+#     ports: []
+
+initContainers: []
+
 # Wallets are added to the wallet secret.
 # if you don't want to specify wallets in values.yaml,
 # you can add them later by editing the secret.
