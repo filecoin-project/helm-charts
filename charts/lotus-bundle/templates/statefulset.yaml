@@ -174,12 +174,16 @@ spec:
             {{- end }}
           volumeMounts:
             {{- range $sec := .Values.application.secrets }}
+            {{- if $sec.mount }}
             - name: {{ $sec.name }}-volume
               mountPath: {{ $sec.mount }}
             {{- end }}
+            {{- end }}
             {{- range $cm := .Values.application.configMaps }}
+            {{- if $cm.mount }}
             - name: {{ $cm.name }}-volume
               mountPath: {{ $cm.mount }}
+            {{- end }}
             {{- end }}
             {{- range $st := $.Values.application.storage }}
             {{- $vol := index $st.volume 0 }}

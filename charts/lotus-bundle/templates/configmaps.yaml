@@ -7,7 +7,7 @@ metadata:
   name: {{ $.Release.Name }}-{{ $cm.name }}
 data:
   {{- range $k, $v := .keys }}
-  {{ $k }}: {{ $v }}
+  {{ $k }}: {{ $v | quote }}
   {{- end }}
 {{- end }}
 {{- end }}
@@ -21,7 +21,7 @@ metadata:
   name: {{ $.Release.Name }}-{{ $cm.name }}
 data:
   {{- range $k, $v := .keys }}
-  {{ $k }}: {{ $v }}
+  {{ $k }}: {{ $v | quote }}
   {{- end }}
 {{- end }}
 {{- end }}
