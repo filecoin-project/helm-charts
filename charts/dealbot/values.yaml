@@ -37,6 +37,8 @@ controller:
       annotations: {}
     graphql:
       annotations: {}
+    libp2p:
+      annotations: {}
   resources:
     limits:
       cpu: 1000m
