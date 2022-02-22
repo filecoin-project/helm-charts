@@ -74,6 +74,8 @@ spec:
               name: dealbot
             - containerPort: 8763
               name: dealbotgraphql
+            - containerPort: 8762
+              name: dealbotlibp2p
           args: ["controller"]
           env:
             - name: KUBECONFIG
@@ -88,6 +90,8 @@ spec:
               value: /dealbot.key
             - name: DEALBOT_DAEMON_DRIVER
               value: "kubernetes"
+            - name: DEALBOT_LIBP2P_ADDRS
+              value: "/ip4/0.0.0.0/tcp/8762"
             {{- if .Values.postgres.enabled }}
             - name: DEALBOT_PERSISTENCE_DRIVER
               value: postgres
