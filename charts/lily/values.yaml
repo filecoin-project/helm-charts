@@ -31,7 +31,7 @@ daemon:
   # next time the pod is restarted. This may be useful if the daemon has fallen
   # out of sync for a long period of time.
   importSnapshot:
-    enabled: true
+    enabled: false
     url: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
 
   # volumes enables control over the configuration of attached volumes
@@ -136,9 +136,9 @@ debug:
       cpu: "8000m"
       memory: "16Gi"
 
-logLevel: info
-logLevelNamed: "vm:error,badgerbs:error"
 logFormat: json
+logLevel: warn
+logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
 
 nodeSelector: {}
 tolerations: []
