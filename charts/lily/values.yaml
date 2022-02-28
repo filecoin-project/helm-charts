@@ -121,12 +121,9 @@ prometheusPort: ":9991"
 # service tracing
 jaeger:
   enabled: false
-  host: ""        # default: node.status.hostIP
+  providerUrl: "" # default: https://{node.status.hostIP}:6831/api/traces
   serviceName: "" # default: include sentinel-lily.instanceName
-  port: "6831"
-  sampler:
-    type: "probabilistic"
-    param: "0.0001"
+  sample-rate: "0.01"
 
 # debug feature config
 debug:

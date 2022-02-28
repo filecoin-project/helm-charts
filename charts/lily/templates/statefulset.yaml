@@ -101,9 +101,6 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["lily"]
         args:
-        {{- if .Values.jaeger.enabled }}
-        - --tracing
-        {{- end }}
         - daemon
         {{- range .Values.daemon.args }}
         - {{ . }}
