@@ -71,22 +71,22 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 - name: LILY_JAEGER_SERVICE_NAME
   value: {{ .Values.jaeger.serviceName | default (include "sentinel-lily.instanceName" . ) | quote }}
 - name: LILY_JAEGER_PROVIDER_URL
-  value: {{ include "sentinel-lily.jaegerProviderUrl" . }}
+{{- include "sentinel-lily.jaegerProviderUrl" .Values.jaeger }}
 - name: LILY_JAEGER_SAMPLER_RATIO
-{{- if and .Values.jaeger.sampler .Values.jaeger.sampler.param }}
-  value: {{ .Values.jaeger.sampler.param | default "0.0001" | quote }}
+{{- if .Values.jaeger.sampler }}
+  value: {{ .Values.jaeger.sampler.param | default 0.0001 | quote }}
 {{- else }}
-  value: {{ .Values.jaeger.sampler-ratio | default "0.01" | quote }}
+  value: {{ .Values.jaeger.samplerRatio | default "0.01" | quote }}
 {{- end }}
 {{- end }}
 {{- end }}
 
 {{/* "sentinel-lily.jaegerProviderUrl" provides the providerUrl param or merges legacy host, port params */}}
-{{- default "sentinel-lily.jaegerProviderUrl" -}}
-{{- if .Values.jaeger.providerUrl }}
-{{ .Value.jaeger.providerUrl }}
-{{- else }}
-http://{{ .Value.jaeger.host }}:{{ .Value.jaeger.port | default "6831" }}/api/traces
+{{- define "sentinel-lily.jaegerProviderUrl" -}}
+{{- if .providerUrl }}
+  value: {{ .providerUrl }}
+{{- else -}}
+  value: {{ printf "http://%s:%s/api/traces" .host .port }}
 {{- end }}
 {{- end }}
 

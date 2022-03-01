@@ -123,7 +123,7 @@ jaeger:
   enabled: false
   providerUrl: "" # default: https://{node.status.hostIP}:6831/api/traces
   serviceName: "" # default: include sentinel-lily.instanceName
-  sample-rate: "0.01"
+  samplerRatio: "0.01"
 
 # debug feature config
 debug:
