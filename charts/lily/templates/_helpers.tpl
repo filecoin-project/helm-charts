@@ -66,26 +66,29 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{/* "sentinel-lily.jaegerTracingEnvvars" creates the envvars for supporting jaeger tracing */}}
 {{- define "sentinel-lily.jaegerTracingEnvvars" -}}
 {{- if and .Values.jaeger .Values.jaeger.enabled }}
-- name: JAEGER_AGENT_HOST
-{{- if .Values.jaeger.host }}
-  value: {{ .Values.jaeger.host }}
-{{- else }}
-  valueFrom:
-    fieldRef:
-      apiVersion: v1
-      fieldPath: status.hostIP
-{{- end }}
-- name: JAEGER_AGENT_PORT
-  value: {{ .Values.jaeger.port | default "6831" | quote }}
-- name: JAEGER_SERVICE_NAME
+- name: LILY_JAEGER_TRACING
+  value: "true"
+- name: LILY_JAEGER_SERVICE_NAME
   value: {{ .Values.jaeger.serviceName | default (include "sentinel-lily.instanceName" . ) | quote }}
-- name: JAEGER_SAMPLER_TYPE
-  value: {{ .Values.jaeger.sampler.type | default "probabilistic" | quote }}
-- name: JAEGER_SAMPLER_PARAM
-  value: {{ .Values.jaeger.sampler.param | default "0.0001" | quote }}
+- name: LILY_JAEGER_PROVIDER_URL
+{{- include "sentinel-lily.jaegerProviderUrl" .Values.jaeger }}
+- name: LILY_JAEGER_SAMPLER_RATIO
+{{- if .Values.jaeger.sampler }}
+  value: {{ .Values.jaeger.sampler.param | default 0.0001 | quote }}
+{{- else }}
+  value: {{ .Values.jaeger.samplerRatio | default "0.01" | quote }}
+{{- end }}
 {{- end }}
 {{- end }}
 
+{{/* "sentinel-lily.jaegerProviderUrl" provides the providerUrl param or merges legacy host, port params */}}
+{{- define "sentinel-lily.jaegerProviderUrl" -}}
+{{- if .providerUrl }}
+  value: {{ .providerUrl }}
+{{- else -}}
+  value: {{ printf "http://%s:%s/api/traces" .host .port }}
+{{- end }}
+{{- end }}
 
 {{/* "sentinel-lily.fingerprintAllArgs" accepts a set of args and returns a string fingerprint to uniquely identify that set. This is useful for automatically generating unique job names based on their input for later identification. */}}
 {{/*

@@ -11,3 +11,11 @@ Release ---------- {{ .Release.Name }}
 Namespace -------- {{ .Release.Namespace }}
 Application ------ {{ .Values.image.repo }}:{{ .Values.image.tag }}
 Instance Name ---- {{ include "sentinel-lily.instanceName" . }}
+
+{{ if .Values.jaeger.enabled }}
+Jaeger Tracing --- enabled
+Jaeger Settings --
+{{ include "sentinel-lily.jaegerTracingEnvvars" . }}
+{{- else }}
+Jaeger Tracing --- disabled
+{{- end }}
