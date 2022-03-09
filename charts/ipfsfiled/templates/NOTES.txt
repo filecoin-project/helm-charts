@@ -1,0 +1,4 @@
+Release ---------- {{ .Release.Name }}
+Namespace -------- {{ .Release.Namespace }}
+ipfsfiled Image -- {{ .Values.ipfsfiled.image.repo }}:{{ .Values.ipfsfiled.image.tag }}
+Instance Name ---- {{ include "ipfsfiled.instanceName" . }}

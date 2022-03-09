@@ -1,0 +1,105 @@
+# Default values for ipfsfiled
+replicaCount: 1
+labels: {}
+release:
+  # nameOverride is used to name the instance in external systems. If empty,
+  # then the network, environment, and release name values are used with the
+  # chart name to generate a name.
+  #nameOverride:
+  environment: dev
+
+
+
+ipfsfiled:
+  image:
+    repo: filecoin/ipfsfiled
+    pullPolicy: IfNotPresent
+    tag: latest
+
+  # additional arguments to specify when starting the ipfsfiled daemon
+  args: []
+
+  # additional environment variables
+  env: []
+
+  # syncInterval specifies how frequently the filesystem should be scanned to keep the unixfs representation in sync.
+  syncInterval: 15m
+
+  # gcInterval specifies how frequently the ipfs blockstore should be garbage collected to remove orphaned blocks.
+  gcInterval: 24h
+
+  # ipfsAddr sets the multiaddress the IPFS node should listen on.
+  ipfsAddr: "/ip4/0.0.0.0/tcp/4005"
+
+  # offline prevents ipfsfiled from connecting to other ipfs peers.
+  #offline: "false"
+
+  # manifest sets the path to use for json manifest of all files in filesystem. This may be in the files volume.
+  manifest: ""
+
+  # volumes enables control over the configuration of attached volumes
+  volumes:
+    # datastore is the volume used for persisting the daemon state.
+    # The datastore volume is mounted at /var/lib/ipfsfiled/datastore
+    # This doesn't need to be large, for current fil-archive it is about 17GiB
+    datastore:
+      size: "128Gi"
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: "gp2"
+      #dataSource: {}
+
+    # files is the volume where files to serve on IPFS are stored.
+    # The ship volume is mounted at /var/lib/ipfsfiled/files
+    # Usually this is a pre-existing volume of files from another source such as sentinel-archiver
+    files:
+      size: "256Gi"
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: "gp2"
+      #dataSource: {}
+
+  # daemon resources
+  resources:
+    requests:
+      cpu: "8000m"
+      memory: "32Gi"
+    limits:
+      cpu: "8000m"
+      memory: "32Gi"
+
+  logLevel: info
+
+  # service monitoring
+  prometheusOperatorServiceMonitor: false
+  prometheusPort: 9991
+
+secrets:
+  # If you want to reuse the peer key between depoyments, you can store it in a kubernetes secret
+  # Create the secret with a command like this:
+  #
+  # kubectl create secret generic --namespace ipfsfiled ipfsfiled-peerkey --from-file=path/to/peer.key
+  #
+  # The contents of the file will be stored in the secret using the file name as the secret key name
+  peerKey:
+    enabled: false
+    # secretName is the name of the secret containing the peer key
+    secretName: ""
+    # keyName is the name of the value in the secret that holds the peer key
+    keyName: "peer.key"
+
+# debug feature config
+debug:
+  enabled: false
+  resources:
+    requests:
+      cpu: "8000m"
+      memory: "16Gi"
+    limits:
+      cpu: "8000m"
+      memory: "16Gi"
+
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

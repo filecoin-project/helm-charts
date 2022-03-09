@@ -1,0 +1,192 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-ipfsfiled
+  labels:
+    {{- include "ipfsfiled.allLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ .Release.Name }}-ipfsfiled-service
+  selector:
+    matchLabels:
+      {{- include "ipfsfiled.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ipfsfiled.allLabels" . | nindent 8 }}
+    spec:
+      # we're going to need root for a little while until
+      # we can package some helper binaries into the image
+      #securityContext:
+        #fsGroup: 532
+        #runAsNonRoot: true
+        #runAsUser: 532
+        #runAsGroup: 532
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: ipfsfiled
+        image: {{ required "(root).image.repo expected" .Values.ipfsfiled.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.ipfsfiled.image.tag }}
+        imagePullPolicy: {{ .Values.ipfsfiled.image.pullPolicy }}
+        command: ["ipfsfiled"]
+        args:
+        - run
+        {{- range .Values.ipfsfiled.args }}
+        - {{ . }}
+        {{- end }}
+        env:
+        - name: IPFSFILED_IPFS_DATASTORE
+          value: "/var/lib/ipfsfiled/datastore"
+        - name: IPFSFILED_FILEROOT
+          value: "/var/lib/ipfsfiled/files"
+        - name: IPFSFILED_IPFS_KEYFILE
+          value: "/var/lib/ipfsfiled/peerkey/peer.key"
+        - name: IPFSFILED_SYNC_INTERVAL
+          value: {{ .Values.ipfsfiled.syncInterval | default "15m" | quote }}
+        - name: IPFSFILED_GC_INTERVAL
+          value: {{ .Values.ipfsfiled.gcInterval | default "24h" | quote }}
+        - name: IPFSFILED_IPFS_ADDR
+          value: {{ .Values.ipfsfiled.ipfsAddr | default "/ip4/0.0.0.0/tcp/4005" | quote }}
+        - name: IPFSFILED_MANIFEST
+          value: {{ .Values.ipfsfiled.manifest | default "" | quote }}
+        - name: IPFSFILED_OFFLINE
+          value: {{ .Values.ipfsfiled.offline | default "false" | quote }}
+        - name: IPFSFILED_LOG_LEVEL
+          value: {{ .Values.ipfsfiled.logLevel | default "info" | quote }}
+        {{- if .Values.ipfsfiled.prometheusOperatorServiceMonitor }}
+        - name: IPFSFILED_PROMETHEUS_ADDR
+          value: ":{{ .Values.ipfsfiled.prometheusPort | default 9991 }}"
+        {{- end }}
+        {{- with .Values.ipfsfiled.env }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        ports:
+        - containerPort: 1234
+          name: api
+        - containerPort: 1347
+          name: p2p
+        {{- if .Values.ipfsfiled.prometheusOperatorServiceMonitor }}
+        - containerPort: {{ .Values.ipfsfiled.prometheusPort | default 9991 }}
+          name: metrics
+        {{- end }}
+        volumeMounts:
+        - name: peerkey-volume
+          mountPath: /var/lib/ipfsfiled/peerkey
+        - name: datastore-volume
+          mountPath: /var/lib/ipfsfiled/datastore
+        - name: files-volume
+          mountPath: /var/lib/ipfsfiled/files
+        resources:
+        {{- if .Values.ipfsfiled.resources }}
+          {{- toYaml .Values.ipfsfiled.resources | nindent 10 }}
+        {{- else }}
+          requests:
+            cpu: "8000m"
+            memory: "16Gi"
+          limits:
+            cpu: "8000m"
+            memory: "16Gi"
+        {{- end }}
+      - name: debug
+        image: {{ required "(root).image.repo expected" .Values.ipfsfiled.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.ipfsfiled.image.tag }}
+        imagePullPolicy: {{ .Values.ipfsfiled.image.pullPolicy }}
+        command: ["/bin/sh", "-c", "tail -f /dev/null"]
+        env:
+        - name: IPFSFILED_IPFS_DATASTORE
+          value: "/var/lib/ipfsfiled/datastore"
+        - name: IPFSFILED_FILEROOT
+          value: "/var/lib/ipfsfiled/files"
+        - name: IPFSFILED_IPFS_KEYFILE
+          value: "/var/lib/ipfsfiled/peerkey/peer.key"
+        - name: IPFSFILED_SYNC_INTERVAL
+          value: {{ .Values.ipfsfiled.syncInterval | default "15m" | quote }}
+        - name: IPFSFILED_GC_INTERVAL
+          value: {{ .Values.ipfsfiled.gcInterval | default "24h" | quote }}
+        - name: IPFSFILED_IPFS_ADDR
+          value: {{ .Values.ipfsfiled.ipfsAddr | default "/ip4/0.0.0.0/tcp/4005" | quote }}
+        - name: IPFSFILED_MANIFEST
+          value: {{ .Values.ipfsfiled.manifest | default "" | quote }}
+        - name: IPFSFILED_OFFLINE
+          value: {{ .Values.ipfsfiled.offline | default "false" | quote }}
+        - name: IPFSFILED_LOG_LEVEL
+          value: {{ .Values.ipfsfiled.logLevel | default "info" | quote }}
+        {{- if .Values.ipfsfiled.prometheusOperatorServiceMonitor }}
+        - name: IPFSFILED_PROMETHEUS_ADDR
+          value: ":{{ .Values.ipfsfiled.prometheusPort | default 9991 }}"
+        {{- end }}
+        {{- with .Values.ipfsfiled.env }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        volumeMounts:
+        - name: peerkey-volume
+          mountPath: /var/lib/ipfsfiled/peerkey
+        - name: datastore-volume
+          mountPath: /var/lib/ipfsfiled/datastore
+        - name: files-volume
+          mountPath: /var/lib/ipfsfiled/files
+        {{- if .Values.debug.resources }}
+        resources:
+          {{- toYaml .Values.debug.resources | nindent 10 }}
+        {{- end }}
+      volumes:
+      - name: peerkey-volume
+      {{- if .Values.secrets.peerKey.enabled }}
+        secret:
+          secretName: {{ .Values.secrets.peerKey.secretName }}
+          defaultMode: 0600
+          items:
+          - key: {{ .Values.secrets.peerKey.keyName }}
+            path: peer.key
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: datastore-volume
+    spec:
+      accessModes:
+      {{- range .Values.ipfsfiled.volumes.datastore.accessModes }}
+      - {{ . | quote }}
+      {{- end }}
+      storageClassName: {{ .Values.ipfsfiled.volumes.datastore.storageClassName }}
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: {{ .Values.ipfsfiled.volumes.datastore.size | quote }}
+      {{- with .Values.ipfsfiled.volumes.datastore.dataSource }}
+      dataSource:
+        {{- toYaml . | nindent 10 }}
+      {{- end }}
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: files-volume
+    spec:
+      accessModes:
+      {{- range .Values.ipfsfiled.volumes.files.accessModes }}
+      - {{ . | quote }}
+      {{- end }}
+      storageClassName: {{ .Values.ipfsfiled.volumes.files.storageClassName }}
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: {{ .Values.ipfsfiled.volumes.files.size | quote }}
+      {{- with .Values.ipfsfiled.volumes.files.dataSource }}
+      dataSource:
+        {{- toYaml . | nindent 10 }}
+      {{- end }}

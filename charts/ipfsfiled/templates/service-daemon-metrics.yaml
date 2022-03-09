@@ -1,0 +1,22 @@
+{{- if .Values.ipfsfiled.prometheusOperatorServiceMonitor }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-ipfsfiled-metrics
+  labels:
+    {{- include "ipfsfiled.allLabels" . | nindent 4 }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9991"
+    prometheus.io/path: /metrics
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "ipfsfiled.selectorLabels" . | nindent 4 }}
+  ports:
+    - protocol: TCP
+      port: 9991
+      targetPort: {{ .Values.ipfsfiled.prometheusPort | default 9991 }}
+      name: metrics
+{{- end }}
