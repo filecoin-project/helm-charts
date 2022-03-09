@@ -45,21 +45,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{/* "sentinel-lily.chainImportArgs" creates the arguments for managing optional chain import */}}
 {{- define "sentinel-lily.chainImportArgs" }}
-  if [ -f "/var/lib/lily/datastore/_imported" ]; then
-    echo "Skipping import, found /var/lib/lily/datastore/_imported file."
-    echo "Ensuring secrets have correct permissions."
-    chmod 0600 /var/lib/lily/keystore/*
-    exit 0
-  fi
-  echo "Importing snapshot from url {{ .Values.daemon.importSnapshot.url }}..."
-  lily init --import-snapshot={{ .Values.daemon.importSnapshot.url }}
-  status=$?
-  if [ $status -eq 0 ]; then
-    touch "/var/lib/lily/datastore/_imported"
-  fi
-  echo "Ensuring secrets have correct permissions."
-  chmod 0600 /var/lib/lily/keystore/*
-  exit $status
 {{- end }}
 
 {{- /* Helpers */}}
