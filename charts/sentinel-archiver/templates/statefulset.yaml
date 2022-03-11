@@ -81,7 +81,7 @@ spec:
           mountPath: /var/lib/lily/config.toml
           subPath: config.toml
           readOnly: true
-        {{- if .Values.lily.volumes.datastore.enabled }}
+        {{- if .Values.volumes.datastore.enabled }}
         - name: datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
@@ -274,6 +274,9 @@ spec:
       volumes:
       - name: repo-volume
         emptyDir: {}
+      - name: ship-volume
+        persistentVolumeClaim:
+          claimName: {{ .Values.archiver.shipVolume.claimName }}
       - name: config-volume
         configMap:
           name: {{ .Release.Name }}-lily-config
@@ -294,15 +297,13 @@ spec:
       name: datastore-volume
     spec:
       accessModes:
-      {{- range .Values.lily.volumes.datastore.accessModes }}
-      - {{ . | quote }}
-      {{- end }}
-      storageClassName: {{ .Values.lily.volumes.datastore.storageClassName }}
+      - ReadWriteOnce
+      storageClassName: {{ .Values.volumes.datastore.storageClassName }}
       volumeMode: Filesystem
       resources:
         requests:
-          storage: {{ .Values.lily.volumes.datastore.size | quote }}
-      {{- with .Values.lily.volumes.datastore.dataSource }}
+          storage: {{ .Values.volumes.datastore.size | quote }}
+      {{- with .Values.volumes.datastore.dataSource }}
       dataSource:
         {{- toYaml . | nindent 10 }}
       {{- end }}
@@ -312,34 +313,13 @@ spec:
       name: spool-volume
     spec:
       accessModes:
-      {{- range .Values.lily.volumes.spool.accessModes }}
-      - {{ . | quote }}
-      {{- end }}
-      storageClassName: {{ .Values.lily.volumes.spool.storageClassName }}
+      - ReadWriteOnce
+      storageClassName: {{ .Values.volumes.spool.storageClassName }}
       volumeMode: Filesystem
       resources:
         requests:
-          storage: {{ .Values.lily.volumes.spool.size | quote }}
-      {{- with .Values.lily.volumes.spool.dataSource }}
+          storage: {{ .Values.volumes.spool.size | quote }}
+      {{- with .Values.volumes.spool.dataSource }}
       dataSource:
         {{- toYaml . | nindent 10 }}
       {{- end }}
-  - apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: ship-volume
-    spec:
-      accessModes:
-      {{- range .Values.lily.volumes.ship.accessModes }}
-      - {{ . | quote }}
-      {{- end }}
-      storageClassName: {{ .Values.lily.volumes.ship.storageClassName }}
-      volumeMode: Filesystem
-      resources:
-        requests:
-          storage: {{ .Values.lily.volumes.ship.size | quote }}
-      {{- with .Values.lily.volumes.ship.dataSource }}
-      dataSource:
-        {{- toYaml . | nindent 10 }}
-      {{- end }}
-

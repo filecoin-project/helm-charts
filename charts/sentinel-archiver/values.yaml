@@ -47,34 +47,7 @@ lily:
   importSnapshot:
     enabled: true
 
-  # volumes enables control over the configuration of attached volumes
-  volumes:
-    # datastore is the volume used for persisting the daemon state.
-    # The datastore volume is mounted at /var/lib/lily/datastore
-    datastore:
-      size: "4000Gi"
-      accessModes:
-      - ReadWriteOnce
-      storageClassName: "gp2"
-      #dataSource: {}
 
-    # spool is the volume used for writing csv output from jobs.
-    # The spool volume is mounted at /var/spool/lily/csv
-    spool:
-      size: "256Gi"
-      accessModes:
-      - ReadWriteOnce
-      storageClassName: "gp2"
-      #dataSource: {}
-
-    # ship is the volume used for writing the final compressed files.
-    # The ship volume is mounted at /var/lib/archiver/shipped
-    ship:
-      size: "256Gi"
-      accessModes:
-      - ReadWriteOnce
-      storageClassName: "gp2"
-      #dataSource: {}
 
   # daemon pubsub-specific settings
   pubsub:
@@ -106,6 +79,11 @@ archiver:
     pullPolicy: IfNotPresent
     tag: latest
 
+  # shipVolume refers to a persistent volume claim that will be used to write he final compressed files.
+  # The ship volume is mounted at /var/lib/archiver/shipped
+  shipVolume:
+    claimName: "sentinel-data"
+
   # tasks is a comma separated list of tasks that this archiver node will be responsible for
   tasks: "blocks"
 
@@ -132,6 +110,23 @@ archiver:
   prometheus:
     enabled: true
 
+# volumes enables control over the configuration of attached volumes
+volumes:
+  # datastore is the volume used for persisting the daemon state.
+  # It is only mounted by the lily container
+  # The datastore volume is mounted at /var/lib/lily/datastore
+  datastore:
+    size: "4000Gi"
+    storageClassName: "gp2"
+    #dataSource: {}
+
+  # spool is the volume used for writing csv output from jobs.
+  # It is mounted by both lily and the archiver containers
+  # The spool volume is mounted at /var/spool/lily/csv
+  spool:
+    size: "256Gi"
+    storageClassName: "gp2"
+    #dataSource: {}
 
 # service tracing
 jaeger:
