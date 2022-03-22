@@ -185,9 +185,6 @@ spec:
                   # lifecycle.postStart.exec.command doesn't accept args
                   # so we execute this script as a multiline string
                 - |
-                  # TODO: include jq in lily image
-                  apt-get update && apt-get install -y jq
-
                   echo "Waiting for api to become ready..."
                   lily wait-api --timeout={{ .Values.daemon.apiWaitTimeout | quote }} > /dev/null 2>&1
                   status=$?

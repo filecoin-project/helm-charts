@@ -41,8 +41,9 @@ daemon:
     # usually too small but useful to avoid managing volume claims.
     # Note: Mainnet persistence will require significant IOPS. Default size of
     # 500Gi will constrain available IOPS. Consider deploying as much as 3000Gi
-    # to saturate available IOPS for storage class GP2. Upgrade to storage class
-    # IO1 for even additional IOPS headroom (up to 64kIOPS).
+    # (or 6000Gi if running 'actorstatesminer' tasks) to make maximum available
+    # IOPS.
+    # Upgrade to storage class io1 for even additional IOPS headroom (up to 64kIOPS).
     # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
     # The datastore volume is mounted at /var/lib/lily/datastore
     datastore:
