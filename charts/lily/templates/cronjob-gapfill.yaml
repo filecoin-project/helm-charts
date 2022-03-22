@@ -126,7 +126,7 @@ spec:
                   key: {{ .secretKey | default "url" }}
             {{- end }}
             {{- with .Values.daemon.env }}
-              {{- toYaml . | nindent 14 }}
+              {{- toYaml . | nindent 12 }}
             {{- end }}
           volumes:
           - name: repo-volume
