@@ -193,6 +193,10 @@ spec:
                     exit $status
                   fi
 
+                  # wait 3 minutes to let the node's datastore settle
+                  # TODO: configurable value here
+                  sleep 180
+
                   echo "Starting jobs..."
                   {{- range .Values.daemon.jobs }}
                     {{- $jobName := "" }}
@@ -201,8 +205,12 @@ spec:
                     {{- else }}
                       {{- $jobName = printf "--name \"%s/%s-`cat /var/lib/lily/uid`/%s\"" (include "sentinel-lily.instanceName" $) .command (include "sentinel-lily.fingerprintAllArgs" .args) }}
                     {{- end }}
-                  lily sync wait && lily {{ .command }} {{ join " " .args }} {{ $jobName }}
+                  lily sync wait && sleep 10 && lily {{ .command }} {{ join " " .args }} {{ $jobName }}
                   {{- end }}
+
+                  # wait for jobs to begin persisting data
+                  # TODO: make this less dumb
+                  sleep 60
         {{- end }}
         resources:
         {{- if .Values.daemon.resources }}
