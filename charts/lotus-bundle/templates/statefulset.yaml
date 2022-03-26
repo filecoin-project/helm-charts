@@ -48,6 +48,9 @@ spec:
           requests:
             storage: {{ .Values.ipfs.size }}
     {{- end }}
+    {{- if .Values.volumeClaimTemplates }}
+{{ toYaml .Values.volumeClaimTemplates | nindent 4 }}
+    {{- end }}
   template:
     metadata:
       labels:
