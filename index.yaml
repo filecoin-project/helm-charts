@@ -1,36 +1,179 @@
 apiVersion: v1
 entries:
+  dealbot:
+  - apiVersion: v2
+    appVersion: 0.0.2
+    created: "2022-03-30T11:45:19.245022843-06:00"
+    description: A tool to test and analyze storage and retrieval deal capability on the Filecoin network.
+    digest: bc8cc2fdcc4587830381a821184c3a782c0b6f5142f32c002174bbd04211f7e7
+    name: dealbot
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/dealbot-0.0.14.tgz
+    version: 0.0.14
+  efs-access:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2022-03-30T11:45:19.245463715-06:00"
+    description: Creates the required resources to gain access to the efs volume
+    digest: 226bbaa2f4b11dc2eb9899849956a3400af10ea61a653c228332081171195cae
+    name: efs-access
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/efs-access-0.1.0.tgz
+    version: 0.1.0
+  lily:
+  - apiVersion: v2
+    appVersion: 0.8.6
+    created: "2022-03-30T11:45:19.246586682-06:00"
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: 5521c9fedd6195248b0c57cbc29d45cd68c5ac586c500e003b4e9ddeb7a15255
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/lily-0.0.7-alpha.tgz
+    version: 0.0.7-alpha
+  lotus-bundle:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2022-03-30T11:45:19.248089684-06:00"
+    description: bundle your application with lotus
+    digest: 1a96a0fd7e74fe649c48430357d8d88c46f4d5eafebe6978fd3eb2fdbf79005b
+    name: lotus-bundle
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/lotus-bundle-0.0.13.tgz
+    version: 0.0.13
   lotus-chain-export:
   - apiVersion: v2
     appVersion: 0.8.0
-    created: "2020-10-02T22:08:00.395492803-04:00"
+    created: "2022-03-30T11:45:19.248714028-06:00"
     description: A CronJob tool to export lotus chains
-    digest: ebd030d8fa382d0046f0ad1e91c37d35056a448fa1a10e08d0d9b2319b123e45
+    digest: 54b5a002eb7a6634a441141995cfad8a8681e849bb2c5738d39c50d159bf0f31
     name: lotus-chain-export
     type: application
     urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-chain-export-0.1.0/lotus-chain-export-0.1.0.tgz
-    version: 0.1.0
+    - https://github.com/filecoin-project/helm-charts/lotus-chain-export-0.1.1.tgz
+    version: 0.1.1
   lotus-consensus-check:
   - apiVersion: v2
     appVersion: 0.7.0
-    created: "2020-10-02T22:08:00.39592591-04:00"
+    created: "2022-03-30T11:45:19.249255643-06:00"
     description: Provision a consensus monitoring cronjob
-    digest: be92386b8a61830721bcb13f44d909bc9fb8af09fa4c8ec4ef54c16ed4b9df86
+    digest: 1314f28d2c3c54087e72630b649d0305391f8aee618f3d5d55b833489a5d472f
     name: lotus-consensus-check
     type: application
     urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-consensus-check-0.1.0/lotus-consensus-check-0.1.0.tgz
-    version: 0.1.0
+    - https://github.com/filecoin-project/helm-charts/lotus-consensus-check-0.1.1.tgz
+    version: 0.1.1
   lotus-fullnode:
   - apiVersion: v2
     appVersion: 0.8.0
-    created: "2020-10-02T22:08:00.397674043-04:00"
+    created: "2022-03-30T11:45:19.250531942-06:00"
     description: Provision a fullnode lotus node
-    digest: fe53e3eb449ca0d2966216f29debb68b56817e659d2a50be64ced9f29b78188f
+    digest: d3b50d1be3c61df92639a6aa2ff29a161f19c0296cb529648b4c1570e28a0521
     name: lotus-fullnode
     type: application
     urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-fullnode-0.1.0/lotus-fullnode-0.1.0.tgz
+    - https://github.com/filecoin-project/helm-charts/lotus-fullnode-0.3.4.tgz
+    version: 0.3.4
+  lotus-gateway:
+  - apiVersion: v2
+    appVersion: 1.5.0
+    created: "2022-03-30T11:45:19.251228955-06:00"
+    description: Provision a lotus-gateway
+    digest: 97131fffc5f02c47260d081af07c5ae12c443abdf2f04e33b66f34372170c3a1
+    name: lotus-gateway
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/lotus-gateway-0.1.5.tgz
+    version: 0.1.5
+  lotus-mpool-stats:
+  - apiVersion: v2
+    appVersion: 1.10.0
+    created: "2022-03-30T11:45:19.251773526-06:00"
+    description: Lotus Mpool stats
+    digest: 7fffb6146e38db5c5d2e4219a53fdf3edd10935c73d301d8f41c57023a79a275
+    name: lotus-mpool-stats
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/lotus-mpool-stats-0.1.1.tgz
+    version: 0.1.1
+  lotus-secrets-creator:
+  - apiVersion: v2
+    appVersion: 1.1.2
+    created: "2022-03-30T11:45:19.252401686-06:00"
+    description: Helm chart for creator valid libp2p and jwt secrets on cluster for lotus-fullnode charts
+    digest: 2b808d7d65933e1934e0c7f821cf4bc19cd9be0b253c8e7bdf93be244c3cf99d
+    name: lotus-secrets-creator
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/lotus-secrets-creator-0.1.0.tgz
     version: 0.1.0
-generated: "2020-10-02T22:08:00.394722568-04:00"
+  lotus-stats:
+  - apiVersion: v2
+    appVersion: 1.1.2
+    created: "2022-03-30T11:45:19.253117184-06:00"
+    description: Lotus stats
+    digest: b22bd3f4a7eb1a4676884b62e7eb308f102502027210fab1eb9443a99e670f30
+    name: lotus-stats
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/lotus-stats-0.1.2.tgz
+    version: 0.1.2
+  sentinel-locations:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2022-03-30T11:45:19.253709075-06:00"
+    description: Sentinel-locations deployment
+    digest: 77889b07052d2b854f1a277043b3e1d451fb144d039437cb813b704ee07b36ff
+    name: sentinel-locations
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/sentinel-locations-0.1.0.tgz
+    version: 0.1.0
+  sentinel-tick:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2022-03-30T11:45:19.254347035-06:00"
+    description: Sentinel-tick deployment
+    digest: 367ce996c1a258ac590dec73fdbbbd88ffb475b885e022bf876d3db98a2af5bf
+    name: sentinel-tick
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/sentinel-tick-0.3.0.tgz
+    version: 0.3.0
+  tweety:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2022-03-30T11:45:19.255776928-06:00"
+    description: A Helm chart for Kubernetes to run tweety
+    digest: 37554bd477f2a3aa09a4c65f039d37563a7fd6430568ffde76d75ca681c17262
+    name: tweety
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/tweety-0.0.1.tgz
+    version: 0.0.1
+  visor:
+  - apiVersion: v2
+    appVersion: 0.7.5
+    created: "2022-03-30T11:45:19.256755038-06:00"
+    description: A Helm chart for Kubernetes to run visor
+    digest: d20e9a0659fd6dbd144678f65035aadd1d1a1af7696961633f726c91e8b9062c
+    name: visor
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/visor-5.0.1.tgz
+    version: 5.0.1
+  volume-snapshotter:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2022-03-30T11:45:19.257318796-06:00"
+    description: A Helm chart to rotate volumesnapshots of a pvc
+    digest: b001a698df6485060c763f43d523d4af583068226fc17f76fe5ba0d5f8d1afc5
+    name: volume-snapshotter
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/volume-snapshotter-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-03-30T11:45:19.243865421-06:00"
