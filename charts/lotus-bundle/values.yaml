@@ -104,6 +104,8 @@ application:
 
 initContainers: []
 
+volumeClaimTemplates: []
+
 # Wallets are added to the wallet secret.
 # if you don't want to specify wallets in values.yaml,
 # you can add them later by editing the secret.
