@@ -72,7 +72,7 @@ spec:
               dpkg -i ./aria2-1.36.0.deb
               rm ./aria2-1.36.0.deb
 
-              (cd /var/lib/lily/datastore && time aria2c -x16 -k1M -o snapshot.car {{ .Values.daemon.importSnapshot.url }})
+              (cd /var/lib/lily/datastore && aria2c -x16 -k1M -o snapshot.car {{ .Values.daemon.importSnapshot.url }})
               status=$?
               if [ $status -ne 0 ]; then
                 rm /var/lib/lily/datastore/snapshot.car
