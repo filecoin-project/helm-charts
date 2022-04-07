@@ -163,6 +163,10 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: {{- toYaml .Values.application.container.command | nindent 12 }}
           args: {{- toYaml .Values.application.container.args | nindent 12 }}
+          {{ if .Values.application.container.readinessProbe -}}
+          readinessProbe:
+{{ toYaml .Values.application.container.readinessProbe | indent 12 }}
+          {{ end -}}
           ports:
             {{- with .Values.application.container.ports }}
 {{ toYaml . | indent 12 }}
