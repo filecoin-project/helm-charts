@@ -19,6 +19,7 @@ application:
     args: []
     env: []
     resources: {}
+    readinessProbe: {}
     ports: []
   secrets:
     - name: example-secret # helm will create this secret
