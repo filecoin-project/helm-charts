@@ -229,6 +229,16 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
+    created: "2022-04-07T22:10:31.287601133Z"
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: fd73e53c7b1e1c9d31ba567efd14ba73d7d1539032af3f273934f4b1dfb59da3
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.7-alpha/lily-0.0.7-alpha.tgz
+    version: 0.0.7-alpha
+  - apiVersion: v2
+    appVersion: 0.8.6
     created: "2022-04-04T16:58:58.674989445Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
     digest: aec9307a432bf83f5e9ffde8877fa3fba17fa0b53ec13c071c8b146818a8404d
@@ -239,9 +249,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-04-07T22:10:31.287601133Z"
+    created: "2022-04-26T18:38:57.196751163Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: fd73e53c7b1e1c9d31ba567efd14ba73d7d1539032af3f273934f4b1dfb59da3
+    digest: baa70ff89ccbc21bd8c8c2bb60ff946fb5c375cb294c852a565a1cdfa3efe075
     name: lily
     type: application
     urls:
