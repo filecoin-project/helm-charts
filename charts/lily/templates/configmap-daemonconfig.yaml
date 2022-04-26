@@ -39,4 +39,17 @@ data:
           Path = {{ .path  | quote }}
         {{- end }}
       {{- end }}
+    [Queue]
+      {{- if .Values.daemon.queue.asynq }}
+      [Queue.Asynq]
+        {{- range .Values.daemon.queue.asynq }}
+        [Queue.Asynq.{{ .name }}]
+          Network = {{ .network | default "tcp" | quote }}
+          Addr = {{ .addr | quote }}
+          Username = {{ .username | default "default" | quote }}
+          Password = {{ .password | quote }}
+          DB = {{ .db | default 0 }}
+          PoolSize = {{ .poolSize | default 0 }}
+        {{- end}}
+      {{- end }}
 {{- end }}
