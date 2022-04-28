@@ -1,0 +1,43 @@
+name: 'Deploy_Release'
+
+# Only trigger, when the build workflow succeeded
+on:
+  workflow_run:
+    workflows: ["pages-build-deployment"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+            ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Install Kubernetes toolkit
+        uses: bwvolleyball/k8s-toolkit@v1.0.0
+        with: # defaults to latest kubectl & helm binary versions
+          config: ${{ secrets.KUBE_CONFIG_DATA }}
+          kubectl_version: v1.21.5
+          helm_version: v3.7.0
+      - name: Configure AWS Access
+        run: |
+          aws configure set aws_access_key_id "${{ SECRETS.AWS_ACCESS_KEY_ID}}" --profile default
+          aws configure set aws_secret_access_key "${{ SECRETS.AWS_SECRET_ACCESS_KEY}}" --profile default
+          aws configure set region ca-central-1 --profile default
+      - name: Install Kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+
+      - name: Install Kubernetes Addons
+        run: |
+          git clone -b dev git@github.com:xerris/kubernetes-addons-bootstrap.git
+          cd kubernetes-addons-bootstrap/overlays
+          aws eks update-kubeconfig --name protocollabs_eks_cluster-dev --kubeconfig ".kube/config"
+          kustomize build dev/ --enable-helm | kubectl apply -f -
+
+      - name: Install lotus-fullnode
+        run: |
+          helm repo add filecoin-project https://filecoin-project.github.io/helm-charts/
+          helm upgrade --install --wait --force lotus-test filecoin-project/lotus-fullnode --debug
