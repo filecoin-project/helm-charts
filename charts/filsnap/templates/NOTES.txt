@@ -1,0 +1,14 @@
+  ______ _ _  _____
+ |  ____(_) |/ ____|
+ | |__   _| | (___  _ __   __ _ _ __
+ |  __| | | |\___ \| '_ \ / _` | '_ \
+ | |    | | |____) | | | | (_| | |_) |
+ |_|    |_|_|_____/|_| |_|\__,_| .__/
+                               | |
+                               |_|
+
+
+Release ---------- {{ .Release.Name }}
+Namespace -------- {{ .Release.Namespace }}
+Container Repo --- {{ .Values.image.repository }}
+Tag -------------- {{ .Values.image.tag }}
