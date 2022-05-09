@@ -1,0 +1,102 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ include "filsnap.fullname" . }}-snapshot
+  labels:
+    {{- include "filsnap.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.snapshots.schedule | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          serviceAccountName: {{ include "filsnap.snapshots.serviceAccountName" . }}
+          restartPolicy: Never
+          volumes:
+          - name: config-volume
+            configMap:
+              name: {{ include "filsnap.fullname" . }}-config
+              items:
+              - key: config.toml
+                path: config.toml
+          - name: jwt-token-volume
+            secret:
+              secretName: {{ .Values.snapshots.jwtTokens.secretName }}
+              optional: false
+              items:
+              - key: {{ .Values.snapshots.jwtTokens.key }}
+                path: token
+          containers:
+          - name: filsnap
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            command:
+              - filsnap
+            args:
+              - create
+            env:
+            - name: FILSNAP_CREATE_NODELOCKER_API
+              value: "/dns/{{ include "filsnap.fullname" . }}-nodelocker/tcp/5100"
+            - name: FILSNAP_LOG_LEVEL
+              value: {{ .Values.snapshots.logging.level | quote }}
+            {{- if .Values.snapshots.logging.named }}
+            - name: FILSNAP_LOG_LEVEL_NAMED
+              value: {{ include "filsnap.snapshots.logLevelNamed" . | quote }}
+            {{- end }}
+            - name: FILSNAP_CONFIG_PATH
+              value: "/config/config.toml"
+            - name: FILSNAP_CREATE_INTERVAL
+              value: {{ .Values.snapshots.interval | quote }}
+            - name: FILSNAP_CREATE_CONFIDENCE
+              value: {{ .Values.snapshots.confidence | quote }}
+            {{- if .Values.snapshots.uploads.enabled }}
+            - name: FILSNAP_CREATE_BUCKET
+              value: {{ .Values.snapshots.uploads.bucket }}
+            - name: FILSNAP_CREATE_BUCKET_ENDPOINT
+              value: {{ .Values.snapshots.uploads.endpoint }}
+            - name: FILSNAP_CREATE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "filsnap.snapshots.secretName" . }}
+                  key: ACCESS_KEY
+            - name: FILSNAP_CREATE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "filsnap.snapshots.secretName" . }}
+                  key: SECRET_KEY
+            {{- else }}
+            - name: FILSNAP_CREATE_DISCARD
+              value: "true"
+            {{- end }}
+            {{- with .Values.snapshots.additionalEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            volumeMounts:
+            - name: config-volume
+              mountPath: /config/config.toml
+              subPath: config.toml
+              readOnly: true
+            - name: jwt-token-volume
+              mountPath: /secrets
+              readOnly: true
+            resources:
+              {{- toYaml .Values.snapshots.resources | nindent 14 }}
+        {{- with .Values.snapshots.nodeSelector }}
+        nodeSelector:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.snapshots.affinity }}
+        affinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.snapshots.tolerations }}
+        tolerations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
