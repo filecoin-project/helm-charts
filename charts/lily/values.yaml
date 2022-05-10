@@ -55,6 +55,10 @@ daemon:
       #dataSource: {}
 
   # jobs is a list of jobs to start on the daemon
+  # as a single daemon running the jobs in parallel.
+  # NOTE: If executing multiple tasks with the same prefix
+  # it is highly recommended to execute them in the same job
+  # so that local caching can optimize task execution performance.
   jobs: []
   #- command: watch
     #name: ""
@@ -82,6 +86,54 @@ daemon:
     #- actorstatesinit,actorstatesmarket
     #- messages
 
+  # daemon resources
+  # Note: Running lily on mainnet requires SIGNIFICANT resources (>250Gb RAM)
+  # in order to operate comfortably. Test networks may be preferred if resources
+  # are limited.
+  resources:
+    requests:
+      cpu: "8000m"
+      memory: "16Gi"
+    limits:
+      cpu: "8000m"
+      memory: "16Gi"
+
+  # START inline lily config handling
+  # NOTE: This block is inserted as-is into the config.toml
+  # which will be loaded by Lily on startup.
+  # To use inline config handling, set `inlineEnabled` to true
+  # which will disable value-mapped config handling below
+  inlineEnabled: false
+  inlineConfig: |
+    [API]
+      ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
+    [Libp2p]
+      ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
+      ConnMgrLow = 400
+      ConnMgrHigh = 500
+      ConnMgrGrace = "5m0s"
+    [Pubsub]
+      IPColocationWhitelist = ""
+    [Storage]
+      [Storage.Postgresql]
+        [Storage.Postgresql.lilydb]
+          SchemaName = "lily"
+          URLEnv = "LILY_STORAGE_POSTGRESQL_LILY_URL"
+          PoolSize = 32
+          AllowUpsert = false
+      [Storage.File]
+        [Storage.File.lilycsv]
+          Forma = "CSV"
+          Path = ""
+
+  # END inline lily config handling
+
+  # START value-mapped lily config handling
+  # NOTE: These values map directly to their appropriate fields
+  # which Lily expects in its config.toml in order to maintain
+  # backward compatibility with existing values.yaml
+  # These values are only used when `inlineEnabled` is false
+
   # daemon storage is a list of storage configurations that will be added to
   # the lily config and used when starting jobs
   storage:
@@ -103,17 +155,8 @@ daemon:
     # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
     ipwhitelist: []
 
-  # daemon resources
-  # Note: Running lily on mainnet requires SIGNIFICANT resources (>250Gb RAM)
-  # in order to operate comfortably. Test networks may be preferred if resources
-  # are limited.
-  resources:
-    requests:
-      cpu: "8000m"
-      memory: "16Gi"
-    limits:
-      cpu: "8000m"
-      memory: "16Gi"
+  # END value-mapped lily config handling
+
 
 # service monitoring
 prometheusOperatorServiceMonitor: true
