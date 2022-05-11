@@ -7,6 +7,10 @@ metadata:
   labels:
     {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 data:
+  {{- if .Values.daemon.inlineEnabled }}
+  config.toml: |
+  {{ .Values.daemon.inlineConfig | indent 2 }}
+  {{- else }}
   config.toml: |
     [API]
       ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
@@ -39,4 +43,5 @@ data:
           Path = {{ .path  | quote }}
         {{- end }}
       {{- end }}
+  {{- end }}
 {{- end }}
