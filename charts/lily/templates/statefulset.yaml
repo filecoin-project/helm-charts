@@ -1,5 +1,5 @@
 ---
-{{- if .Values.daemon.enabled }}
+{{- if eq .Values.deploymentType "daemon" }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -58,7 +58,7 @@ spec:
             fi
 
             # import snapshot if enabled
-            {{- if .Values.daemon.importSnapshot.enabled }}
+            {{- if .Values.importSnapshot.enabled }}
             if [ -f "/var/lib/lily/datastore/_imported" ]; then
               echo "Skipping import, found /var/lib/lily/datastore/_imported file."
               echo "Ensuring secrets have correct permissions."
@@ -67,12 +67,12 @@ spec:
             fi
 
             if [ ! -f "/var/lib/lily/datastore/snapshot.car" ]; then
-              echo "*** Downloading snapshot from url {{ .Values.daemon.importSnapshot.url }}..."
+              echo "*** Downloading snapshot from url {{ .Values.importSnapshot.url }}..."
               curl -sL -o ./aria2-1.36.0.deb https://github.com/q3aql/aria2-static-builds/releases/download/v1.36.0/aria2-1.36.0-linux-gnu-64bit-build1.deb
               dpkg -i ./aria2-1.36.0.deb
               rm ./aria2-1.36.0.deb
 
-              (cd /var/lib/lily/datastore && aria2c -x16 -k1M -o snapshot.car {{ .Values.daemon.importSnapshot.url }})
+              (cd /var/lib/lily/datastore && aria2c -x16 -k1M -o snapshot.car {{ .Values.importSnapshot.url }})
               status=$?
               if [ $status -ne 0 ]; then
                 rm /var/lib/lily/datastore/snapshot.car

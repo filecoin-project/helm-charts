@@ -1,4 +1,4 @@
-{{- if and .Values.daemon.enabled .Values.daemon.gapfill.enabled }}
+{{- if and (eq .Values.deploymentType "daemon") .Values.daemon.gapfill.enabled }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob

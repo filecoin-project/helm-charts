@@ -1,3 +1,10 @@
+{{/* value assertions /*}}
+
+{{- if not or (eq .Values.deploymentType "cluster") (eq .Values.deploymentType "daemon") }}
+{{- fail ".Values.deploymentType must be defined as `cluster` or `daemon`" }}
+{{- end }}
+
+
 {{/* "sentinel-lily.name" is "instanceName" truncated for use within k8s values */}}
 {{- define "sentinel-lily.name" -}}
 {{- (include "sentinel-lily.instanceName" . ) | trunc 63 | trimSuffix "-" }}
