@@ -1,0 +1,130 @@
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+commonLabels: {}
+
+image:
+  repository: ghcr.io/travisperson/filsnap
+  pullPolicy: IfNotPresent
+  tag: ""
+
+snapshots:
+  # A list of multiaddrs of nodes to use for creating snapshots
+  nodes: []
+
+  # Cron schedule to run the snapshot creation process on, the frequency
+  # of this schedule should match that of the `interval` value.
+  schedule: "0 */2 * * *"
+
+  # Epoch interval used to calculate the correct snapshot height when a snapshot
+  # job starts
+  interval: "240"
+
+  # Number of epochs that must exist after the calculated snapshot height before
+  # the snapshot is started
+  confidence: "30"
+
+  jwtTokens:
+    # Name of secret containing the jwt token. All nodes should share a common
+    # jwt secret and token. The token must have read and admin flags set.
+    secretName: jwt-token
+    key: jwt-all-privs-token
+
+  logging:
+    level: "info"
+    # List of loggers
+    named: {}
+    # - logger: "filsnap/operator"
+    #   level: "error"
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  uploads:
+    # When disabled snapshots will be discarded
+    enabled: false
+
+    # Name of bucket to upload snapshots into
+    bucket: ""
+
+    # Url endpoint to upload snapshots into
+    endpoint: ""
+
+    # Use an already existing secret. The secret should contain:
+    # - ACCESS_KEY
+    # - SECRET_KEY
+    secretName: ""
+
+    # When set a secret will be created. Further updates to the chart will lookup
+    # the values so that that these values do not need to be passed in multiple times
+    accessKey: ""
+    secretKey: ""
+
+  # this chart sets the following env by default
+  # FILSNAP_LOG_LEVEL                    - see nodelocker.logging.level
+  # FILSNAP_LOG_LEVEL_NAMED              - see nodelocker.logging.named
+  # FILSNAP_NODELOCKER_SERVICE_LISTEN    - static: 0.0.0.0:5100
+  # FILSNAP_NODELOCKER_OPERATOR_LISTEN   - static: 0.0.0.0:5101
+  additionalEnv: []
+
+  annotations: {}
+
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+
+nodelocker:
+
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  logging:
+    level: "info"
+    named: {}
+    # - logger: "filsnap/operator"
+    #   level: "error"
+
+  # this chart sets the following env by default
+  # FILSNAP_LOG_LEVEL               - see snapshots.logging.level
+  # FILSNAP_LOG_LEVEL_NAMED         - see snapshots.logging.named
+  # FILSNAP_CREATE_NODELOCKER_API   - static: /dns/<nodelocker-service>/tcp/5100
+  # FILSNAP_CONFIG_PATH             - static: /config/config.toml
+  # FILSNAP_CREATE_INTERVAL         - see snapshots.interval
+  # FILSNAP_CREATE_CONFIDENCE       - see snapshots.confidence
+  # FILSNAP_CREATE_BUCKET           - see snapshots.uploads.bucket
+  # FILSNAP_CREATE_BUCKET_ENDPOINT  - see snapshots.uploads.endpoint
+  # FILSNAP_CREATE_ACCESS_KEY       - see snapshots.uploads.accessKey
+  # FILSNAP_CREATE_SECRET_KEY       - see snapshots.uploads.secretKey
+  # FILSNAP_CREATE_DISCARD          - set to true when snapshots.uploads.enabled is false
+  additionalEnv: []
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
