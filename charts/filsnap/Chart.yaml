@@ -1,6 +1,6 @@
 apiVersion: v2
-name: filsnap
-description: filsnap
+name: filecoin-chain-archiver
+description: filecoin-chain-archiver
 
 type: application
 

@@ -1,9 +1,9 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ include "filsnap.fullname" . }}-snapshot
+  name: {{ include "filecoin-chain-archiver.fullname" . }}-snapshot
   labels:
-    {{- include "filsnap.labels" . | nindent 4 }}
+    {{- include "filecoin-chain-archiver.labels" . | nindent 4 }}
 spec:
   schedule: {{ .Values.snapshots.schedule | quote }}
   concurrencyPolicy: Forbid
@@ -17,12 +17,12 @@ spec:
           imagePullSecrets:
             {{- toYaml . | nindent 8 }}
           {{- end }}
-          serviceAccountName: {{ include "filsnap.snapshots.serviceAccountName" . }}
+          serviceAccountName: {{ include "filecoin-chain-archiver.snapshots.serviceAccountName" . }}
           restartPolicy: Never
           volumes:
           - name: config-volume
             configMap:
-              name: {{ include "filsnap.fullname" . }}-config
+              name: {{ include "filecoin-chain-archiver.fullname" . }}-config
               items:
               - key: config.toml
                 path: config.toml
@@ -34,45 +34,45 @@ spec:
               - key: {{ .Values.snapshots.jwtTokens.key }}
                 path: token
           containers:
-          - name: filsnap
+          - name: filecoin-chain-archiver
             image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
             imagePullPolicy: {{ .Values.image.pullPolicy }}
             command:
-              - filsnap
+              - filecoin-chain-archiver
             args:
               - create
             env:
-            - name: FILSNAP_CREATE_NODELOCKER_API
-              value: "/dns/{{ include "filsnap.fullname" . }}-nodelocker/tcp/5100"
-            - name: FILSNAP_LOG_LEVEL
+            - name: FCA_CREATE_NODELOCKER_API
+              value: "/dns/{{ include "filecoin-chain-archiver.fullname" . }}-nodelocker/tcp/5100"
+            - name: FCA_LOG_LEVEL
               value: {{ .Values.snapshots.logging.level | quote }}
             {{- if .Values.snapshots.logging.named }}
-            - name: FILSNAP_LOG_LEVEL_NAMED
-              value: {{ include "filsnap.snapshots.logLevelNamed" . | quote }}
+            - name: FCA_LOG_LEVEL_NAMED
+              value: {{ include "filecoin-chain-archiver.snapshots.logLevelNamed" . | quote }}
             {{- end }}
-            - name: FILSNAP_CONFIG_PATH
+            - name: FCA_CONFIG_PATH
               value: "/config/config.toml"
-            - name: FILSNAP_CREATE_INTERVAL
+            - name: FCA_CREATE_INTERVAL
               value: {{ .Values.snapshots.interval | quote }}
-            - name: FILSNAP_CREATE_CONFIDENCE
+            - name: FCA_CREATE_CONFIDENCE
               value: {{ .Values.snapshots.confidence | quote }}
             {{- if .Values.snapshots.uploads.enabled }}
-            - name: FILSNAP_CREATE_BUCKET
+            - name: FCA_CREATE_BUCKET
               value: {{ .Values.snapshots.uploads.bucket }}
-            - name: FILSNAP_CREATE_BUCKET_ENDPOINT
+            - name: FCA_CREATE_BUCKET_ENDPOINT
               value: {{ .Values.snapshots.uploads.endpoint }}
-            - name: FILSNAP_CREATE_ACCESS_KEY
+            - name: FCA_CREATE_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "filsnap.snapshots.secretName" . }}
+                  name: {{ include "filecoin-chain-archiver.snapshots.secretName" . }}
                   key: ACCESS_KEY
-            - name: FILSNAP_CREATE_SECRET_KEY
+            - name: FCA_CREATE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "filsnap.snapshots.secretName" . }}
+                  name: {{ include "filecoin-chain-archiver.snapshots.secretName" . }}
                   key: SECRET_KEY
             {{- else }}
-            - name: FILSNAP_CREATE_DISCARD
+            - name: FCA_CREATE_DISCARD
               value: "true"
             {{- end }}
             {{- with .Values.snapshots.additionalEnv }}

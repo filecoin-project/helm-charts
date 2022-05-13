@@ -4,9 +4,9 @@ fullnameOverride: ""
 commonLabels: {}
 
 image:
-  repository: ghcr.io/travisperson/filsnap
+  repository: ghcr.io/filecoin-project/filecoin-chain-archiver
   pullPolicy: IfNotPresent
-  tag: ""
+  tag: "latest"
 
 snapshots:
   # A list of multiaddrs of nodes to use for creating snapshots
@@ -34,7 +34,7 @@ snapshots:
     level: "info"
     # List of loggers
     named: {}
-    # - logger: "filsnap/operator"
+    # - logger: "filecoin-chain-archiver/operator"
     #   level: "error"
 
   serviceAccount:
@@ -67,10 +67,10 @@ snapshots:
     secretKey: ""
 
   # this chart sets the following env by default
-  # FILSNAP_LOG_LEVEL                    - see nodelocker.logging.level
-  # FILSNAP_LOG_LEVEL_NAMED              - see nodelocker.logging.named
-  # FILSNAP_NODELOCKER_SERVICE_LISTEN    - static: 0.0.0.0:5100
-  # FILSNAP_NODELOCKER_OPERATOR_LISTEN   - static: 0.0.0.0:5101
+  # FCA_LOG_LEVEL                    - see nodelocker.logging.level
+  # FCA_LOG_LEVEL_NAMED              - see nodelocker.logging.named
+  # FCA_NODELOCKER_SERVICE_LISTEN    - static: 0.0.0.0:5100
+  # FCA_NODELOCKER_OPERATOR_LISTEN   - static: 0.0.0.0:5101
   additionalEnv: []
 
   annotations: {}
@@ -97,21 +97,21 @@ nodelocker:
   logging:
     level: "info"
     named: {}
-    # - logger: "filsnap/operator"
+    # - logger: "filecoin-chain-archiver/operator"
     #   level: "error"
 
   # this chart sets the following env by default
-  # FILSNAP_LOG_LEVEL               - see snapshots.logging.level
-  # FILSNAP_LOG_LEVEL_NAMED         - see snapshots.logging.named
-  # FILSNAP_CREATE_NODELOCKER_API   - static: /dns/<nodelocker-service>/tcp/5100
-  # FILSNAP_CONFIG_PATH             - static: /config/config.toml
-  # FILSNAP_CREATE_INTERVAL         - see snapshots.interval
-  # FILSNAP_CREATE_CONFIDENCE       - see snapshots.confidence
-  # FILSNAP_CREATE_BUCKET           - see snapshots.uploads.bucket
-  # FILSNAP_CREATE_BUCKET_ENDPOINT  - see snapshots.uploads.endpoint
-  # FILSNAP_CREATE_ACCESS_KEY       - see snapshots.uploads.accessKey
-  # FILSNAP_CREATE_SECRET_KEY       - see snapshots.uploads.secretKey
-  # FILSNAP_CREATE_DISCARD          - set to true when snapshots.uploads.enabled is false
+  # FCA_LOG_LEVEL               - see snapshots.logging.level
+  # FCA_LOG_LEVEL_NAMED         - see snapshots.logging.named
+  # FCA_CREATE_NODELOCKER_API   - static: /dns/<nodelocker-service>/tcp/5100
+  # FCA_CONFIG_PATH             - static: /config/config.toml
+  # FCA_CREATE_INTERVAL         - see snapshots.interval
+  # FCA_CREATE_CONFIDENCE       - see snapshots.confidence
+  # FCA_CREATE_BUCKET           - see snapshots.uploads.bucket
+  # FCA_CREATE_BUCKET_ENDPOINT  - see snapshots.uploads.endpoint
+  # FCA_CREATE_ACCESS_KEY       - see snapshots.uploads.accessKey
+  # FCA_CREATE_SECRET_KEY       - see snapshots.uploads.secretKey
+  # FCA_CREATE_DISCARD          - set to true when snapshots.uploads.enabled is false
   additionalEnv: []
 
   serviceAccount:
