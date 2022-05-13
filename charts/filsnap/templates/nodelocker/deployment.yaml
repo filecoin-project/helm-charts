@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "filsnap.fullname" . }}-nodelocker
+  name: {{ include "filecoin-chain-archiver.fullname" . }}-nodelocker
   labels:
-    {{- include "filsnap.labels" . | nindent 4 }}
+    {{- include "filecoin-chain-archiver.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "filsnap.selectorLabels" . | nindent 6 }}
+      {{- include "filecoin-chain-archiver.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.nodelocker.annotations }}
@@ -16,32 +16,32 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "filsnap.selectorLabels" . | nindent 8 }}
+        {{- include "filecoin-chain-archiver.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "filsnap.nodelocker.serviceAccountName" . }}
+      serviceAccountName: {{ include "filecoin-chain-archiver.nodelocker.serviceAccountName" . }}
       containers:
         - name: {{ .Chart.Name }}-nodelocker
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - filsnap
+            - filecoin-chain-archiver
           args:
             - nodelocker
             - run
           env:
-          - name: FILSNAP_LOG_LEVEL
+          - name: FCA_LOG_LEVEL
             value: {{ .Values.nodelocker.logging.level | quote }}
           {{- if .Values.nodelocker.logging.named }}
-          - name: FILSNAP_LOG_LEVEL_NAMED
-            value: {{ include "filsnap.nodelocker.logLevelNamed" . | quote }}
+          - name: FCA_LOG_LEVEL_NAMED
+            value: {{ include "filecoin-chain-archiver.nodelocker.logLevelNamed" . | quote }}
           {{- end }}
-          - name: FILSNAP_NODELOCKER_SERVICE_LISTEN
+          - name: FCA_NODELOCKER_SERVICE_LISTEN
             value: "0.0.0.0:5100"
-          - name: FILSNAP_NODELOCKER_OPERATOR_LISTEN
+          - name: FCA_NODELOCKER_OPERATOR_LISTEN
             value: "0.0.0.0:5101"
           {{- with .Values.nodelocker.additionalEnv }}
           {{- toYaml . | nindent 10 }}
