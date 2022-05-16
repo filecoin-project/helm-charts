@@ -1,0 +1,22 @@
+# Default values for go-filecoin-monitoring.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+metricsRange: 30m
+metricsRefresh: 30s
+
+# The primary domain that will be locked into kiosk mode
+domain: ""
+
+# The uuid for the dashboard to display on `domain`
+main_dashboard_id: ""
+
+# The slug (name / path) of the dashboard to display on `domain`
+main_dashboard_slug: ""
+
+# The secondary domain that will allow for logging into the grafana dashboard after
+# authenicating with basic auth
+domainInternal: ""
+
+# The basic auth used on the `domainInternal`
+htpasswd: ""
