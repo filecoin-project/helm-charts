@@ -25,6 +25,11 @@ jobs:
         with:
           version: v3.8.1
 
+      - name: lint
+        run: |
+          chmod +x scripts/lint.sh
+          bash scripts/lint.sh
+
       - name: Update Release
         run:  |
           helm package charts/*
