@@ -167,6 +167,14 @@ spec:
           resources:
 {{ toYaml .Values.application.container.resources | indent 12 }}
           {{ end -}}
+          {{ if .Values.application.container.startupProbe -}}
+          startupProbe:
+{{ toYaml .Values.application.container.startupProbeProbe | indent 12 }}
+          {{ end -}}
+          {{ if .Values.application.container.livenessProbe -}}
+          livenessProbe:
+{{ toYaml .Values.application.container.livenessProbe | indent 12 }}
+          {{ end -}}
           {{ if .Values.application.container.readinessProbe -}}
           readinessProbe:
 {{ toYaml .Values.application.container.readinessProbe | indent 12 }}
