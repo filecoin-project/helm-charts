@@ -1,9 +1,9 @@
----
 {{- if eq .Values.deploymentType "daemon" }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-lily-config
+  name: {{ .Release.Name }}-lily-daemon-config
   labels:
     {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 data:

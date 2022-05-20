@@ -1,0 +1,18 @@
+{{- if eq .Values.deploymentType "cluster" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sentinel-lily.service-name-redis-api" . }}
+  labels:
+    app: redis
+    role: main
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+    role: main
+  ports:
+    - port: 6379
+      targetPort: 6379
+{{- end }}

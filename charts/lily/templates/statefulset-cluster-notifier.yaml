@@ -1,14 +1,13 @@
 ---
-{{- if eq .Values.deploymentType "daemon" }}
+{{- if eq .Values.deploymentType "cluster" }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Release.Name }}-lily
+  name: {{ .Release.Name }}-lily-notifier
   labels:
     {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
-  serviceName: {{ .Release.Name }}-lily-service
+  serviceName: {{ .Release.Name }}-lily-notifier-service
   selector:
     matchLabels:
       {{- include "sentinel-lily.selectorLabels" . | nindent 6 }}
@@ -106,8 +105,8 @@ spec:
           mountPath: /var/lib/lily/config.toml
           subPath: config.toml
           readOnly: true
-        {{- if .Values.daemon.volumes.datastore.enabled }}
-        - name: datastore-volume
+        {{- if .Values.cluster.notifier.volumes.datastore.enabled }}
+        - name: cluster-datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
         {{- /* Minimal resources as work is performed in daemon container. */}}
@@ -125,7 +124,7 @@ spec:
         command: ["lily"]
         args:
         - daemon
-        {{- range .Values.daemon.args }}
+        {{- range .Values.cluster.notifier.args }}
         - {{ . }}
         {{- end }}
         env:
@@ -142,14 +141,14 @@ spec:
           value: "/var/lib/lily"
         - name: LILY_CONFIG
           value: "/var/lib/lily/config.toml"
-        {{- range .Values.daemon.storage.postgresql }}
+        {{- range .Values.cluster.notifier.storage.postgresql }}
         - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
             secretKeyRef:
               name: {{ required "expected secret name which holds postgres connection url" .secretName }}
               key: {{ .secretKey | default "url" }}
         {{- end }}
-        {{- with .Values.daemon.env }}
+        {{- with .Values.cluster.notifier.env }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
         ports:
@@ -171,11 +170,11 @@ spec:
         - name: waitjob-script-volume
           mountPath: /var/lib/lily/waitjob.sh
           subPath: waitjob.sh
-        {{- if .Values.daemon.volumes.datastore.enabled }}
-        - name: datastore-volume
+        {{- if .Values.cluster.notifier.volumes.datastore.enabled }}
+        - name: cluster-datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
-        {{- if .Values.daemon.jobs }}
+        {{- if .Values.cluster.notifier.jobs }}
         lifecycle:
           postStart:
             exec:
@@ -186,7 +185,7 @@ spec:
                   # so we execute this script as a multiline string
                 - |
                   echo "Waiting for api to become ready..."
-                  lily wait-api --timeout={{ .Values.daemon.apiWaitTimeout | quote }} > /dev/null 2>&1
+                  lily wait-api --timeout={{ .Values.apiWaitTimeout | quote }} > /dev/null 2>&1
                   status=$?
 
                   if [ $status -ne 0 ]; then
@@ -198,14 +197,14 @@ spec:
                   sleep 180
 
                   echo "Starting jobs..."
-                  {{- range .Values.daemon.jobs }}
+                  {{- range .Values.cluster.notifier.jobs }}
                     {{- $jobName := "" }}
                     {{- if .name }}
                       {{- $jobName = printf "--name %s/%s-`cat /var/lib/lily/uid`" (include "sentinel-lily.instanceName" $) .name }}
                     {{- else }}
                       {{- $jobName = printf "--name \"%s/%s-`cat /var/lib/lily/uid`/%s\"" (include "sentinel-lily.instanceName" $) .command (include "sentinel-lily.fingerprintAllArgs" .args) }}
                     {{- end }}
-                  lily sync wait && sleep 10 && lily {{ .command }} {{ join " " .args }} {{ $jobName }}
+                  lily sync wait && sleep 10 && lily job run {{ .command }} {{ join " " .args }} {{ $jobName }}
                   {{- end }}
 
                   # wait for jobs to begin persisting data
@@ -213,8 +212,8 @@ spec:
                   sleep 60
         {{- end }}
         resources:
-        {{- if .Values.daemon.resources }}
-          {{- toYaml .Values.daemon.resources | nindent 10 }}
+        {{- if .Values.cluster.notifier.resources }}
+          {{- toYaml .Values.cluster.notifier.resources | nindent 10 }}
         {{- else }}
           requests:
             cpu: "8000m"
@@ -233,7 +232,7 @@ spec:
           value: "/var/lib/lily"
         - name: LILY_CONFIG
           value: "/var/lib/lily/config.toml"
-        {{- range .Values.daemon.storage.postgresql }}
+        {{- range .Values.cluster.notifier.storage.postgresql }}
         - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
             secretKeyRef:
@@ -250,8 +249,8 @@ spec:
         - name: waitjob-script-volume
           mountPath: /var/lib/lily/waitjob.sh
           subPath: waitjob.sh
-        {{- if .Values.daemon.volumes.datastore.enabled }}
-        - name: datastore-volume
+        {{- if .Values.cluster.notifier.volumes.datastore.enabled }}
+        - name: cluster-datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
         {{- if .Values.debug.resources }}
@@ -264,7 +263,7 @@ spec:
         emptyDir: {}
       - name: config-volume
         configMap:
-          name: {{ .Release.Name }}-lily-config
+          name: {{ .Release.Name }}-lily-notifier-config
           items:
           - key: config.toml
             path: config.toml
@@ -276,22 +275,22 @@ spec:
             path: waitjob.sh
             mode: 0755
   volumeClaimTemplates:
-  {{- if .Values.daemon.volumes.datastore.enabled }}
+  {{- if .Values.cluster.notifier.volumes.datastore.enabled }}
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      name: datastore-volume
+      name: cluster-datastore-volume
     spec:
       accessModes:
-      {{- range .Values.daemon.volumes.datastore.accessModes }}
+      {{- range .Values.cluster.notifier.volumes.datastore.accessModes }}
       - {{ . | quote }}
       {{- end }}
-      storageClassName: {{ .Values.daemon.volumes.datastore.storageClassName }}
+      storageClassName: {{ .Values.cluster.notifier.volumes.datastore.storageClassName }}
       volumeMode: Filesystem
       resources:
         requests:
-          storage: {{ .Values.daemon.volumes.datastore.size | quote }}
-      {{- with .Values.daemon.volumes.datastore.dataSource }}
+          storage: {{ .Values.cluster.notifier.volumes.datastore.size | quote }}
+      {{- with .Values.cluster.notifier.volumes.datastore.dataSource }}
       dataSource:
         {{- toYaml . | nindent 10 }}
       {{- end }}

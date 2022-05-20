@@ -26,6 +26,10 @@ importSnapshot:
   enabled: false
   url: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
 
+# How long to wait for lily to start before failing
+# Used for all instances
+apiWaitTimeout: "60s"
+
 # deploymentType may be either `cluster` or `daemon`
 deploymentType: daemon
 
@@ -38,6 +42,38 @@ cluster:
     args: []
     env: []
 
+    inlineEnabled: true
+    inlineConfig: |
+      [Queue]
+        [Queue.Workers]
+          [Queue.Workers.Worker1]
+            [Queue.Workers.Worker1.RedisConfig]
+              Network = "tcp"
+              Addr = "127.0.0.1:6379"
+              Username = ""
+              Password = ""
+              PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+              DB = 0
+              PoolSize = 0
+            [Queue.Workers.Worker1.WorkerConfig]
+              Concurrency = 1
+              LoggerLevel = "debug"
+              WatchQueuePriority = 5
+              FillQueuePriority = 3
+              IndexQueuePriority = 1
+              WalkQueuePriority = 1
+              StrictPriority = false
+              ShutdownTimeout = 30000000000
+        [Queue.Notifiers]
+          [Queue.Notifiers.Notifier1]
+            Network = "tcp"
+            Addr = "127.0.0.1:6379"
+            Username = ""
+            Password = ""
+            PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+            DB = 0
+            PoolSize = 0
+
     # jobs is a list of jobs to start on the cluster
     # the notifier will enqueue these tasks for workers to complete
     jobs: []
@@ -47,6 +83,22 @@ cluster:
       #- --confidence=10
       #- --tasks=blocks,messages,chaineconomics
 
+    # storage is a list of storage configurations that will be added to
+    # the lily config and used when starting jobs
+    storage:
+      postgresql: []
+      #- name: db
+        #secretName: postgresql-secret
+        #secretKey: url
+        #schema: lily
+        #applicationName: lily
+        #poolSize: 20
+        #allowUpsert: false
+      file: []
+      #- name: csv
+        #format: CSV
+        #path: /tmp
+
     resources:
       requests:
         cpu: "8000m"
@@ -74,11 +126,26 @@ cluster:
         - ReadWriteOnce
         storageClassName: "gp2"
         #dataSource: {}
+
+    pubsub:
+      # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
+      ipwhitelist: []
 
   worker:
     args: []
     env: []
 
+    inlineEnabled: true
+    inlineConfig: |
+      [Storage]
+        [Storage.Postgresql]
+          [Storage.Postgresql.Database1]
+            URLEnv = "LILY_DB"
+            ApplicationName = "visor"
+            SchemaName = "public"
+            PoolSize = 20
+            AllowUpsert = false
+
     resources:
       requests:
         cpu: "8000m"
@@ -86,6 +153,22 @@ cluster:
       limits:
         cpu: "8000m"
         memory: "16Gi"
+
+    # storage is a list of storage configurations that will be added to
+    # the lily config and used when starting jobs
+    storage:
+      postgresql: []
+      #- name: db
+        #secretName: postgresql-secret
+        #secretKey: url
+        #schema: lily
+        #applicationName: lily
+        #poolSize: 20
+        #allowUpsert: false
+      file: []
+      #- name: csv
+        #format: CSV
+        #path: /tmp
 
     # volumes enables control over the configuration of attached volumes
     volumes:
@@ -107,9 +190,11 @@ cluster:
         storageClassName: "gp2"
         #dataSource: {}
 
+    pubsub:
+      # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
+      ipwhitelist: []
+
 daemon:
-  # How long to wait for the daemon to start before failing
-  apiWaitTimeout: "60s"
   args: []
   env: []
 
@@ -229,7 +314,6 @@ daemon:
       #format: CSV
       #path: /tmp
 
-  # daemon pubsub-specific settings
   pubsub:
     # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
     ipwhitelist: []
@@ -259,10 +343,12 @@ debug:
       cpu: "8000m"
       memory: "16Gi"
 
+# applied to all instances
 logFormat: json
 logLevel: warn
 logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
 
+# applied to all instances
 nodeSelector: {}
 tolerations: []
 affinity: {}
