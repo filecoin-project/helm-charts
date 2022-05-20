@@ -19,6 +19,8 @@ application:
     args: []
     env: []
     resources: {}
+    startupProbe: {}
+    livenessProbe: {}
     readinessProbe: {}
     ports: []
   secrets:
