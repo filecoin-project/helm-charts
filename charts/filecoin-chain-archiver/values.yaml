@@ -24,6 +24,13 @@ snapshots:
   # the snapshot is started
   confidence: "30"
 
+  # Directly set on the job spec, should be equal to your interval time, but can be
+  # larger with enough backing nodes.
+  # Maximum value should be (interval * 30) * (N - 1)
+  # Where `N` is the number of nodes and `30` is the block delay of the network
+  # 3600 seconds in 1 hours
+  activeDeadlineSeconds: 7200
+
   jwtTokens:
     # Name of secret containing the jwt token. All nodes should share a common
     # jwt secret and token. The token must have read and admin flags set.
