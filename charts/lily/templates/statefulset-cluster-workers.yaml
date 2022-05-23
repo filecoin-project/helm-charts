@@ -124,9 +124,7 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["lily"]
         args:
-        - job run tipset-worker
-        - --queue {{ .Values.cluster.queue.name }}
-        - --concurrency 0
+        - daemon
         {{- range .Values.cluster.worker.args }}
         - {{ . }}
         {{- end }}
@@ -144,6 +142,11 @@ spec:
           value: "/var/lib/lily"
         - name: LILY_CONFIG
           value: "/var/lib/lily/config.toml"
+        - name: LILY_STORAGE_POSTGRESQL_DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: sentinel-postgresql-writer-secrets
+              key: url
         {{- range .Values.cluster.worker.storage.postgresql }}
         - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
@@ -154,6 +157,12 @@ spec:
         {{- with .Values.cluster.worker.env }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
+        - name: LILY_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sentinel-redis-secret
+              key: token
+              optional: false
         ports:
         - containerPort: 1234
           name: api
@@ -177,7 +186,6 @@ spec:
         - name: worker-datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
-        {{- if .Values.cluster.worker.jobs }}
         lifecycle:
           postStart:
             exec:
@@ -187,10 +195,16 @@ spec:
                   # lifecycle.postStart.exec.command doesn't accept args
                   # so we execute this script as a multiline string
                 - |
+                  sleep 1000
                   echo "Waiting for api to become ready..."
                   lily wait-api --timeout={{ .Values.apiWaitTimeout | quote }} > /dev/null 2>&1
                   status=$?
+                  if [ $status -ne 0 ]; then
+                    exit $status
+                  fi
 
+                  lily sync wait
+                  status=$?
                   if [ $status -ne 0 ]; then
                     exit $status
                   fi
@@ -200,8 +214,7 @@ spec:
                   sleep 60
 
                   echo "Starting workers..."
-                  # start workers
-        {{- end }}
+                  lily job run --storage db tipset-worker --queue Worker1
         resources:
         {{- if .Values.cluster.worker.resources }}
           {{- toYaml .Values.cluster.worker.resources | nindent 10 }}
@@ -230,6 +243,12 @@ spec:
               name: {{ required "must have the secret name which holds postgres connection url" .secretName }}
               key: {{ .secretKey | default "url" }}
         {{- end }}
+        - name: LILY_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sentinel-redis-secret
+              key: token
+              optional: false
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/lily

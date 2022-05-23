@@ -141,6 +141,12 @@ spec:
           value: "/var/lib/lily"
         - name: LILY_CONFIG
           value: "/var/lib/lily/config.toml"
+        - name: LILY_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sentinel-redis-secret
+              key: token
+              optional: false
         {{- range .Values.cluster.notifier.storage.postgresql }}
         - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
@@ -196,20 +202,17 @@ spec:
                   # TODO: configurable value here
                   sleep 180
 
-                  echo "Starting jobs..."
-                  {{- range .Values.cluster.notifier.jobs }}
-                    {{- $jobName := "" }}
-                    {{- if .name }}
-                      {{- $jobName = printf "--name %s/%s-`cat /var/lib/lily/uid`" (include "sentinel-lily.instanceName" $) .name }}
-                    {{- else }}
-                      {{- $jobName = printf "--name \"%s/%s-`cat /var/lib/lily/uid`/%s\"" (include "sentinel-lily.instanceName" $) .command (include "sentinel-lily.fingerprintAllArgs" .args) }}
-                    {{- end }}
-                  lily sync wait && sleep 10 && lily job run {{ .command }} {{ join " " .args }} {{ $jobName }}
-                  {{- end }}
+                  lily sync wait
+                  status=$?
+                  if [ $status -ne 0 ]; then
+                    exit $status
+                  fi
 
-                  # wait for jobs to begin persisting data
+                  # wait for lily to settle after sync
                   # TODO: make this less dumb
                   sleep 60
+                  lily job run watch --confidence=1 notify --queue=Notifier1
+                  # include error checking
         {{- end }}
         resources:
         {{- if .Values.cluster.notifier.resources }}
@@ -232,6 +235,12 @@ spec:
           value: "/var/lib/lily"
         - name: LILY_CONFIG
           value: "/var/lib/lily/config.toml"
+        - name: LILY_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sentinel-redis-secret
+              key: token
+              optional: false
         {{- range .Values.cluster.notifier.storage.postgresql }}
         - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
