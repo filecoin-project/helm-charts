@@ -1,0 +1,144 @@
+image:
+  repository: coryschwartz/nebula-crawler
+  tag: latest
+  pullPolicy: Always
+
+
+# If you are using the postgresql operator, enable this to create
+# a postgres instance.
+# When this is enabled, environment variables will be created
+# automatically to provide access to the postgres database. When
+# disabled, you must provide the envionment variables yourself.
+#
+# If masterLoadbalancer is true, an external loadbalancer will be
+# created, which will allow the database to be reachable over the
+# internet!
+postgres:
+  enabled: true
+  masterLoadbalancer: true
+  version: 13
+  instances: 1
+  teamid: nebulateam
+  database: nebuladb
+  user: nebulauser
+  volume: 10Gi
+  sslmode: require
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4000Mi
+    requests:
+      cpu: 2000m
+      memory: 2000Mi
+
+
+# if you are using the postgres operator, enable this to create
+# a ServiceMonitor
+serviceMonitor:
+  enabled: true
+
+
+monitor:
+  config:
+    workers: 1000
+  # Uncomment environment variables to point to an existing postgres database.
+  env: []
+    # - name: NEBULA_DATABASE_HOST
+    #   value: ""
+    # - name: NEBULA_DATABASE_PORT
+    #   value: ""
+    # - name: NEBULA_DATABASE_NAME
+    #   value: ""
+    # - name: NEBULA_DATABASE_USER
+    #   value: ""
+    # - name: NEBULA_DATABASE_PASSWORD
+    #   value: ""
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4000Mi
+    requests:
+      cpu: 2000m
+      memory: 2000Mi
+
+
+crawler:
+  schedule: "0 * * * *"
+  config:
+    workers: "1000"
+    limit: "0"
+    neighbors: "false"
+    dialTimeout: 1m0s
+    protocols: /ipfs/kad/1.0.0,/ipfs/kad/2.0.0
+  # Uncomment environment variables to point to an existing postgres database.
+  env: []
+    # - name: NEBULA_DATABASE_HOST
+    #   value: ""
+    # - name: NEBULA_DATABASE_PORT
+    #   value: ""
+    # - name: NEBULA_DATABASE_NAME
+    #   value: ""
+    # - name: NEBULA_DATABASE_USER
+    #   value: ""
+    # - name: NEBULA_DATABASE_PASSWORD
+    #   value: ""
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4000Mi
+    requests:
+      cpu: 2000m
+      memory: 2000Mi
+
+
+ping:
+  schedule: "30 * * * *"
+  config:
+    workers: 1000
+    limit: 0
+  # Uncomment environment variables to point to an existing postgres database.
+  env: []
+    # - name: NEBULA_DATABASE_HOST
+    #   value: ""
+    # - name: NEBULA_DATABASE_PORT
+    #   value: ""
+    # - name: NEBULA_DATABASE_NAME
+    #   value: ""
+    # - name: NEBULA_DATABASE_USER
+    #   value: ""
+    # - name: NEBULA_DATABASE_PASSWORD
+    #   value: ""
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4000Mi
+    requests:
+      cpu: 2000m
+      memory: 2000Mi
+
+resolve:
+  schedule: "30 * * * *"
+  config:
+    batch: 100
+  # Uncomment environment variables to point to an existing postgres database.
+  env: []
+    # - name: NEBULA_DATABASE_HOST
+    #   value: ""
+    # - name: NEBULA_DATABASE_PORT
+    #   value: ""
+    # - name: NEBULA_DATABASE_NAME
+    #   value: ""
+    # - name: NEBULA_DATABASE_USER
+    #   value: ""
+    # - name: NEBULA_DATABASE_PASSWORD
+    #   value: ""
+
+report:
+  schedule: "0 0 * * 0"
+  image:
+    repository: coryschwartz/nebula-analysis
+    tag: latest
+    pullPolicy: Always
+  # secret that will contain the db.toml file
+  configSecret:  supersecret
+  ipfs: /dns/ipfs-ipfs-api/tcp/5001

@@ -1,0 +1,30 @@
+{{ if .Values.postgres.enabled }}
+---
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: {{ .Values.postgres.teamid }}-{{ .Release.Name }}-crawldb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    team: {{ .Values.postgres.teamid }}
+spec:
+  allowedSourceRanges:
+    - "0.0.0.0/0"
+  databases:
+    {{ .Values.postgres.database }}: {{ .Values.postgres.user }}
+  numberOfInstances: {{ .Values.postgres.instances }}
+  postgresql:
+    version: "{{ .Values.postgres.version }}"
+  teamId: {{ .Values.postgres.teamid }} 
+  users:
+    {{ .Values.postgres.user }}: []
+  volume:
+    size: {{ .Values.postgres.volume }}
+  resources:
+{{- with .Values.postgres.resources }}
+  {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- if .Values.postgres.masterLoadbalancer }}
+  enableMasterLoadBalancer: true
+{{- end }}
+{{ end }}

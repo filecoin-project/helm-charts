@@ -1,0 +1,61 @@
+{{- if .Values.serviceMonitor.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-crawler
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: nebula-crawler
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: nebula-crawler
+    release: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: 6666
+      targetPort: 6666
+      name: metrics
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-monitor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: nebula-monitor
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: nebula-monitor
+    release: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: 6666
+      targetPort: 6666
+      name: metrics
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-ping
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: nebula-ping
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: nebula-ping
+    release: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: 6666
+      targetPort: 6666
+      name: metrics
+{{- end }}
