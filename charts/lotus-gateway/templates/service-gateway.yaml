@@ -33,6 +33,10 @@ metadata:
 {{- with .Values.additionalLabels }}
 {{ toYaml . | indent 4 }}
 {{- end }}
+  annotations:
+{{- with .Values.loadBalancer.annotations }}
+{{ toYaml . | indent 4 }}
+{{- end }}
 spec:
   type: LoadBalancer
   selector:
