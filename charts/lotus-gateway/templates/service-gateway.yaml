@@ -25,7 +25,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-lotus-gateway-lb
+  name: {{ .Release.Name }}-lotus-gateway-ext
   namespace: {{ .Release.Namespace }}
   labels:
     app: lotus-gateway-app
@@ -35,6 +35,28 @@ metadata:
 {{- end }}
   annotations:
 {{- with .Values.loadBalancer.annotations }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: lotus-gateway-app
+    release: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.loadBalancer.rpcPort }}
+      targetPort: 2346
+      name: lb-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-lotus-gateway-lb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: lotus-gateway-app
+    release: {{ .Release.Name }}
+{{- with .Values.additionalLabels }}
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
