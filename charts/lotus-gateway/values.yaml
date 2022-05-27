@@ -21,6 +21,7 @@ ingress:
 loadBalancer:
   enabled: false
   rpcPort: 80
+  annotations: {}
 
 deployment:
   replicas: 1
