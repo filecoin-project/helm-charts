@@ -33,6 +33,24 @@
 {{- end }}
 {{- end }}
 
+{{/* "sentinel-lily.notifierAllLabels" generates a list of all labels to be used across statefulset resources */}}
+{{- define "sentinel-lily.notifierAllLabels" -}}
+{{ include "sentinel-lily.notifierSelectorLabels" . }}
+{{ include "sentinel-lily.releaseLabels" . }}
+{{- if .Values.labels }}
+{{ toYaml .Values.labels }}
+{{- end }}
+{{- end }}
+
+{{/* "sentinel-lily.workerAllLabels" generates a list of all labels to be used across statefulset resources */}}
+{{- define "sentinel-lily.workerAllLabels" -}}
+{{ include "sentinel-lily.workerSelectorLabels" . }}
+{{ include "sentinel-lily.releaseLabels" . }}
+{{- if .Values.labels }}
+{{ toYaml .Values.labels }}
+{{- end }}
+{{- end }}
+
 {{/* "sentinel-lily.releaseLabels" generates a list of common labels to be used across resources */}}
 {{- define "sentinel-lily.releaseLabels" -}}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
@@ -48,6 +66,18 @@ app.kubernetes.io/part-of: sentinel
 {{- define "sentinel-lily.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "sentinel-lily.name" . | quote }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/* "sentinel-lily.notifierSelectorLabels" generates a list of selector labels to be used across resources */}}
+{{- define "sentinel-lily.notifierSelectorLabels" -}}
+app.kubernetes.io/name: {{ printf "%s-%s" (include "sentinel-lily.name" .) "notifier" | quote }}
+app.kubernetes.io/instance: {{ .Release.Name }}-notifier
+{{- end }}
+
+{{/* "sentinel-lily.workerSelectorLabels" generates a list of selector labels to be used across resources */}}
+{{- define "sentinel-lily.workerSelectorLabels" -}}
+app.kubernetes.io/name: {{ printf "%s-%s" (include "sentinel-lily.name" .) "worker" | quote }}
+app.kubernetes.io/instance: {{ .Release.Name }}-worker
 {{- end }}
 
 {{/* "sentinel-lily.chainImportArgs" creates the arguments for managing optional chain import */}}

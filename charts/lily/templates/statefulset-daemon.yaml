@@ -1,5 +1,5 @@
 ---
-{{- if eq .Values.deploymentType "daemon" }}
+{{- if ne .Values.deploymentType "cluster" }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -9,6 +9,7 @@ metadata:
 spec:
   replicas: {{ .Values.replicaCount }}
   serviceName: {{ .Release.Name }}-lily-daemon-service
+  podManagementPolicy: Parallel
   selector:
     matchLabels:
       {{- include "sentinel-lily.selectorLabels" . | nindent 6 }}
@@ -175,7 +176,6 @@ spec:
         - name: datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
-        {{- if .Values.daemon.jobs }}
         lifecycle:
           postStart:
             exec:
@@ -211,7 +211,8 @@ spec:
                   # wait for jobs to begin persisting data
                   # TODO: make this less dumb
                   sleep 60
-        {{- end }}
+
+                  {{ .Values.startCommand }}
         resources:
         {{- if .Values.daemon.resources }}
           {{- toYaml .Values.daemon.resources | nindent 10 }}

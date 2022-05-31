@@ -1,13 +1,15 @@
 ---
-{{- if eq .Values.deploymentType "cluster" }}
+{{- if ne .Values.deploymentType "cluster" }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Release.Name }}-lily-notifier
+  name: {{ .Release.Name }}-lily
   labels:
     {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 spec:
-  serviceName: {{ .Release.Name }}-lily-notifier-service
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ .Release.Name }}-lily-daemon-service
+  podManagementPolicy: Parallel
   selector:
     matchLabels:
       {{- include "sentinel-lily.selectorLabels" . | nindent 6 }}
@@ -105,8 +107,8 @@ spec:
           mountPath: /var/lib/lily/config.toml
           subPath: config.toml
           readOnly: true
-        {{- if .Values.cluster.notifier.volumes.datastore.enabled }}
-        - name: cluster-datastore-volume
+        {{- if .Values.daemon.volumes.datastore.enabled }}
+        - name: datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
         {{- /* Minimal resources as work is performed in daemon container. */}}
@@ -124,7 +126,7 @@ spec:
         command: ["lily"]
         args:
         - daemon
-        {{- range .Values.cluster.notifier.args }}
+        {{- range .Values.daemon.args }}
         - {{ . }}
         {{- end }}
         env:
@@ -141,20 +143,14 @@ spec:
           value: "/var/lib/lily"
         - name: LILY_CONFIG
           value: "/var/lib/lily/config.toml"
-        - name: LILY_REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: sentinel-redis-secret
-              key: token
-              optional: false
-        {{- range .Values.cluster.notifier.storage.postgresql }}
+        {{- range .Values.daemon.storage.postgresql }}
         - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
             secretKeyRef:
               name: {{ required "expected secret name which holds postgres connection url" .secretName }}
               key: {{ .secretKey | default "url" }}
         {{- end }}
-        {{- with .Values.cluster.notifier.env }}
+        {{- with .Values.daemon.env }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
         ports:
@@ -176,11 +172,10 @@ spec:
         - name: waitjob-script-volume
           mountPath: /var/lib/lily/waitjob.sh
           subPath: waitjob.sh
-        {{- if .Values.cluster.notifier.volumes.datastore.enabled }}
-        - name: cluster-datastore-volume
+        {{- if .Values.daemon.volumes.datastore.enabled }}
+        - name: datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
-        {{- if .Values.cluster.notifier.jobs }}
         lifecycle:
           postStart:
             exec:
@@ -202,21 +197,25 @@ spec:
                   # TODO: configurable value here
                   sleep 180
 
-                  lily sync wait
-                  status=$?
-                  if [ $status -ne 0 ]; then
-                    exit $status
-                  fi
+                  echo "Starting jobs..."
+                  {{- range .Values.daemon.jobs }}
+                    {{- $jobName := "" }}
+                    {{- if .name }}
+                      {{- $jobName = printf "--name %s/%s-`cat /var/lib/lily/uid`" (include "sentinel-lily.instanceName" $) .name }}
+                    {{- else }}
+                      {{- $jobName = printf "--name \"%s/%s-`cat /var/lib/lily/uid`/%s\"" (include "sentinel-lily.instanceName" $) .command (include "sentinel-lily.fingerprintAllArgs" .args) }}
+                    {{- end }}
+                  lily sync wait && sleep 10 && lily {{ .command }} {{ join " " .args }} {{ $jobName }}
+                  {{- end }}
 
-                  # wait for lily to settle after sync
+                  # wait for jobs to begin persisting data
                   # TODO: make this less dumb
                   sleep 60
-                  lily job run watch --confidence=1 notify --queue=Notifier1
-                  # include error checking
-        {{- end }}
+
+                  {{ .Values.startCommand }}
         resources:
-        {{- if .Values.cluster.notifier.resources }}
-          {{- toYaml .Values.cluster.notifier.resources | nindent 10 }}
+        {{- if .Values.daemon.resources }}
+          {{- toYaml .Values.daemon.resources | nindent 10 }}
         {{- else }}
           requests:
             cpu: "8000m"
@@ -235,13 +234,7 @@ spec:
           value: "/var/lib/lily"
         - name: LILY_CONFIG
           value: "/var/lib/lily/config.toml"
-        - name: LILY_REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: sentinel-redis-secret
-              key: token
-              optional: false
-        {{- range .Values.cluster.notifier.storage.postgresql }}
+        {{- range .Values.daemon.storage.postgresql }}
         - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
           valueFrom:
             secretKeyRef:
@@ -258,8 +251,8 @@ spec:
         - name: waitjob-script-volume
           mountPath: /var/lib/lily/waitjob.sh
           subPath: waitjob.sh
-        {{- if .Values.cluster.notifier.volumes.datastore.enabled }}
-        - name: cluster-datastore-volume
+        {{- if .Values.daemon.volumes.datastore.enabled }}
+        - name: datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
         {{- if .Values.debug.resources }}
@@ -272,7 +265,7 @@ spec:
         emptyDir: {}
       - name: config-volume
         configMap:
-          name: {{ .Release.Name }}-lily-notifier-config
+          name: {{ .Release.Name }}-lily-config
           items:
           - key: config.toml
             path: config.toml
@@ -284,22 +277,22 @@ spec:
             path: waitjob.sh
             mode: 0755
   volumeClaimTemplates:
-  {{- if .Values.cluster.notifier.volumes.datastore.enabled }}
+  {{- if .Values.daemon.volumes.datastore.enabled }}
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      name: cluster-datastore-volume
+      name: datastore-volume
     spec:
       accessModes:
-      {{- range .Values.cluster.notifier.volumes.datastore.accessModes }}
+      {{- range .Values.daemon.volumes.datastore.accessModes }}
       - {{ . | quote }}
       {{- end }}
-      storageClassName: {{ .Values.cluster.notifier.volumes.datastore.storageClassName }}
+      storageClassName: {{ .Values.daemon.volumes.datastore.storageClassName }}
       volumeMode: Filesystem
       resources:
         requests:
-          storage: {{ .Values.cluster.notifier.volumes.datastore.size | quote }}
-      {{- with .Values.cluster.notifier.volumes.datastore.dataSource }}
+          storage: {{ .Values.daemon.volumes.datastore.size | quote }}
+      {{- with .Values.daemon.volumes.datastore.dataSource }}
       dataSource:
         {{- toYaml . | nindent 10 }}
       {{- end }}

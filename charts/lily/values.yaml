@@ -194,6 +194,7 @@ cluster:
       # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
       ipwhitelist: []
 
+startCommand: ""
 daemon:
   args: []
   env: []

@@ -1,11 +1,11 @@
-{{- if and .Values.prometheusOperatorServiceMonitor (ne .Values.deploymentType "cluster")}}
+{{- if and .Values.prometheusOperatorServiceMonitor (eq .Values.deploymentType "cluster")}}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-lily-daemon-metrics
+  name: {{ .Release.Name }}-lily-worker-metrics
   labels:
-    {{- include "sentinel-lily.allLabels" . | nindent 4 }}
+    {{- include "sentinel-lily.workerAllLabels" . | nindent 4 }}
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9991"
@@ -13,7 +13,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    {{- include "sentinel-lily.selectorLabels" . | nindent 4 }}
+    {{- include "sentinel-lily.workerSelectorLabels" . | nindent 4 }}
   ports:
     - protocol: TCP
       port: 9991

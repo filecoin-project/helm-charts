@@ -1,4 +1,4 @@
-{{- if eq .Values.deploymentType "daemon" }}
+{{- if ne .Values.deploymentType "cluster" }}
 ---
 apiVersion: v1
 kind: Service

@@ -1,4 +1,4 @@
-{{- if and (eq .Values.deploymentType "daemon") .Values.daemon.gapfill.enabled }}
+{{- if and (ne .Values.deploymentType "cluster") .Values.daemon.gapfill.enabled }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
