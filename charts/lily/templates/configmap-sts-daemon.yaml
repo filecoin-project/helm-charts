@@ -9,7 +9,7 @@ metadata:
 data:
   {{- if .Values.daemon.inlineEnabled }}
   config.toml: |
-  {{ .Values.daemon.inlineConfig | indent 2 }}
+{{ .Values.daemon.inlineConfig | indent 4 }}
   {{- else }}
   config.toml: |
     [API]

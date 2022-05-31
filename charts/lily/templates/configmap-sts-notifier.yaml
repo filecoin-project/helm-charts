@@ -9,7 +9,7 @@ metadata:
 data:
   {{- if .Values.cluster.notifier.inlineEnabled }}
   config.toml: |
-  {{ .Values.cluster.notifier.inlineConfig | indent 2 }}
+{{ .Values.cluster.notifier.inlineConfig | indent 4 }}
   {{- else }}
   config.toml: |
     [API]

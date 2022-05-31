@@ -42,8 +42,9 @@ cluster:
     args: []
     env: []
 
-    inlineEnabled: true
+    inlineEnabled: false
     inlineConfig: |
+      # config read by lily
       [Queue]
         [Queue.Workers]
           [Queue.Workers.Worker1]
@@ -135,8 +136,9 @@ cluster:
     args: []
     env: []
 
-    inlineEnabled: true
+    inlineEnabled: false
     inlineConfig: |
+      # config read by lily
       [Storage]
         [Storage.Postgresql]
           [Storage.Postgresql.Database1]
@@ -270,6 +272,7 @@ daemon:
   # which will disable value-mapped config handling below
   inlineEnabled: false
   inlineConfig: |
+    # config read by lily
     [API]
       ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
     [Libp2p]

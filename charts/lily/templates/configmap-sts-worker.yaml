@@ -9,7 +9,7 @@ metadata:
 data:
   {{- if .Values.cluster.worker.inlineEnabled }}
   config.toml: |
-  {{ .Values.cluster.worker.inlineConfig | indent 2 }}
+{{ .Values.cluster.worker.inlineConfig | indent 4 }}
   {{- else }}
   config.toml: |
     [API]
