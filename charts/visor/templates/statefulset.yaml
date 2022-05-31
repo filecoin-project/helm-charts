@@ -63,8 +63,6 @@ spec:
         image: {{ required "expected image name to be defined" .Values.image.repo }}:{{ required "expected image tag to be defined" .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c"]
-        args:
-          - |{{- include "sentinel-visor.chainImportArgs" . | indent 10 }}
         env:
         {{- include "sentinel-visor.jaegerTracingEnvvars" . | indent 8 }}
         - name: GOLOG_LOG_FMT
