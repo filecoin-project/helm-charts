@@ -1,15 +1,15 @@
+{{- if eq .Values.deploymentType "cluster" }}
 ---
-{{- if .Values.daemon.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-lily-config
+  name: {{ .Release.Name }}-lily-worker-config
   labels:
     {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 data:
-  {{- if .Values.daemon.inlineEnabled }}
+  {{- if .Values.cluster.worker.inlineEnabled }}
   config.toml: |
-  {{ .Values.daemon.inlineConfig | indent 2 }}
+{{ .Values.cluster.worker.inlineConfig | indent 4 }}
   {{- else }}
   config.toml: |
     [API]
@@ -19,14 +19,14 @@ data:
       ConnMgrLow = 400
       ConnMgrHigh = 500
       ConnMgrGrace = "5m0s"
-    {{- if .Values.daemon.pubsub.ipwhitelist }}
+    {{- if .Values.cluster.worker.pubsub.ipwhitelist }}
     [Pubsub]
-      IPColocationWhitelist = ["{{ join "\", \"" .Values.daemon.pubsub.ipwhitelist }}"]
+      IPColocationWhitelist = ["{{ join "\", \"" .Values.cluster.worker.pubsub.ipwhitelist }}"]
     {{- end }}
     [Storage]
-      {{- if .Values.daemon.storage.postgresql }}
+      {{- if .Values.cluster.worker.storage.postgresql }}
       [Storage.Postgresql]
-        {{- range .Values.daemon.storage.postgresql }}
+        {{- range .Values.cluster.worker.storage.postgresql }}
         [Storage.Postgresql.{{ .name }}]
           SchemaName = {{ .schema | default "lily" | quote }}
           URLEnv = "LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL"
@@ -35,9 +35,9 @@ data:
           AllowUpsert = {{ .allowUpsert | default false }}
         {{- end }}
       {{- end }}
-      {{- if .Values.daemon.storage.file }}
+      {{- if .Values.cluster.worker.storage.file }}
       [Storage.File]
-        {{- range .Values.daemon.storage.file }}
+        {{- range .Values.cluster.worker.storage.file }}
         [Storage.File.{{ .name }}]
           Format = {{ .format | default "CSV" | upper | quote }}
           Path = {{ .path  | quote }}

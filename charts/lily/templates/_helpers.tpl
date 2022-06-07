@@ -1,3 +1,10 @@
+{{/* value assertions /*}}
+
+{{- if not or (eq .Values.deploymentType "cluster") (eq .Values.deploymentType "daemon") }}
+{{- fail ".Values.deploymentType must be defined as `cluster` or `daemon`" }}
+{{- end }}
+
+
 {{/* "sentinel-lily.name" is "instanceName" truncated for use within k8s values */}}
 {{- define "sentinel-lily.name" -}}
 {{- (include "sentinel-lily.instanceName" . ) | trunc 63 | trimSuffix "-" }}
@@ -26,6 +33,24 @@
 {{- end }}
 {{- end }}
 
+{{/* "sentinel-lily.notifierAllLabels" generates a list of all labels to be used across statefulset resources */}}
+{{- define "sentinel-lily.notifierAllLabels" -}}
+{{ include "sentinel-lily.notifierSelectorLabels" . }}
+{{ include "sentinel-lily.releaseLabels" . }}
+{{- if .Values.labels }}
+{{ toYaml .Values.labels }}
+{{- end }}
+{{- end }}
+
+{{/* "sentinel-lily.workerAllLabels" generates a list of all labels to be used across statefulset resources */}}
+{{- define "sentinel-lily.workerAllLabels" -}}
+{{ include "sentinel-lily.workerSelectorLabels" . }}
+{{ include "sentinel-lily.releaseLabels" . }}
+{{- if .Values.labels }}
+{{ toYaml .Values.labels }}
+{{- end }}
+{{- end }}
+
 {{/* "sentinel-lily.releaseLabels" generates a list of common labels to be used across resources */}}
 {{- define "sentinel-lily.releaseLabels" -}}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
@@ -41,6 +66,18 @@ app.kubernetes.io/part-of: sentinel
 {{- define "sentinel-lily.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "sentinel-lily.name" . | quote }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/* "sentinel-lily.notifierSelectorLabels" generates a list of selector labels to be used across resources */}}
+{{- define "sentinel-lily.notifierSelectorLabels" -}}
+app.kubernetes.io/name: {{ printf "%s-%s" (include "sentinel-lily.name" .) "notifier" | quote }}
+app.kubernetes.io/instance: {{ .Release.Name }}-notifier
+{{- end }}
+
+{{/* "sentinel-lily.workerSelectorLabels" generates a list of selector labels to be used across resources */}}
+{{- define "sentinel-lily.workerSelectorLabels" -}}
+app.kubernetes.io/name: {{ printf "%s-%s" (include "sentinel-lily.name" .) "worker" | quote }}
+app.kubernetes.io/instance: {{ .Release.Name }}-worker
 {{- end }}
 
 {{/* "sentinel-lily.chainImportArgs" creates the arguments for managing optional chain import */}}
@@ -111,4 +148,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{/* "sentinel-lily.service-name-daemon-api" returns the full service name of the Lily daemon API endpoint. This is useful for DNS lookup of the API service. */}}
 {{- define "sentinel-lily.service-name-daemon-api" -}}
   {{- printf "%s-%s" .Release.Name "lily-daemon-api" }}
+{{- end }}
+
+{{/* "sentinel-lily.service-name-redis-api" returns the full service name of the Lily daemon API endpoint. This is useful for DNS lookup of the API service. */}}
+{{- define "sentinel-lily.service-name-redis-api" -}}
+  {{- printf "%s-%s" .Release.Name "lily-redis-api" }}
 {{- end }}

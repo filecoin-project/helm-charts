@@ -13,26 +13,193 @@ release:
   network: mainnet
   environment: dev
 
+# importSnapshot controls the initialization of lily state. When
+# enabled the deployment will start an init container that may call
+# 'lily init' with the url specified. After the init is complete an empty
+# file named '_imported' is placed in the data store directory to signify that
+# the data store has been imported. The import process will be skipped if this
+# file is present.
+# Deleting /var/lib/lily/datastore/_imported will force the import to run the
+# next time the pod is restarted. This may be useful if lily has fallen
+# out of sync for a long period of time.
+importSnapshot:
+  enabled: false
+  url: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
+
+# How long to wait for lily to start before failing
+# Used for all instances
+apiWaitTimeout: "60s"
+
+# deploymentType may be either `cluster` or `daemon`
+deploymentType: daemon
+
+cluster:
+  queue:
+    name: lily
+
+
+  notifier:
+    args: []
+    env: []
+
+    inlineEnabled: false
+    inlineConfig: |
+      # config read by lily
+      [Queue]
+        [Queue.Workers]
+          [Queue.Workers.Worker1]
+            [Queue.Workers.Worker1.RedisConfig]
+              Network = "tcp"
+              Addr = "127.0.0.1:6379"
+              Username = ""
+              Password = ""
+              PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+              DB = 0
+              PoolSize = 0
+            [Queue.Workers.Worker1.WorkerConfig]
+              Concurrency = 1
+              LoggerLevel = "debug"
+              WatchQueuePriority = 5
+              FillQueuePriority = 3
+              IndexQueuePriority = 1
+              WalkQueuePriority = 1
+              StrictPriority = false
+              ShutdownTimeout = 30000000000
+        [Queue.Notifiers]
+          [Queue.Notifiers.Notifier1]
+            Network = "tcp"
+            Addr = "127.0.0.1:6379"
+            Username = ""
+            Password = ""
+            PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+            DB = 0
+            PoolSize = 0
+
+    # jobs is a list of jobs to start on the cluster
+    # the notifier will enqueue these tasks for workers to complete
+    jobs: []
+    #- command: watch
+      #name: ""
+      #args:
+      #- --confidence=10
+      #- --tasks=blocks,messages,chaineconomics
+
+    # storage is a list of storage configurations that will be added to
+    # the lily config and used when starting jobs
+    storage:
+      postgresql: []
+      #- name: db
+        #secretName: postgresql-secret
+        #secretKey: url
+        #schema: lily
+        #applicationName: lily
+        #poolSize: 20
+        #allowUpsert: false
+      file: []
+      #- name: csv
+        #format: CSV
+        #path: /tmp
+
+    resources:
+      requests:
+        cpu: "8000m"
+        memory: "16Gi"
+      limits:
+        cpu: "8000m"
+        memory: "16Gi"
+
+    # volumes enables control over the configuration of attached volumes
+    volumes:
+      # datastore is the volume used for persisting the daemon state. If disabled
+      # then the volume will be set up on the pod's local storage which will is
+      # usually too small but useful to avoid managing volume claims.
+      # Note: Mainnet persistence will require significant IOPS. Default size of
+      # 500Gi will constrain available IOPS. Consider deploying as much as 3000Gi
+      # (or 6000Gi if running 'actorstatesminer' tasks) to make maximum available
+      # IOPS.
+      # Upgrade to storage class io1 for even additional IOPS headroom (up to 64kIOPS).
+      # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
+      # The datastore volume is mounted at /var/lib/lily/datastore
+      datastore:
+        enabled: false
+        size: "500Gi"
+        accessModes:
+        - ReadWriteOnce
+        storageClassName: "gp2"
+        #dataSource: {}
+
+    pubsub:
+      # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
+      ipwhitelist: []
+
+  worker:
+    args: []
+    env: []
+
+    inlineEnabled: false
+    inlineConfig: |
+      # config read by lily
+      [Storage]
+        [Storage.Postgresql]
+          [Storage.Postgresql.Database1]
+            URLEnv = "LILY_DB"
+            ApplicationName = "visor"
+            SchemaName = "public"
+            PoolSize = 20
+            AllowUpsert = false
+
+    resources:
+      requests:
+        cpu: "8000m"
+        memory: "16Gi"
+      limits:
+        cpu: "8000m"
+        memory: "16Gi"
+
+    # storage is a list of storage configurations that will be added to
+    # the lily config and used when starting jobs
+    storage:
+      postgresql: []
+      #- name: db
+        #secretName: postgresql-secret
+        #secretKey: url
+        #schema: lily
+        #applicationName: lily
+        #poolSize: 20
+        #allowUpsert: false
+      file: []
+      #- name: csv
+        #format: CSV
+        #path: /tmp
+
+    # volumes enables control over the configuration of attached volumes
+    volumes:
+      # datastore is the volume used for persisting the daemon state. If disabled
+      # then the volume will be set up on the pod's local storage which will is
+      # usually too small but useful to avoid managing volume claims.
+      # Note: Mainnet persistence will require significant IOPS. Default size of
+      # 500Gi will constrain available IOPS. Consider deploying as much as 3000Gi
+      # (or 6000Gi if running 'actorstatesminer' tasks) to make maximum available
+      # IOPS.
+      # Upgrade to storage class io1 for even additional IOPS headroom (up to 64kIOPS).
+      # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
+      # The datastore volume is mounted at /var/lib/lily/datastore
+      datastore:
+        enabled: false
+        size: "500Gi"
+        accessModes:
+        - ReadWriteOnce
+        storageClassName: "gp2"
+        #dataSource: {}
+
+    pubsub:
+      # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
+      ipwhitelist: []
+
+startCommand: ""
 daemon:
-  # Set enabled to true to run lily in daemon mode with its own data store
-  enabled: true
-  # How long to wait for the daemon to start before failing
-  apiWaitTimeout: "60s"
   args: []
   env: []
-
-  # importSnapshot controls the initialization of the daemon state. When
-  # enabled the deployment will start an init container that may call
-  # 'lily init' with the url specified. After the init is complete an empty
-  # file named '_imported' is placed in the data store directory to signify that
-  # the data store has been imported. The import process will be skipped if this
-  # file is present.
-  # Deleting /var/lib/lily/datastore/_imported will force the import to run the
-  # next time the pod is restarted. This may be useful if the daemon has fallen
-  # out of sync for a long period of time.
-  importSnapshot:
-    enabled: false
-    url: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
 
   # volumes enables control over the configuration of attached volumes
   volumes:
@@ -105,6 +272,7 @@ daemon:
   # which will disable value-mapped config handling below
   inlineEnabled: false
   inlineConfig: |
+    # config read by lily
     [API]
       ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
     [Libp2p]
@@ -150,7 +318,6 @@ daemon:
       #format: CSV
       #path: /tmp
 
-  # daemon pubsub-specific settings
   pubsub:
     # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
     ipwhitelist: []
@@ -180,10 +347,12 @@ debug:
       cpu: "8000m"
       memory: "16Gi"
 
+# applied to all instances
 logFormat: json
 logLevel: warn
 logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
 
+# applied to all instances
 nodeSelector: {}
 tolerations: []
 affinity: {}

@@ -1,4 +1,4 @@
-{{- if .Values.prometheusOperatorServiceMonitor }}
+{{- if and .Values.prometheusOperatorServiceMonitor (ne .Values.deploymentType "cluster")}}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor

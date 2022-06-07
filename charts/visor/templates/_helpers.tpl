@@ -46,8 +46,8 @@ app.kubernetes.io/instance: {{ .Release.Name }}
     chmod 0600 /var/lib/visor/keystore/*
     exit 0
   fi
-  echo "Importing snapshot from url {{ .Values.daemon.importSnapshot.url }}..."
-  visor init --import-snapshot={{ .Values.daemon.importSnapshot.url }}
+  echo "Importing snapshot from url {{ .Values.importSnapshot.url }}..."
+  visor init --import-snapshot={{ .Values.importSnapshot.url }}
   status=$?
   if [ $status -eq 0 ]; then
     touch "/var/lib/visor/datastore/_imported"
