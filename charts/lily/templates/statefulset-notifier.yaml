@@ -1,5 +1,5 @@
 ---
-{{- if ne .Values.deploymentType "cluster" }}
+{{- if eq .Values.deploymentType "cluster" }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
