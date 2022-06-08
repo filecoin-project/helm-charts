@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "filecoin-chain-archiver.fullname" . }}-nodelocker
+  name: {{ include "filecoin-chain-archiver.nodelocker.fullname" . }}
   labels:
-    {{- include "filecoin-chain-archiver.labels" . | nindent 4 }}
+    {{- include "filecoin-chain-archiver.nodelocker.labels" . | nindent 4 }}
 spec:
   selector:
-    {{- include "filecoin-chain-archiver.selectorLabels" . | nindent 4 }}
+    {{- include "filecoin-chain-archiver.nodelocker.selectorLabels" . | nindent 4 }}
   ports:
     - name: service
       protocol: TCP
