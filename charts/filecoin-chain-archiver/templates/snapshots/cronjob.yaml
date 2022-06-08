@@ -1,12 +1,12 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ include "filecoin-chain-archiver.fullname" . }}-snapshot
+  name: {{ include "filecoin-chain-archiver.snapshots.fullname" . }}
   labels:
-    {{- include "filecoin-chain-archiver.labels" . | nindent 4 }}
+    {{- include "filecoin-chain-archiver.snapshots.labels" . | nindent 4 }}
 spec:
   schedule: {{ .Values.snapshots.schedule | quote }}
-  concurrencyPolicy: Forbid
+  concurrencyPolicy: Allow
   startingDeadlineSeconds: 300
   jobTemplate:
     spec:
@@ -23,7 +23,7 @@ spec:
           volumes:
           - name: config-volume
             configMap:
-              name: {{ include "filecoin-chain-archiver.fullname" . }}-config
+              name: {{ include "filecoin-chain-archiver.snapshots.fullname" . }}-config
               items:
               - key: config.toml
                 path: config.toml
@@ -44,7 +44,7 @@ spec:
               - create
             env:
             - name: FCA_CREATE_NODELOCKER_API
-              value: "/dns/{{ include "filecoin-chain-archiver.fullname" . }}-nodelocker/tcp/5100"
+              value: "/dns/{{ include "filecoin-chain-archiver.nodelocker.fullname" . }}/tcp/5100"
             - name: FCA_LOG_LEVEL
               value: {{ .Values.snapshots.logging.level | quote }}
             {{- if .Values.snapshots.logging.named }}
