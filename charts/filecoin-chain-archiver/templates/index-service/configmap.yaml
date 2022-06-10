@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "filecoin-chain-archiver.index-resolver.fullname" . }}-config
+  labels:
+    {{- include "filecoin-chain-archiver.index-resolver.labels" . | nindent 4 }}
+data:
+  config.toml: |
+    [S3Resolver]
+      Endpoint = {{ .Values.indexResolver.s3Resolver.endpoint | quote }}
+      Bucket = {{ .Values.indexResolver.s3Resolver.bucket | quote }}
+      AccessKeyPath = "/secrets/s3/ACCESS_KEY"
+      SecretKeyPath = "/secrets/s3/SECRET_KEY"
