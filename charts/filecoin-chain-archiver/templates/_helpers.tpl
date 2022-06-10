@@ -15,6 +15,16 @@ Expand the name of the chart.
 {{- end }}
 {{- end }}
 
+{{- define "filecoin-chain-archiver._priv.nodelocker.logLevelNamed" -}}
+{{- range .Values.nodelocker.logging.named }}{{(print .logger ":" .level ) }},{{- end }}
+{{- end }}
+
+{{- define "filecoin-chain-archiver.nodelocker.logLevelNamed" -}}
+{{- if .Values.nodelocker.logging.named }}
+{{- (include "filecoin-chain-archiver._priv.nodelocker.logLevelNamed" .) | trimSuffix "," }}
+{{- end }}
+{{- end }}
+
 {{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
@@ -63,6 +73,16 @@ app.kubernetes.io/name: {{ include "filecoin-chain-archiver.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "filecoin-chain-archiver.nodelocker.serviceAccountName" -}}
+{{- if .Values.nodelocker.serviceAccount.create }}
+{{- default (include "filecoin-chain-archiver.fullname" .) .Values.nodelocker.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.nodelocker.serviceAccount.name }}
+{{- end }}
+{{- end }}
 
 {{/*
 Create the name of the service account to use

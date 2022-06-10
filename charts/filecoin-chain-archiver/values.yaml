@@ -8,50 +8,6 @@ image:
   pullPolicy: IfNotPresent
   tag: "latest"
 
-indexResolver:
-  resources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
-
-  additionalEnv: []
-
-  annotations: {}
-
-  serviceAccount:
-    # Specifies whether a service account should be created
-    create: true
-    # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name: ""
-
-  s3Resolver:
-    endpoint: ""
-    bucket: ""
-    # Use an already existing secret. The secret should contain:
-    # - ACCESS_KEY
-    # - SECRET_KEY
-    secretName: ""
-
-    # When set a secret will be created. Further updates to the chart will lookup
-    # the values so that that these values do not need to be passed in multiple times
-    accessKey: ""
-    secretKey: ""
-
-  logging:
-    level: "debug"
-    named: {}
-    # - logger: "filecoin-chain-archiver/operator"
-    #   level: "error"
-  loadBalancer:
-    enabled: false
-    annotations: {}
-
 snapshots:
   # A list of multiaddrs of nodes to use for creating snapshots
   nodes: []
@@ -74,9 +30,6 @@ snapshots:
   # Where `N` is the number of nodes and `30` is the block delay of the network
   # 3600 seconds in 1 hours
   activeDeadlineSeconds: 7200
-
-  # Directly set on the cronjob spec. No reason to change
-  concurrencyPolicy: Allow
 
   jwtTokens:
     # Name of secret containing the jwt token. All nodes should share a common

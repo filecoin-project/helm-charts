@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "filecoin-chain-archiver.nodelocker.fullname" . }}
+  name: {{ include "filecoin-chain-archiver.fullname" . }}-nodelocker
   labels:
-    {{- include "filecoin-chain-archiver.nodelocker.labels" . | nindent 4 }}
+    {{- include "filecoin-chain-archiver.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "filecoin-chain-archiver.nodelocker.selectorLabels" . | nindent 6 }}
+      {{- include "filecoin-chain-archiver.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.nodelocker.annotations }}
@@ -16,7 +16,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "filecoin-chain-archiver.nodelocker.selectorLabels" . | nindent 8 }}
+        {{- include "filecoin-chain-archiver.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
