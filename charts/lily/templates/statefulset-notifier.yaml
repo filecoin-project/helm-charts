@@ -9,7 +9,7 @@ metadata:
 spec:
   replicas: {{ .Values.replicaCount }}
   serviceName: {{ .Release.Name }}-lily-daemon-service
-  podManagementPolicy: Parallel
+  podManagementPolicy: {{ .Values.podManagementPolicy | default "Parallel" | quote }}
   selector:
     matchLabels:
       {{- include "sentinel-lily.selectorLabels" . | nindent 6 }}

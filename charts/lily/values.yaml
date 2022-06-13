@@ -4,6 +4,10 @@ image:
   repo: filecoin/lily
   pullPolicy: IfNotPresent
   tag: latest
+# podManagementPolicy controls the kubernetes rollout policy to apply to
+# the deployed statefulset (Note: both daemon and cluster deployment type
+# adheres to this policy over all pods)
+podManagementPolicy: Parallel
 labels: {}
 release:
   # nameOverride is used to name the instance in external systems. If empty,
