@@ -104,13 +104,16 @@ cluster:
         #format: CSV
         #path: /tmp
 
-    resources:
-      requests:
-        cpu: "8000m"
-        memory: "16Gi"
-      limits:
-        cpu: "8000m"
-        memory: "16Gi"
+    # Required resources to run daemon lily as a client (as is the case with the
+    # notifier) requires much fewer resources than the indexing worker instances.
+    # Please see https://lilium.sh/software/lily/hardware/ for more information.
+    resources: {}
+      #requests:
+        #cpu: "8000m"
+        #memory: "64Gi"
+      #limits:
+        #cpu: "8000m"
+        #memory: "64Gi"
 
     # volumes enables control over the configuration of attached volumes
     volumes:
@@ -152,13 +155,16 @@ cluster:
             PoolSize = 20
             AllowUpsert = false
 
+    # Required resources to run daemon lily are signficant and the below default
+    # may be insufficient. Please see https://lilium.sh/software/lily/hardware/
+    # for more information.
     resources:
-      requests:
-        cpu: "8000m"
-        memory: "16Gi"
-      limits:
-        cpu: "8000m"
-        memory: "16Gi"
+      #requests:
+        #cpu: "8000m"
+        #memory: "16Gi"
+      #limits:
+        #cpu: "8000m"
+        #memory: "16Gi"
 
     # storage is a list of storage configurations that will be added to
     # the lily config and used when starting jobs
@@ -258,16 +264,16 @@ daemon:
     #- messages
 
   # daemon resources
-  # Note: Running lily on mainnet requires SIGNIFICANT resources (>250Gb RAM)
-  # in order to operate comfortably. Test networks may be preferred if resources
-  # are limited.
-  resources:
-    requests:
-      cpu: "8000m"
-      memory: "16Gi"
-    limits:
-      cpu: "8000m"
-      memory: "16Gi"
+  # Required resources to run daemon lily are signficant and the below default
+  # may be insufficient. Please see https://lilium.sh/software/lily/hardware/
+  # for more information.
+  resources: {}
+    #requests:
+      #cpu: "8000m"
+      #memory: "16Gi"
+    #limits:
+      #cpu: "8000m"
+      #memory: "16Gi"
 
   # START inline lily config handling
   # NOTE: This block is inserted as-is into the config.toml
@@ -342,14 +348,14 @@ jaeger:
 
 # debug feature config
 debug:
-  enabled: false
-  resources:
-    requests:
-      cpu: "8000m"
-      memory: "16Gi"
-    limits:
-      cpu: "8000m"
-      memory: "16Gi"
+  enabled: true
+  resources: {}
+    #requests:
+      #cpu: "8000m"
+      #memory: "16Gi"
+    #limits:
+      #cpu: "8000m"
+      #memory: "16Gi"
 
 # applied to all instances
 logFormat: json

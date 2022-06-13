@@ -111,14 +111,9 @@ spec:
         - name: datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
-        {{- /* Minimal resources as work is performed in daemon container. */}}
         resources:
-          requests:
-            cpu: "1000m"
-            memory: "4Gi"
-          limits:
-            cpu: "1000m"
-            memory: "4Gi"
+          # resources required to initialize the datastore are small
+          {{- (include "sentinel-lily.minimal-resources" .) | indent 10 }}
       containers:
       - name: daemon
         image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
@@ -258,9 +253,15 @@ spec:
         - name: datastore-volume
           mountPath: /var/lib/lily/datastore
         {{- end }}
-        {{- if .Values.debug.resources }}
         resources:
+        {{- if .Values.debug.resources }}
           {{- toYaml .Values.debug.resources | nindent 10 }}
+        {{- else }}
+          # resources required to operate the daemon as a client in this debug
+          # container are typically small. Increase this value if you intend to run
+          # lily as a deamon to perform indexing.
+          # See https://lilium.sh/software/lily/hardware/ for more info.
+          {{- (include "sentinel-lily.minimal-resources" .) | indent 10 }}
         {{- end }}
       {{- end }}
       volumes:

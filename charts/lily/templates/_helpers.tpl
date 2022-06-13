@@ -132,3 +132,13 @@ app.kubernetes.io/instance: {{ .Release.Name }}-worker
 {{- end -}}
 {{- $jobName -}}
 {{- end -}}
+
+{{/* "sentinel-lily.minimal-resources" returns the minimal resource.requests for debug/init containers/ */}}
+{{- define "sentinel-lily.minimal-resources" }}
+requests:
+  cpu: "1000m"
+  memory: "4Gi"
+limits:
+  cpu: "1000m"
+  memory: "4Gi"
+{{- end }}
