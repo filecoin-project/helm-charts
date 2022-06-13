@@ -188,7 +188,6 @@ spec:
                   echo "Waiting for api to become ready..."
                   lily wait-api --timeout={{ .Values.apiWaitTimeout | quote }} > /dev/null 2>&1
                   status=$?
-
                   if [ $status -ne 0 ]; then
                     exit $status
                   fi
@@ -199,13 +198,17 @@ spec:
 
                   echo "Starting jobs..."
                   {{- range .Values.daemon.jobs }}
-                    {{- $jobName := "" }}
-                    {{- if .name }}
-                      {{- $jobName = printf "--name %s/%s-`cat /var/lib/lily/uid`" (include "sentinel-lily.instanceName" $) .name }}
-                    {{- else }}
-                      {{- $jobName = printf "--name \"%s/%s-`cat /var/lib/lily/uid`/%s\"" (include "sentinel-lily.instanceName" $) .command (include "sentinel-lily.fingerprintAllArgs" .args) }}
-                    {{- end }}
-                  lily sync wait && sleep 10 && lily {{ .command }} {{ join " " .args }} {{ $jobName }}
+                  {{- $values := (dict
+                    "instanceName" (include "sentinel-lily.instanceName" $)
+                    "jobName" .name
+                    "command" .command
+                  ) }}
+                  lily sync wait && sleep 10 && lily {{ .command }} {{ join " " .args }} {{ include "sentinel-lily.job-name-arg" $values }}
+
+                  status=$?
+                  if [ $status -ne 0 ]; then
+                    exit $status
+                  fi
                   {{- end }}
 
                   # wait for jobs to begin persisting data

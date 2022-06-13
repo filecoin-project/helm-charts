@@ -112,39 +112,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}-worker
 {{- end }}
 {{- end }}
 
-{{/* "sentinel-lily.fingerprintAllArgs" accepts a set of args and returns a string fingerprint to uniquely identify that set. This is useful for automatically generating unique job names based on their input for later identification. */}}
-{{/*
-  Example:
-    input: `--storage=db --confidence=100 --window=30s --tasks=blocks,messages,chaineconomics,actorstatesraw,actorstatespower,actorstatesreward,actorstatesmultisig,msapprovals`
-    output: `s=db,c=100,w=30s,t=blmechSraSpoSreSmums,`
-*/}}
-{{- define "sentinel-lily.fingerprintAllArgs" -}}
-{{- $fingerprint := "" }}
-{{- range . }}
-  {{- $t := lower (mustRegexReplaceAll "-+" . "") }}
-  {{- /* Detect task list and handle fingerprinting specially */}}
-  {{- if mustRegexMatch "^tasks=" $t }}
-    {{- $taskList := trimPrefix "tasks=" $t }}
-    {{- $taskFragment := "" }}
-    {{- /* Split and range over tasklist split on `,` */}}
-    {{- range (mustRegexSplit "," $taskList -1) }}
-      {{- if mustRegexMatch "^actorstates" . }}
-        {{- /* Detect `actorstates` tasks and prefix fragment w `S` to represent a task of this type in the fingerprint */}}
-        {{- $taskFragment = printf "%sS%s" $taskFragment (trunc 2 (trimPrefix "actorstates" .)) }}
-      {{- else }}
-        {{- $taskFragment = printf "%s%s" $taskFragment (trunc 2 .) }}
-      {{- end }}
-    {{- end }}
-    {{- $fingerprint = printf "%st=%s," $fingerprint $taskFragment }}
-  {{- else }}
-  {{- /* Otherwise, fingerprint w first letter of value before and value after */}}
-    {{- $fragment := mustRegexReplaceAll "([a-z0-9])[a-z0-9]*(=?)([0-9]*[a-z]{0,2})" $t "${1}${2}${3}"  }}
-    {{- $fingerprint = printf "%s%s," $fingerprint $fragment }}
-  {{- end }}
-{{- end }}
-{{- $fingerprint }}
-{{- end }}
-
 {{/* "sentinel-lily.service-name-daemon-api" returns the full service name of the Lily daemon API endpoint. This is useful for DNS lookup of the API service. */}}
 {{- define "sentinel-lily.service-name-daemon-api" -}}
   {{- printf "%s-%s" .Release.Name "lily-daemon-api" }}
@@ -154,3 +121,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}-worker
 {{- define "sentinel-lily.service-name-redis-api" -}}
   {{- printf "%s-%s" .Release.Name "lily-redis-api" }}
 {{- end }}
+
+{{/* "sentinel-lily.job-name" returns the name of a specific job defined within .Values.daemon.jobs */}}
+{{- define "sentinel-lily.job-name-arg" -}}
+{{ $jobName := "" -}}
+{{- if .jobName -}}
+  {{- $jobName = printf "--name %s/%s-`cat /var/lib/lily/uid`" .instanceName .jobName -}}
+{{- else }}
+  {{- $jobName = printf "--name \"%s-`cat /var/lib/lily/uid`/%s\"" .instanceName .command -}}
+{{- end -}}
+{{- $jobName -}}
+{{- end -}}
