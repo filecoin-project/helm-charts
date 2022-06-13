@@ -160,11 +160,11 @@ cluster:
     # for more information.
     resources:
       #requests:
-        #cpu: "8000m"
-        #memory: "16Gi"
+        #cpu: "16000m"
+        #memory: "250Gi"
       #limits:
-        #cpu: "8000m"
-        #memory: "16Gi"
+        #cpu: "16000m"
+        #memory: "250Gi"
 
     # storage is a list of storage configurations that will be added to
     # the lily config and used when starting jobs
@@ -269,11 +269,11 @@ daemon:
   # for more information.
   resources: {}
     #requests:
-      #cpu: "8000m"
-      #memory: "16Gi"
+      #cpu: "16000m"
+      #memory: "250Gi"
     #limits:
-      #cpu: "8000m"
-      #memory: "16Gi"
+      #cpu: "16000m"
+      #memory: "250Gi"
 
   # START inline lily config handling
   # NOTE: This block is inserted as-is into the config.toml

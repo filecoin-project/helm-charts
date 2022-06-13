@@ -212,15 +212,18 @@ spec:
 
                   {{ .Values.startCommand }}
         resources:
-        {{- if .Values.daemon.resources }}
-          {{- toYaml .Values.daemon.resources | nindent 10 }}
+        {{- if .Values.cluster.worker.resources }}
+          {{- toYaml .Values.cluster.worker.resources | nindent 10 }}
         {{- else }}
+          # Required resources to run daemon lily are signficant and the below default
+          # may be insufficient. Please see https://lilium.sh/software/lily/hardware/
+          # for more information.
           requests:
-            cpu: "8000m"
-            memory: "16Gi"
+            cpu: "16000m"
+            memory: "250Gi"
           limits:
-            cpu: "8000m"
-            memory: "16Gi"
+            cpu: "16000m"
+            memory: "250Gi"
         {{- end }}
       {{- if .Values.debug.enabled }}
       - name: debug
