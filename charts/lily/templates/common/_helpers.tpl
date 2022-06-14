@@ -252,3 +252,11 @@ tolerations:
   {{- end }}
 
 {{- end -}}
+
+
+{{/*
+    return docker image string to pull
+*/}}
+{{- define "sentinel-lily.docker-image" }}
+{{- required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
+{{- end -}}

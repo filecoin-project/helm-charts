@@ -30,7 +30,7 @@ spec:
       - name: regcred
       initContainers:
       - name: init-datastore
-        image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
+        image: {{ include "sentinel-lily.docker-image" . | quote }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c"]
         args:
@@ -56,7 +56,7 @@ spec:
           {{- (include "sentinel-lily.minimal-resources" .) | indent 10 }}
       containers:
       - name: daemon
-        image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
+        image: {{ include "sentinel-lily.docker-image" . | quote }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["lily"]
         args:
@@ -167,7 +167,7 @@ spec:
         {{- end }}
       {{- if .Values.debug.enabled }}
       - name: debug
-        image: {{ required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
+        image: {{ include "sentinel-lily.docker-image" . | quote }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c", "tail -f /dev/null"]
         env:
