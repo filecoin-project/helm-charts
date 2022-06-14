@@ -25,18 +25,7 @@ spec:
         #runAsNonRoot: true
         #runAsUser: 532
         #runAsGroup: 532
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      {{- include "sentinel-lily.common-lily-affinity-selectors" . | nindent 6 }}
       imagePullSecrets:
       - name: regcred
       initContainers:

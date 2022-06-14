@@ -18,25 +18,7 @@ spec:
       labels:
         {{- include "sentinel-lily.allLabels" . | nindent 8 }}
     spec:
-      # we're going to need root for a little while until
-      # we can package some helper binaries into the image
-      #securityContext:
-        #fsGroup: 532
-        #runAsNonRoot: true
-        #runAsUser: 532
-        #runAsGroup: 532
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      {{- include "sentinel-lily.common-lily-affinity-selectors" . | nindent 6 }}
       imagePullSecrets:
       - name: regcred
       initContainers:
