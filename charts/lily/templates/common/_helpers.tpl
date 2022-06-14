@@ -260,3 +260,32 @@ tolerations:
 {{- define "sentinel-lily.docker-image" }}
 {{- required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
 {{- end -}}
+
+{{/*
+    return lily environment variables
+*/}}
+{{- define "sentinel-lily.common-envvars" -}}
+{{- include "sentinel-lily.jaegerTracingEnvvars" . | indent 8 }}
+- name: GOLOG_LOG_FMT
+  value: {{ .Values.logFormat | default "json" | quote }}
+- name: GOLOG_LOG_LEVEL
+  value: {{ .Values.logLevel | default "info" | quote }}
+{{- if .Values.logLevelNamed }}
+- name: LILY_LOG_LEVEL_NAMED
+  value: {{ .Values.logLevelNamed | quote }}
+{{- end }}
+- name: LILY_REPO
+  value: "/var/lib/lily"
+- name: LILY_CONFIG
+  value: "/var/lib/lily/config.toml"
+{{- range .Values.daemon.storage.postgresql }}
+- name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ required "expected secret name which holds postgres connection url" .secretName }}
+      key: {{ .secretKey | default "url" }}
+{{- end }}
+{{- with .Values.daemon.env }}
+  {{- toYaml . | nindent 8 }}
+{{- end }}
+{{- end -}}

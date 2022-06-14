@@ -36,10 +36,7 @@ spec:
         args:
         {{- include "sentinel-lily.initialize-datastore-script" . | nindent 10 }}
         env:
-        - name: GOLOG_LOG_FMT
-          value: {{ .Values.logFormat | default "json" | quote }}
-        - name: LILY_REPO
-          value: "/var/lib/lily"
+        {{- include "sentinel-lily.common-envvars" . | indent 8 }}
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/lily
@@ -65,29 +62,7 @@ spec:
         - {{ . }}
         {{- end }}
         env:
-        {{- include "sentinel-lily.jaegerTracingEnvvars" . | indent 8 }}
-        - name: GOLOG_LOG_FMT
-          value: {{ .Values.logFormat | default "json" | quote }}
-        - name: GOLOG_LOG_LEVEL
-          value: {{ .Values.logLevel | default "info" | quote }}
-        {{- if .Values.logLevelNamed }}
-        - name: LILY_LOG_LEVEL_NAMED
-          value: {{ .Values.logLevelNamed | quote }}
-        {{- end }}
-        - name: LILY_REPO
-          value: "/var/lib/lily"
-        - name: LILY_CONFIG
-          value: "/var/lib/lily/config.toml"
-        {{- range .Values.daemon.storage.postgresql }}
-        - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
-          valueFrom:
-            secretKeyRef:
-              name: {{ required "expected secret name which holds postgres connection url" .secretName }}
-              key: {{ .secretKey | default "url" }}
-        {{- end }}
-        {{- with .Values.daemon.env }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
+        {{- include "sentinel-lily.common-envvars" . | indent 8 }}
         ports:
         - containerPort: 1234
           name: api
@@ -171,17 +146,7 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c", "tail -f /dev/null"]
         env:
-        - name: LILY_REPO
-          value: "/var/lib/lily"
-        - name: LILY_CONFIG
-          value: "/var/lib/lily/config.toml"
-        {{- range .Values.daemon.storage.postgresql }}
-        - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
-          valueFrom:
-            secretKeyRef:
-              name: {{ required "must have the secret name which holds postgres connection url" .secretName }}
-              key: {{ .secretKey | default "url" }}
-        {{- end }}
+        {{- include "sentinel-lily.common-envvars" . | indent 8 }}
         volumeMounts:
         - name: repo-volume
           mountPath: /var/lib/lily
