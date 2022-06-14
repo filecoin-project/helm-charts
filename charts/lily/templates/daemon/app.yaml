@@ -18,13 +18,13 @@ spec:
       labels:
         {{- include "sentinel-lily.allLabels" . | nindent 8 }}
     spec:
-      {{- include "sentinel-lily.common-lily-affinity-selectors" . | nindent 6 }}
+      {{- include "sentinel-lily.common-lily-affinity-selectors" . | indent 6 }}
       imagePullSecrets:
       - name: regcred
       initContainers:
       - name: init-datastore
         image: {{ include "sentinel-lily.docker-image" . | quote }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         command: ["/bin/sh", "-c"]
         args:
         {{- include "sentinel-lily.initialize-datastore-script" . | nindent 10 }}
@@ -43,11 +43,11 @@ spec:
         {{- end }}
         resources:
           # resources required to initialize the datastore are small
-          {{- (include "sentinel-lily.minimal-resources" .) | indent 10 }}
+          {{- include "sentinel-lily.minimal-resources" . | indent 10 }}
       containers:
       - name: daemon
         image: {{ include "sentinel-lily.docker-image" . | quote }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         command: ["lily"]
         args:
         - daemon
@@ -117,8 +117,7 @@ spec:
                   # wait for jobs to begin persisting data
                   # TODO: make this less dumb
                   sleep 60
-
-                  {{ .Values.startCommand }}
+                  {{- .Values.startCommand }}
         resources:
         {{- if .Values.daemon.resources }}
           {{- toYaml .Values.daemon.resources | nindent 10 }}
@@ -136,7 +135,7 @@ spec:
       {{- if .Values.debug.enabled }}
       - name: debug
         image: {{ include "sentinel-lily.docker-image" . | quote }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         command: ["/bin/sh", "-c", "tail -f /dev/null"]
         env:
         {{- include "sentinel-lily.common-envvars" . | indent 8 }}

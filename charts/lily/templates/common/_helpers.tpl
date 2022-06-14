@@ -14,6 +14,7 @@
 {{- (include "sentinel-lily.instanceName" . ) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
+
 {{/*
     generates a descriptive name of the instance based on release values or release.nameOverride
 */}}
@@ -30,6 +31,7 @@
 {{- end }}
 {{- end }}
 
+
 {{/* 
     generates a list of all labels to be used across statefulset resources
 */}}
@@ -40,6 +42,7 @@
 {{ toYaml .Values.labels }}
 {{- end }}
 {{- end }}
+
 
 {{/*
     generates a list of all labels to be used across statefulset resources
@@ -52,6 +55,7 @@
 {{- end }}
 {{- end }}
 
+
 {{/*
     generates a list of all labels to be used across statefulset resources
 */}}
@@ -62,6 +66,7 @@
 {{ toYaml .Values.labels }}
 {{- end }}
 {{- end }}
+
 
 {{/*
     generates a list of common labels to be used across resources
@@ -76,6 +81,7 @@ app.kubernetes.io/part-of: sentinel
 {{- end }}
 {{- end }}
 
+
 {{/*
     generates a list of selector labels to be used across resources
 */}}
@@ -83,6 +89,7 @@ app.kubernetes.io/part-of: sentinel
 app.kubernetes.io/name: {{ include "sentinel-lily.name" . | quote }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
 
 {{/*
     generates a list of selector labels to be used across resources
@@ -92,6 +99,7 @@ app.kubernetes.io/name: {{ printf "%s-%s" (include "sentinel-lily.name" .) "noti
 app.kubernetes.io/instance: {{ .Release.Name }}-notifier
 {{- end }}
 
+
 {{/*
     generates a list of selector labels to be used across resources
 */}}
@@ -100,11 +108,13 @@ app.kubernetes.io/name: {{ printf "%s-%s" (include "sentinel-lily.name" .) "work
 app.kubernetes.io/instance: {{ .Release.Name }}-worker
 {{- end }}
 
+
 {{/*
     creates the arguments for managing optional chain import
 */}}
 {{- define "sentinel-lily.chainImportArgs" }}
 {{- end }}
+
 
 {{/*
     creates the envvars for supporting jaeger tracing
@@ -137,6 +147,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}-worker
 {{- end }}
 {{- end }}
 
+
 {{/*
     returns the full service name of the Lily daemon API endpoint.
     This is useful for DNS lookup of the API service.
@@ -145,6 +156,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}-worker
   {{- printf "%s-%s" .Release.Name "lily-daemon-api" }}
 {{- end }}
 
+
 {{/*
     returns the full service name of the Lily daemon API endpoint.
     This is useful for DNS lookup of the API service.
@@ -152,6 +164,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}-worker
 {{- define "sentinel-lily.service-name-redis-api" -}}
   {{- printf "%s-%s" .Release.Name "lily-redis-api" }}
 {{- end }}
+
 
 {{/*
     returns the name of a specific job defined within .Values.daemon.jobs
@@ -166,6 +179,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}-worker
 {{- $jobName -}}
 {{- end -}}
 
+
 {{/*
     resources" returns the minimal resource.requests for debug/init containers/
 */}}
@@ -177,6 +191,7 @@ limits:
   cpu: "1000m"
   memory: "4Gi"
 {{- end }}
+
 
 {{/*
     create common nodeSelector, affinity, and tolerance values
@@ -195,6 +210,7 @@ tolerations:
   {{- toYaml . | nindent 0 }}
 {{- end }}
 {{- end -}}
+
 
 {{/*
     common script for initializing the datastore for all deployments
@@ -250,7 +266,6 @@ tolerations:
   chmod 0600 /var/lib/lily/keystore/*
   exit $status
   {{- end }}
-
 {{- end -}}
 
 
