@@ -31,16 +31,7 @@ spec:
         env:
         {{- include "sentinel-lily.common-envvars" . | indent 8 }}
         volumeMounts:
-        - name: repo-volume
-          mountPath: /var/lib/lily
-        - name: config-volume
-          mountPath: /var/lib/lily/config.toml
-          subPath: config.toml
-          readOnly: true
-        {{- if .Values.daemon.volumes.datastore.enabled }}
-        - name: datastore-volume
-          mountPath: /var/lib/lily/datastore
-        {{- end }}
+        {{- include "sentinel-lily.common-volume-mounts" . | indent 8 }}
         resources:
           # resources required to initialize the datastore are small
           {{- (include "sentinel-lily.minimal-resources" .) | indent 10 }}
@@ -66,19 +57,7 @@ spec:
           name: metrics
         {{- end }}
         volumeMounts:
-        - name: repo-volume
-          mountPath: /var/lib/lily
-        - name: config-volume
-          mountPath: /var/lib/lily/config.toml
-          subPath: config.toml
-          readOnly: true
-        - name: waitjob-script-volume
-          mountPath: /var/lib/lily/waitjob.sh
-          subPath: waitjob.sh
-        {{- if .Values.daemon.volumes.datastore.enabled }}
-        - name: datastore-volume
-          mountPath: /var/lib/lily/datastore
-        {{- end }}
+        {{- include "sentinel-lily.common-volume-mounts" . | indent 8 }}
         lifecycle:
           postStart:
             exec:
@@ -140,19 +119,7 @@ spec:
         env:
         {{- include "sentinel-lily.common-envvars" . | indent 8 }}
         volumeMounts:
-        - name: repo-volume
-          mountPath: /var/lib/lily
-        - name: config-volume
-          mountPath: /var/lib/lily/config.toml
-          subPath: config.toml
-          readOnly: true
-        - name: waitjob-script-volume
-          mountPath: /var/lib/lily/waitjob.sh
-          subPath: waitjob.sh
-        {{- if .Values.daemon.volumes.datastore.enabled }}
-        - name: datastore-volume
-          mountPath: /var/lib/lily/datastore
-        {{- end }}
+        {{- include "sentinel-lily.common-volume-mounts" . | indent 8 }}
         resources:
         {{- if .Values.debug.resources }}
           {{- toYaml .Values.debug.resources | nindent 10 }}

@@ -304,3 +304,23 @@ tolerations:
   {{- toYaml . | nindent 8 }}
 {{- end }}
 {{- end -}}
+
+
+{{/*
+    common volume mount values for all deployment types
+*/}}
+{{- define "sentinel-lily.common-volume-mounts" }}
+- name: repo-volume
+  mountPath: /var/lib/lily
+- name: config-volume
+  mountPath: /var/lib/lily/config.toml
+  subPath: config.toml
+  readOnly: true
+- name: waitjob-script-volume
+  mountPath: /var/lib/lily/waitjob.sh
+  subPath: waitjob.sh
+{{- if .Values.daemon.volumes.datastore.enabled }}
+- name: datastore-volume
+  mountPath: /var/lib/lily/datastore
+{{- end }}
+{{- end -}}
