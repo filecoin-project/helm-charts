@@ -181,25 +181,25 @@ limits:
 {{/*
     create common nodeSelector, affinity, and tolerance values
 */}}
-{{- define "sentinel-lily.common-lily-affinity-selectors" }}
-{{- with .Values.nodeSelector }}
+{{- define "sentinel-lily.common-lily-affinity-selectors" -}}
+{{- with .Values.nodeSelector -}}
 nodeSelector:
-  {{- toYaml . | nindent 8 }}
+  {{- toYaml . | nindent 2 }}
 {{- end }}
 {{- with .Values.affinity }}
 affinity:
-  {{- toYaml . | nindent 8 }}
+  {{- toYaml . | nindent 2 }}
 {{- end }}
 {{- with .Values.tolerations }}
 tolerations:
-  {{- toYaml . | nindent 8 }}
+  {{- toYaml . | nindent 0 }}
 {{- end }}
-{{- end }}
+{{- end -}}
 
 {{/*
     common script for initializing the datastore for all deployments
 */}}
-{{- define "sentinel-lily.initialize-datastore-script" }}
+{{- define "sentinel-lily.initialize-datastore-script" -}}
 - |
   set -x
 
