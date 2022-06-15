@@ -364,3 +364,30 @@ tolerations:
   {{- .Values.startCommand }}
   {{- end }}
 {{- end -}}
+
+
+{{/*
+    common volume claim templates for PVCs
+*/}}
+{{- define "sentinel-lily.volume-claim-templates" }}
+{{- if .enabled }}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: datastore-volume
+  spec:
+    accessModes:
+    {{- range .accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+    storageClassName: {{ .storageClassName }}
+    volumeMode: Filesystem
+    resources:
+      requests:
+        storage: {{ .size | quote }}
+    {{- with .dataSource }}
+    dataSource:
+      {{- toYaml . | nindent 10 }}
+    {{- end }}
+{{- end }}
+{{- end -}}

@@ -118,25 +118,6 @@ spec:
             path: waitjob.sh
             mode: 0755
   volumeClaimTemplates:
-  {{- if .Values.daemon.volumes.datastore.enabled }}
-  - apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: datastore-volume
-    spec:
-      accessModes:
-      {{- range .Values.daemon.volumes.datastore.accessModes }}
-      - {{ . | quote }}
-      {{- end }}
-      storageClassName: {{ .Values.daemon.volumes.datastore.storageClassName }}
-      volumeMode: Filesystem
-      resources:
-        requests:
-          storage: {{ .Values.daemon.volumes.datastore.size | quote }}
-      {{- with .Values.daemon.volumes.datastore.dataSource }}
-      dataSource:
-        {{- toYaml . | nindent 10 }}
-      {{- end }}
-  {{- end}}
+  {{- include "sentinel-lily.volume-claim-templates" .Values.cluster.worker.volumes.datastore | indent 2 }}
 {{- end }}
 
