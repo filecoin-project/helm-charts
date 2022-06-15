@@ -391,3 +391,25 @@ tolerations:
     {{- end }}
 {{- end }}
 {{- end -}}
+
+
+{{/*
+    common volume mount configuration
+*/}}
+{{- define "sentinel-lily.volume-mounts" }}
+- name: repo-volume
+  emptyDir: {}
+- name: config-volume
+  configMap:
+    name: {{ .Release.Name }}-lily-config
+    items:
+    - key: config.toml
+      path: config.toml
+- name: waitjob-script-volume
+  configMap:
+    name: {{ .Release.Name }}-lily-waitjob-script
+    items:
+    - key: waitjob.sh
+      path: waitjob.sh
+      mode: 0755
+{{- end -}}

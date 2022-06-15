@@ -102,21 +102,7 @@ spec:
         {{- end }}
       {{- end }}
       volumes:
-      - name: repo-volume
-        emptyDir: {}
-      - name: config-volume
-        configMap:
-          name: {{ .Release.Name }}-lily-config
-          items:
-          - key: config.toml
-            path: config.toml
-      - name: waitjob-script-volume
-        configMap:
-          name: {{ .Release.Name }}-lily-waitjob-script
-          items:
-          - key: waitjob.sh
-            path: waitjob.sh
-            mode: 0755
+      {{- include "sentinel-lily.volume-mounts" . | indent 6 }}
   volumeClaimTemplates:
   {{- include "sentinel-lily.volume-claim-templates" .Values.daemon.volumes.datastore | indent 2 }}
 {{- end }}
