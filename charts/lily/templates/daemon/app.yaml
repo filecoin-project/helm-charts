@@ -66,37 +66,7 @@ spec:
                 - "-c"
                   # lifecycle.postStart.exec.command doesn't accept args
                   # so we execute this script as a multiline string
-                - |
-                  echo "Waiting for api to become ready..."
-                  lily wait-api --timeout={{ .Values.apiWaitTimeout | quote }} > /dev/null 2>&1
-                  status=$?
-                  if [ $status -ne 0 ]; then
-                    exit $status
-                  fi
-
-                  # wait 3 minutes to let the node's datastore settle
-                  # TODO: configurable value here
-                  sleep 180
-
-                  echo "Starting jobs..."
-                  {{- range .Values.daemon.jobs }}
-                  {{- $values := (dict
-                    "instanceName" (include "sentinel-lily.instanceName" $)
-                    "jobName" .name
-                    "command" .command
-                  ) }}
-                  lily sync wait && sleep 10 && lily {{ .command }} {{ join " " .args }} {{ include "sentinel-lily.job-name-arg" $values }}
-
-                  status=$?
-                  if [ $status -ne 0 ]; then
-                    exit $status
-                  fi
-                  {{- end }}
-
-                  # wait for jobs to begin persisting data
-                  # TODO: make this less dumb
-                  sleep 60
-                  {{- .Values.startCommand }}
+                {{- include "sentinel-lily.common-job-start-script" . | indent 16 }}
         resources:
         {{- if .Values.daemon.resources }}
           {{- toYaml .Values.daemon.resources | nindent 10 }}
