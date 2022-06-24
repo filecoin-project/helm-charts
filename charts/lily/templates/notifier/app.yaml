@@ -42,7 +42,7 @@ spec:
         command: ["lily"]
         args:
         - daemon
-        {{- range .Values.daemon.args }}
+        {{- range .Values.cluster.notifier.args }}
         - {{ . }}
         {{- end }}
         env:
