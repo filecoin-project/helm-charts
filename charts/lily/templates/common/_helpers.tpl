@@ -158,6 +158,41 @@ app.kubernetes.io/instance: {{ .Release.Name }}-worker
 
 
 {{/*
+    builds the template specific for each app type
+*/}}
+{{- define "sentinel-lily.daemon-api-service-template" -}}
+{{- include "sentinel-lily.app-api-service-template" (list "daemon" .) }}
+{{- end -}}
+
+{{- define "sentinel-lily.notifier-api-service-template" -}}
+{{- include "sentinel-lily.app-api-service-template" (list "notifier" .) }}
+{{- end -}}
+
+{{- define "sentinel-lily.worker-api-service-template" -}}
+{{- include "sentinel-lily.app-api-service-template" (list "worker" .) }}
+{{- end -}}
+
+{{- define "sentinel-lily.app-api-service-template" -}}
+{{- $instanceType := index . 0 -}}
+{{- $root := index . 1 -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-lily-%s-api" $root.Release.Name $instanceType }}
+  labels:
+    {{- include "sentinel-lily.allLabels" $root | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "sentinel-lily.selectorLabels" $root | nindent 4 }}
+  ports:
+    - name: api-port
+      protocol: TCP
+      port: 1234
+{{- end -}}
+
+
+{{/*
     returns the full service name of the Lily daemon API endpoint.
     This is useful for DNS lookup of the API service.
 */}}

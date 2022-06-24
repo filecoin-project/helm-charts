@@ -1,17 +1,4 @@
 {{- if ne .Values.deploymentType "cluster" }}
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "sentinel-lily.service-name-daemon-api" . }}
-  labels:
-    {{- include "sentinel-lily.allLabels" . | nindent 4 }}
-spec:
-  type: ClusterIP
-  selector:
-    {{- include "sentinel-lily.selectorLabels" . | nindent 4 }}
-  ports:
-    - name: api-port
-      protocol: TCP
-      port: 1234
+{{- include "sentinel-lily.daemon-api-service-template" . }}
 {{- end }}

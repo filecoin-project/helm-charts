@@ -1,0 +1,4 @@
+{{- if eq .Values.deploymentType "cluster" }}
+---
+{{- include "sentinel-lily.worker-api-service-template" . }}
+{{- end }}
