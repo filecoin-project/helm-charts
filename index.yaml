@@ -221,9 +221,9 @@ entries:
     version: 0.0.7
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-27T02:48:50.199016426Z"
+    created: "2022-05-23T19:50:22.665992675Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 1a1213d8730ff3cba4b2128a2398436a02aebfda570a19c28dcc057564717327
+    digest: 9ae9634d841abc1877e0a14607aad292112e5eecec582b5b6cfba94615070308
     name: lily
     type: application
     urls:
@@ -311,9 +311,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-23T19:50:22.665992675Z"
+    created: "2022-05-25T22:07:37.530185358Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 9ae9634d841abc1877e0a14607aad292112e5eecec582b5b6cfba94615070308
+    digest: 9831018faa9b33048be5a8546c095f6b01451aad0091a8edddc41191cd8d16aa
     name: lily
     type: application
     urls:
@@ -371,9 +371,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-25T22:07:37.530185358Z"
+    created: "2022-05-27T02:48:50.199016426Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 9831018faa9b33048be5a8546c095f6b01451aad0091a8edddc41191cd8d16aa
+    digest: 1a1213d8730ff3cba4b2128a2398436a02aebfda570a19c28dcc057564717327
     name: lily
     type: application
     urls:
@@ -906,6 +906,17 @@ entries:
     - https://github.com/filecoin-project/helm-charts/releases/download/lotus-mpool-stats-0.1.0/lotus-mpool-stats-0.1.0.tgz
     version: 0.1.0
   lotus-secrets-creator:
+  - apiVersion: v2
+    appVersion: 1.1.2
+    created: "2022-07-27T21:12:56.032534453Z"
+    description: Helm chart for creator valid libp2p and jwt secrets on cluster for
+      lotus-fullnode charts
+    digest: 11614537b97ea11c511c0109b8e8d8bd37f3f943e635561187612efac57c8abf
+    name: lotus-secrets-creator
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-secrets-creator-0.1.1/lotus-secrets-creator-0.1.1.tgz
+    version: 0.1.1
   - apiVersion: v2
     appVersion: 1.1.2
     created: "2020-11-13T23:00:57.365212922Z"
