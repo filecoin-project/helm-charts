@@ -7,28 +7,29 @@
 {{- end }}
 
 
-{{/*
-  truncated "instanceName" for use within k8s values
-*/}}
-{{- define "sentinel-lily.name" -}}
-{{- (include "sentinel-lily.instanceName" . ) | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
 
 {{/*
     generates a descriptive name of the instance based on release values or release.nameOverride
 */}}
-{{- define "sentinel-lily.instanceName" -}}
+{{- define "sentinel-lily.instance-name" -}}
 {{- if and .Values.release .Values.release.nameOverride }}
-{{- .Values.release.nameOverride }}
+{{- .Values.release.nameOverride | lower }}
 {{- else }}
 {{- printf "%s-%s-%s-%s"
       .Chart.Name
+      .Release.Name
       (required "(root).release.environment expected" .Values.release.environment)
       (required "(root).release.network expected" .Values.release.network)
-      .Release.Name
-}}
+ | lower }}
 {{- end }}
+{{- end }}
+
+
+{{/*
+  truncated "instance-name" for use within k8s values
+*/}}
+{{- define "sentinel-lily.short-instance-name" -}}
+{{- (include "sentinel-lily.instance-name" . ) | trunc 32 | trimSuffix "-" }}
 {{- end }}
 
 
@@ -362,41 +363,86 @@ tolerations:
 
 
 {{/*
+    returns the name of a specific job defined within .Values.daemon.jobs
+*/}}
+{{- define "sentinel-lily.job-name-arg" -}}
+{{- $instanceName := index . 0 -}}
+{{- $jobName := index . 1 -}}
+{{- printf "--name=%s" (printf "%s/%s-`cat /var/lib/lily/uid`" $instanceName $jobName | quote ) -}}
+{{- end -}}
+
+
+{{/*
     common script to start jobs on starting daemon
 */}}
 {{- define "sentinel-lily.common-job-start-script" }}
+{{- $values := index . 0 -}}
+{{- $instanceType := index . 1 -}}
+# lifecycle.postStart.exec.command doesn't accept args
+# so we execute this script as a multiline string
+- "/bin/sh"
+- "-c"
 - |
   echo "Waiting for api to become ready..."
-  lily wait-api --timeout={{ .Values.apiWaitTimeout | quote }} > /dev/null 2>&1
+  lily wait-api --timeout={{ $values.apiWaitTimeout | quote }} > /dev/null 2>&1
   status=$?
   if [ $status -ne 0 ]; then
+    echo "exit with code $status"
     exit $status
   fi
 
-  {{- if .Values.daemon.jobs }}
   # wait 3 minutes to let the node's datastore settle
-  # TODO: configurable value here
+  echo "Waiting for datastore to settle... (3m)"
   sleep 180
 
-  echo "Starting jobs..."
-  {{- range .Values.daemon.jobs }}
-  {{- $values := (dict
-    "instanceName" (include "sentinel-lily.instanceName" $)
-    "jobName" .name
-    "command" .command
-  ) }}
-  lily sync wait && sleep 10 && lily {{ .command }} {{ join " " .args }} {{ include "sentinel-lily.job-name-arg" $values }}
-
+  {{- if eq $instanceType "daemon" }}
+    {{- $jobs := $values.daemon.jobs -}}
+    {{- if $jobs }}
+    echo "Starting jobs..."
+    {{- range $jobs }}
+    echo "...starting job '{{ .name | default .command }}'"
+  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} {{ include "sentinel-lily.job-name-arg" (list $values.instanceName ( .name | default .command )) }} {{ .command }} {{ .commandArgs | join " " }}
   status=$?
   if [ $status -ne 0 ]; then
+    echo "exit with code $status"
     exit $status
   fi
-  {{- end }}
+    {{- end }}
+    {{- end }}
 
-  # wait for jobs to begin persisting data
-  # TODO: make this less dumb
-  sleep 60
-  {{- .Values.startCommand }}
+
+  {{- else if eq $instanceType "notifier" }}
+    {{- $jobs := $values.cluster.jobs -}}
+    {{- if $jobs }}
+  echo "Starting jobs..."
+    {{- range $jobs }}
+    echo "...starting job '{{ .name | default .command }}'"
+  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list .Values.instanceName ( .name | default .command )) }} {{ .jobArgs | join " " }} {{ .command }} {{ .commandArgs | join " " }} notify --queue={{ .queue | quote }}
+  status=$?
+  if [ $status -ne 0 ]; then
+    echo "exit with code $status"
+    exit $status
+  fi
+    {{- end }}
+    {{- end }}
+
+
+  {{- else if eq $instanceType "worker" }}
+    {{- $jobs := $values.daemon.jobs -}}
+    {{- if $jobs }}
+  echo "Starting jobs..."
+    {{- range $jobs }}
+    echo "...starting job '{{ .name | default .command }}'"
+  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list .Values.instanceName ( .name | default .command )) }} {{ .jobArgs | join " " }} tipset-worker --queue={{ .queue | quote }}
+  status=$?
+  if [ $status -ne 0 ]; then
+    echo "exit with code $status"
+    exit $status
+  fi
+    {{- end }}
+    {{- end }}
+  {{- else }}
+  {{- fail printf "Unexpected $instanceType: %s" $instanceType }}
   {{- end }}
 {{- end -}}
 
