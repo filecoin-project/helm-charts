@@ -3,28 +3,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "sentinel-lily.instanceName" . }}-redis-main
+  name: {{ list ( include "sentinel-lily.short-instance-name" $ ) "redis-main" | join "-" | quote }}
   labels:
-    app: redis
+    app: "redis"
 spec:
   selector:
     matchLabels:
-      app: redis
-      role: main
+      app: "redis"
+      role: "main"
   replicas: 1
   template:
     metadata:
       labels:
-        app: redis
-        role: main
+        app: "redis"
+        role: "main"
     spec:
       containers:
-      - name: main
-        image: redis
+      - name: "main"
+        image: "redis"
         resources:
           requests:
-            cpu: 100m
-            memory: 100Mi
+            cpu: "1000m"
+            memory: "1Gi"
         ports:
         - containerPort: 6379
 {{- end }}
