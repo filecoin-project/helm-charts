@@ -267,14 +267,13 @@ tolerations:
   # create empty keystore
   if [ ! -f "/var/lib/lily/keystore" ]; then
     mkdir -p /var/lib/lily/keystore
+    chmod -R 0600 /var/lib/lily/keystore
   fi
 
   # import snapshot if enabled
   {{- if .Values.importSnapshot.enabled }}
   if [ -f "/var/lib/lily/datastore/_imported" ]; then
     echo "Skipping import, found /var/lib/lily/datastore/_imported file."
-    echo "Ensuring secrets have correct permissions."
-    chmod 0600 /var/lib/lily/keystore/*
     exit 0
   fi
 
@@ -287,23 +286,23 @@ tolerations:
     (cd /var/lib/lily/datastore && aria2c -x16 -k1M -o snapshot.car {{ .Values.importSnapshot.url }})
     status=$?
     if [ $status -ne 0 ]; then
-      rm /var/lib/lily/datastore/snapshot.car
+      if [ -f /var/lib/lily/datastore/snapshot.car ]; then
+        rm /var/lib/lily/datastore/snapshot.car
+      fi
       echo "...download failed: $status"
       exit $status
     fi
   fi
 
-
   echo "*** Importing snapshot..."
   lily init --import-snapshot=/var/lib/lily/datastore/snapshot.car
   status=$?
   if [ $status -eq 0 ]; then
-    rm /var/lib/lily/datastore/snapshot.car
     touch "/var/lib/lily/datastore/_imported"
   fi
+  # always remove so we can do a fresh download on next start
+  rm /var/lib/lily/datastore/snapshot.car
 
-  echo "Ensuring secrets have correct permissions."
-  chmod 0600 /var/lib/lily/keystore/*
   exit $status
   {{- end }}
 {{- end -}}
