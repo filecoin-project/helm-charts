@@ -1,19 +1,19 @@
 {{/*
     template for creating a lily stateful set
 */}}
-
 {{- define "sentinel-lily.lily-app-template" -}}
 {{- $instanceType := index . 0 -}}
 {{- $root := index . 1 -}}
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ $root.Release.Name }}-lily
+  name: {{ list ( include "sentinel-lily.short-instance-name" $root ) $instanceType | join "-" | quote }}
   labels:
     {{- include "sentinel-lily.allLabels" $root | nindent 4 }}
 spec:
   replicas: {{ $root.Values.replicaCount }}
-  serviceName: {{ $root.Release.Name }}-lily-{{ $instanceType }}-service
+  serviceName: {{ include "sentinel-lily.short-instance-name" $root }}-{{ $instanceType }}-lily-api
   podManagementPolicy: {{ $root.Values.podManagementPolicy | default "Parallel" | quote }}
   selector:
     matchLabels:
@@ -39,7 +39,7 @@ spec:
         {{- include "sentinel-lily.common-volume-mounts" $root | indent 8 }}
         resources:
           # resources required to initialize the datastore are small
-          {{- include "sentinel-lily.minimal-resources" $root | indent 10 }}
+          {{- include "sentinel-lily.minimal-resources" $root.Values.debug.resources | indent 10 }}
       - name: init-sync
         image: {{ include "sentinel-lily.docker-image" $root | quote }}
         imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
@@ -53,7 +53,6 @@ spec:
         resources:
           # resources required to initialize the datastore are small
           {{- include "sentinel-lily.minimal-resources" $root | indent 10 }}
-
       containers:
       {{- if $root.Values.debug.enabled }}
       - name: debug
@@ -66,7 +65,7 @@ spec:
         {{- include "sentinel-lily.common-volume-mounts" $root | indent 8 }}
         resources:
         {{- if $root.Values.debug.resources }}
-          {{- include "sentinel-lily.app-resources" $root.Values.debug.resources | nindent 10 }}
+          {{- include "sentinel-lily.minimal-resources" $root.Values.debug.resources | nindent 10 }}
         {{- else }}
           requests:
             cpu: "1000m"

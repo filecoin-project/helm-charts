@@ -1,21 +1,26 @@
 # Default values for Sentinel Lily
 replicaCount: 1
 image:
-  repo: filecoin/lily
-  pullPolicy: IfNotPresent
-  tag: latest
+  repo: "filecoin/lily"
+  pullPolicy: "IfNotPresent"
+  tag: "latest"
 # podManagementPolicy controls the kubernetes rollout policy to apply to
 # the deployed statefulset (Note: both daemon and cluster deployment type
 # adheres to this policy over all pods)
-podManagementPolicy: Parallel
+podManagementPolicy: "Parallel"
 labels: {}
 release:
   # nameOverride is used to name the instance in external systems. If empty,
   # then the network, environment, and release name values are used with the
   # chart name to generate a name.
-  #nameOverride:
-  network: mainnet
-  environment: dev
+  #nameOverride: ""
+  network: "mainnet"
+  environment: "dev"
+
+# applied to all instances
+nodeSelector: {}
+tolerations: []
+affinity: {}
 
 # importSnapshot controls the initialization of lily state. When
 # enabled the deployment will start an init container that may call
@@ -27,26 +32,190 @@ release:
 # next time the pod is restarted. This may be useful if lily has fallen
 # out of sync for a long period of time.
 importSnapshot:
-  enabled: false
+  enabled: true
   url: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
 
 # How long to wait for lily to start before failing
 # Used for all instances
 apiWaitTimeout: "60s"
 
+# service monitoring
+prometheusOperatorServiceMonitor: true
+prometheusPort: ":9991"
+
+# service tracing
+jaeger:
+  enabled: false
+  providerUrl: "" # default: https://{node.status.hostIP}:6831/api/traces
+  serviceName: "" # default: include sentinel-lily.instance-name
+  samplerRatio: "0.01"
+
+# debug feature config
+debug:
+  enabled: true
+  resources: {}
+    #requests:
+      #cpu: "8000m"
+      #memory: "16Gi"
+    #limits:
+      #cpu: "8000m"
+      #memory: "16Gi"
+
+# applied to all instances
+logFormat: "json"
+logLevel: "warn"
+logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
+
 # deploymentType may be either `cluster` or `daemon`
-deploymentType: daemon
+deploymentType: "daemon"
 
 cluster:
-  queue:
-    name: lily
+  queues: []
 
+  # storage is a list of storage configurations that will be added to
+  # the lily config and used when starting jobs
+  storage:
+    postgresql:
+    - name: "db"
+      secretName: "postgresql-secret"
+      secretKey: "url"
+      schema: "lily"
+      applicationName: "lily"
+      poolSize: 20
+      allowUpsert: false
+    file:
+    - name: "csv"
+      format: "CSV"
+      path: "/tmp"
+
+  # jobs is a list of jobs to start on the daemon
+  # as a single daemon queueing the jobs in parallel.
+  # NOTE: If executing multiple tasks with the same prefix
+  # it is highly recommended to execute them in the same job
+  # so that local caching can optimize task execution performance.
+  jobs: []
+  #- command: "watch"
+    ##  name of the job as it will be reported in processing reports
+    #name: ""
+    ##  name of the queue configuration to use for queueing up tasks with
+    ## this job's work
+    #queue: ""
+    ##  name of the storage configuration to use when persisting exported data
+    #storage: ""
+    ## args to apply to this specific job upon start
+    #jobArgs:
+    #- "--confidence=10"
+    #- "--tasks=blocks,messages,chaineconomics"
+    ## args to apply specific to the command being used
+    #commandArgs:
+    #- "--from=123"
+    #- "--to=123"
 
   notifier:
+    # args to apply to this daemon instance upon start
     args: []
+    # env varaibles to include in this instance's environment
     env: []
 
-    inlineEnabled: false
+    # configuration is generally derived from other values. if you'd like to
+    # override the generated configuration, set `inlineEnabled` to `true`
+    # and provide the multiline config in `inlineConfig`
+    # configuration is derived from the following fields:
+    # - .Values.cluster.storage[]
+    # - .Values.cluster.queues[]
+    inlineEnabled: true
+    inlineConfig: |
+      # config read by lily
+      [Queue]
+        [Queue.Workers]
+          [Queue.Workers.Worker1]
+            [Queue.Workers.Worker1.RedisConfig]
+              Network = "tcp"
+              Addr = "127.0.0.1:6379"
+              Username = ""
+              Password = ""
+              PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+              DB = 0
+              PoolSize = 0
+            [Queue.Workers.Worker1.WorkerConfig]
+              Concurrency = 1
+              LoggerLevel = "debug"
+              WatchQueuePriority = 5
+              FillQueuePriority = 3
+              IndexQueuePriority = 1
+              WalkQueuePriority = 1
+              StrictPriority = false
+              ShutdownTimeout = 30000000000
+        [Queue.Notifiers]
+          [Queue.Notifiers.Notifier1]
+            Network = "tcp"
+            Addr = "127.0.0.1:6379"
+            Username = ""
+            Password = ""
+            PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+            DB = 0
+            PoolSize = 0
+
+    # jobs is a list of jobs to start on the cluster
+    # the notifier will enqueue these tasks for workers to complete
+    jobs: []
+    #- command: watch
+      #name: ""
+      #confidence: ""
+      #tasks:
+      #- "blocks"
+      #- "messages"
+      #args:
+      #- "--confidence=10"
+
+    # Required resources to run daemon lily as a client (as is the case with the
+    # notifier) requires much fewer resources than the indexing worker instances.
+    # Please see https://lilium.sh/software/lily/hardware/ for more information.
+    resources: {}
+      #requests:
+        #cpu: "8000m"
+        #memory: "64Gi"
+      #limits:
+        #cpu: "8000m"
+        #memory: "64Gi"
+
+    # volumes enables control over the configuration of attached volumes
+    volumes:
+      # datastore is the volume used for persisting the daemon state. If disabled
+      # then the volume will be set up on the pod's local storage which will is
+      # usually too small but useful to avoid managing volume claims.
+      # Note: Mainnet persistence will require significant IOPS. Default size of
+      # 500Gi will constrain available IOPS. Consider deploying as much as 3000Gi
+      # (or 6000Gi if running 'actorstatesminer' tasks) to make maximum available
+      # IOPS.
+      # Upgrade to storage class io1 for even additional IOPS headroom (up to 64kIOPS).
+      # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
+      # The datastore volume is mounted at /var/lib/lily/datastore
+      datastore:
+        enabled: false
+        size: "2000Gi"
+        accessModes:
+        - "ReadWriteOnce"
+        storageClassName: "gp2"
+        #dataSource: {}
+
+    pubsub:
+      # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
+      ipwhitelist: []
+
+  worker:
+    # args to apply to this daemon instance upon start
+    args: []
+    # env varaibles to include in this instance's environment
+    env: []
+
+    # configuration is generally derived from other values. if you'd like to
+    # override the generated configuration, set `inlineEnabled` to `true`
+    # and provide the multiline config in `inlineConfig`
+    # configuration is derived from the following fields:
+    # - .Values.cluster.storage[]
+    # - .Values.cluster.queues[]
+    inlineEnabled: true
     inlineConfig: |
       # config read by lily
       [Queue]
@@ -88,22 +257,6 @@ cluster:
       #- --confidence=10
       #- --tasks=blocks,messages,chaineconomics
 
-    # storage is a list of storage configurations that will be added to
-    # the lily config and used when starting jobs
-    storage:
-      postgresql: []
-      #- name: db
-        #secretName: postgresql-secret
-        #secretKey: url
-        #schema: lily
-        #applicationName: lily
-        #poolSize: 20
-        #allowUpsert: false
-      file: []
-      #- name: csv
-        #format: CSV
-        #path: /tmp
-
     # Required resources to run daemon lily as a client (as is the case with the
     # notifier) requires much fewer resources than the indexing worker instances.
     # Please see https://lilium.sh/software/lily/hardware/ for more information.
@@ -129,9 +282,9 @@ cluster:
       # The datastore volume is mounted at /var/lib/lily/datastore
       datastore:
         enabled: false
-        size: "500Gi"
+        size: "2000Gi"
         accessModes:
-        - ReadWriteOnce
+        - "ReadWriteOnce"
         storageClassName: "gp2"
         #dataSource: {}
 
@@ -139,77 +292,92 @@ cluster:
       # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
       ipwhitelist: []
 
-  worker:
-    args: []
-    env: []
-
-    inlineEnabled: false
-    inlineConfig: |
-      # config read by lily
-      [Storage]
-        [Storage.Postgresql]
-          [Storage.Postgresql.Database1]
-            URLEnv = "LILY_DB"
-            ApplicationName = "visor"
-            SchemaName = "public"
-            PoolSize = 20
-            AllowUpsert = false
-
-    # Required resources to run daemon lily are signficant and the below default
-    # may be insufficient. Please see https://lilium.sh/software/lily/hardware/
-    # for more information.
-    resources:
-      #requests:
-        #cpu: "16000m"
-        #memory: "250Gi"
-      #limits:
-        #cpu: "16000m"
-        #memory: "250Gi"
-
-    # storage is a list of storage configurations that will be added to
-    # the lily config and used when starting jobs
-    storage:
-      postgresql: []
-      #- name: db
-        #secretName: postgresql-secret
-        #secretKey: url
-        #schema: lily
-        #applicationName: lily
-        #poolSize: 20
-        #allowUpsert: false
-      file: []
-      #- name: csv
-        #format: CSV
-        #path: /tmp
-
-    # volumes enables control over the configuration of attached volumes
-    volumes:
-      # datastore is the volume used for persisting the daemon state. If disabled
-      # then the volume will be set up on the pod's local storage which will is
-      # usually too small but useful to avoid managing volume claims.
-      # Note: Mainnet persistence will require significant IOPS. Default size of
-      # 500Gi will constrain available IOPS. Consider deploying as much as 3000Gi
-      # (or 6000Gi if running 'actorstatesminer' tasks) to make maximum available
-      # IOPS.
-      # Upgrade to storage class io1 for even additional IOPS headroom (up to 64kIOPS).
-      # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
-      # The datastore volume is mounted at /var/lib/lily/datastore
-      datastore:
-        enabled: false
-        size: "500Gi"
-        accessModes:
-        - ReadWriteOnce
-        storageClassName: "gp2"
-        #dataSource: {}
-
-    pubsub:
-      # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
-      ipwhitelist: []
-
-startCommand: ""
 daemon:
+  # args to apply to this daemon instance upon start
   args: []
+  # env varaibles to include in this instance's environment
   env: []
+
+  # configuration is generally derived from other values. if you'd like to
+  # override the generated configuration, set `inlineEnabled` to `true`
+  # and provide the multiline config in `inlineConfig`
+  # configuration is derived from the following fields:
+  # - .Values.daemon.storage[]
+  inlineEnabled: false
+  inlineConfig: |
+    # config read by lily
+    [Queue]
+      [Queue.Workers]
+        [Queue.Workers.Worker1]
+          [Queue.Workers.Worker1.RedisConfig]
+            Network = "tcp"
+            Addr = "127.0.0.1:6379"
+            Username = ""
+            Password = ""
+            PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+            DB = 0
+            PoolSize = 0
+          [Queue.Workers.Worker1.WorkerConfig]
+            Concurrency = 1
+            LoggerLevel = "debug"
+            WatchQueuePriority = 5
+            FillQueuePriority = 3
+            IndexQueuePriority = 1
+            WalkQueuePriority = 1
+            StrictPriority = false
+            ShutdownTimeout = 30000000000
+      [Queue.Notifiers]
+        [Queue.Notifiers.Notifier1]
+          Network = "tcp"
+          Addr = "127.0.0.1:6379"
+          Username = ""
+          Password = ""
+          PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+          DB = 0
+          PoolSize = 0
+
+  # jobs is a list of jobs to start on the daemon
+  #jobs:
+  #- command: "watch"
+    ##  name of the job as it will be reported in processing reports
+    #name: ""
+    ##  name of the storage configuration to use when persisting exported data
+    #storage: ""
+    ## args to apply to this specific job upon start
+    #jobArgs:
+    #- "--confidence=10"
+    #- "--tasks=blocks,messages,chaineconomics"
+    ## args to apply specific to the command being used
+    #commandArgs:
+    #- "--from=123"
+    #- "--to=123"
+
+  # storage is a list of storage configurations that will be added to
+  # the lily config and used when starting jobs
+  storage:
+    postgresql: []
+    #- name: "db"
+      #secretName: "postgresql-secret"
+      #secretKey: "url"
+      #schema: "lily"
+      #applicationName: "lily"
+      #poolSize: 20
+      #allowUpsert: false
+    file: []
+    #- name: "csv"
+      #format: "CSV"
+      #path: "/tmp"
+
+  # Required resources to run daemon lily as a client (as is the case with the
+  # notifier) requires much fewer resources than the indexing worker instances.
+  # Please see https://lilium.sh/software/lily/hardware/ for more information.
+  resources: {}
+    #requests:
+      #cpu: "8000m"
+      #memory: "64Gi"
+    #limits:
+      #cpu: "8000m"
+      #memory: "64Gi"
 
   # volumes enables control over the configuration of attached volumes
   volumes:
@@ -225,144 +393,16 @@ daemon:
     # The datastore volume is mounted at /var/lib/lily/datastore
     datastore:
       enabled: false
-      size: "500Gi"
+      size: "2000Gi"
       accessModes:
-      - ReadWriteOnce
+      - "ReadWriteOnce"
       storageClassName: "gp2"
       #dataSource: {}
-
-  # jobs is a list of jobs to start on the daemon
-  # as a single daemon running the jobs in parallel.
-  # NOTE: If executing multiple tasks with the same prefix
-  # it is highly recommended to execute them in the same job
-  # so that local caching can optimize task execution performance.
-  jobs: []
-  #- command: watch
-    #name: ""
-    #args:
-    #- --confidence=10
-    #- --tasks=blocks,messages,chaineconomics
-
-  # genesisUnix should be the unix time of the genesis epoch
-  # and is used to calculate relative to/from windows for
-  # each gapfill job. Default genesis is set for mainnet.
-  genesisUnix: "1598306400"
-
-  # gapfill describes a list of gapfill jobs to start on the daemon once
-  # every 24 hours
-  gapfill:
-    enabled: false
-    # storage is the storage.postgresql[].name on which execute the gapfill job
-    storage: "db"
-    # taskSets is a list of comma-separated strings indicating the tasks for each
-    # gapfill job. Each item will start as an indpendent job with the tasks listed.
-    # Default is defined in `lily gap <find|fill> --help`
-    taskSets:
-    # examples
-    #- actorstatesmultisig,actorstatespower,actorstatesraw,actorstatesreward,actorstatesverifreg,blocks,chaineconomics,consensus,implicitmessage,messages,msapprovals
-    #- actorstatesinit,actorstatesmarket
-    #- messages
-
-  # daemon resources
-  # Required resources to run daemon lily are signficant and the below default
-  # may be insufficient. Please see https://lilium.sh/software/lily/hardware/
-  # for more information.
-  resources: {}
-    #requests:
-      #cpu: "16000m"
-      #memory: "250Gi"
-    #limits:
-      #cpu: "16000m"
-      #memory: "250Gi"
-
-  # START inline lily config handling
-  # NOTE: This block is inserted as-is into the config.toml
-  # which will be loaded by Lily on startup.
-  # To use inline config handling, set `inlineEnabled` to true
-  # which will disable value-mapped config handling below
-  inlineEnabled: false
-  inlineConfig: |
-    # config read by lily
-    [API]
-      ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
-    [Libp2p]
-      ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
-      ConnMgrLow = 400
-      ConnMgrHigh = 500
-      ConnMgrGrace = "5m0s"
-    [Pubsub]
-      IPColocationWhitelist = ""
-    [Storage]
-      [Storage.Postgresql]
-        [Storage.Postgresql.lilydb]
-          SchemaName = "lily"
-          URLEnv = "LILY_STORAGE_POSTGRESQL_LILY_URL"
-          PoolSize = 32
-          AllowUpsert = false
-      [Storage.File]
-        [Storage.File.lilycsv]
-          Forma = "CSV"
-          Path = ""
-
-  # END inline lily config handling
-
-  # START value-mapped lily config handling
-  # NOTE: These values map directly to their appropriate fields
-  # which Lily expects in its config.toml in order to maintain
-  # backward compatibility with existing values.yaml
-  # These values are only used when `inlineEnabled` is false
-
-  # daemon storage is a list of storage configurations that will be added to
-  # the lily config and used when starting jobs
-  storage:
-    postgresql: []
-    #- name: db
-      #secretName: postgresql-secret
-      #secretKey: url
-      #schema: lily
-      #applicationName: lily
-      #poolSize: 20
-      #allowUpsert: false
-    file: []
-    #- name: csv
-      #format: CSV
-      #path: /tmp
 
   pubsub:
     # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
     ipwhitelist: []
 
+
   # END value-mapped lily config handling
 
-
-# service monitoring
-prometheusOperatorServiceMonitor: true
-prometheusPort: ":9991"
-
-# service tracing
-jaeger:
-  enabled: false
-  providerUrl: "" # default: https://{node.status.hostIP}:6831/api/traces
-  serviceName: "" # default: include sentinel-lily.instanceName
-  samplerRatio: "0.01"
-
-# debug feature config
-debug:
-  enabled: true
-  resources: {}
-    #requests:
-      #cpu: "8000m"
-      #memory: "16Gi"
-    #limits:
-      #cpu: "8000m"
-      #memory: "16Gi"
-
-# applied to all instances
-logFormat: json
-logLevel: warn
-logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
-
-# applied to all instances
-nodeSelector: {}
-tolerations: []
-affinity: {}

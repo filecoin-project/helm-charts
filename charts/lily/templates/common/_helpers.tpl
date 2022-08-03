@@ -73,10 +73,10 @@
     generates a list of common labels to be used across resources
 */}}
 {{- define "sentinel-lily.releaseLabels" -}}
-helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+helm.sh/chart: {{ list .Chart.Name .Chart.Version | join "-" | replace "+" "_" | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
 app.kubernetes.io/version: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
-app.kubernetes.io/part-of: sentinel
+app.kubernetes.io/part-of: "sentinel"
 {{- if .Values.release }}
 {{ toYaml .Values.release }}
 {{- end }}
@@ -87,8 +87,8 @@ app.kubernetes.io/part-of: sentinel
     generates a list of selector labels to be used across resources
 */}}
 {{- define "sentinel-lily.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "sentinel-lily.name" . | quote }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/name: {{ .Chart.Name | lower | quote }}
+app.kubernetes.io/instance: {{ include "sentinel-lily.instance-name" . | quote }}
 {{- end }}
 
 
@@ -96,8 +96,8 @@ app.kubernetes.io/instance: {{ .Release.Name }}
     generates a list of selector labels to be used across resources
 */}}
 {{- define "sentinel-lily.notifierSelectorLabels" -}}
-app.kubernetes.io/name: {{ printf "%s-%s" (include "sentinel-lily.name" .) "notifier" | quote }}
-app.kubernetes.io/instance: {{ .Release.Name }}-notifier
+app.kubernetes.io/name: {{ list .Chart.Name "notifier" | join "-" | lower | quote }}
+app.kubernetes.io/instance: {{ list ( include "sentinel-lily.short-instance-name" . ) "notifier" | join "-" | quote }}
 {{- end }}
 
 
@@ -105,15 +105,8 @@ app.kubernetes.io/instance: {{ .Release.Name }}-notifier
     generates a list of selector labels to be used across resources
 */}}
 {{- define "sentinel-lily.workerSelectorLabels" -}}
-app.kubernetes.io/name: {{ printf "%s-%s" (include "sentinel-lily.name" .) "worker" | quote }}
-app.kubernetes.io/instance: {{ .Release.Name }}-worker
-{{- end }}
-
-
-{{/*
-    creates the arguments for managing optional chain import
-*/}}
-{{- define "sentinel-lily.chainImportArgs" }}
+app.kubernetes.io/name: {{ list .Chart.Name "worker" | join "-" | lower | quote }}
+app.kubernetes.io/instance: {{ list ( include "sentinel-lily.short-instance-name" . ) "worker" | join "-" | quote }}
 {{- end }}
 
 
@@ -150,15 +143,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}-worker
 
 
 {{/*
-    returns the full service name of the Lily daemon API endpoint.
-    This is useful for DNS lookup of the API service.
-*/}}
-{{- define "sentinel-lily.service-name-daemon-api" -}}
-  {{- printf "%s-%s" .Release.Name "lily-daemon-api" }}
-{{- end }}
-
-
-{{/*
     builds the template specific for each app type
 */}}
 {{- define "sentinel-lily.daemon-api-service-template" -}}
@@ -176,10 +160,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}-worker
 {{- define "sentinel-lily.app-api-service-template" -}}
 {{- $instanceType := index . 0 -}}
 {{- $root := index . 1 -}}
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ printf "%s-lily-%s-api" $root.Release.Name $instanceType }}
+  name: {{ list ( include "sentinel-lily.short-instance-name" $root ) $instanceType "api-svc" | join "-" | quote }}
   labels:
     {{- include "sentinel-lily.allLabels" $root | nindent 4 }}
 spec:
@@ -187,9 +172,9 @@ spec:
   selector:
     {{- include "sentinel-lily.selectorLabels" $root | nindent 4 }}
   ports:
-    - name: api-port
-      protocol: TCP
-      port: 1234
+  - name: "api-port"
+    protocol: "TCP"
+    port: 1234
 {{- end -}}
 
 
@@ -198,34 +183,53 @@ spec:
     This is useful for DNS lookup of the API service.
 */}}
 {{- define "sentinel-lily.service-name-redis-api" -}}
-  {{- printf "%s-%s" .Release.Name "lily-redis-api" }}
+  {{- printf "%s-%s" .Release.Name "redis-api" }}
 {{- end }}
 
 
 {{/*
-    returns the name of a specific job defined within .Values.daemon.jobs
-*/}}
-{{- define "sentinel-lily.job-name-arg" -}}
-{{ $jobName := "" -}}
-{{- if .jobName -}}
-  {{- $jobName = printf "--name %s/%s-`cat /var/lib/lily/uid`" .instanceName .jobName -}}
-{{- else }}
-  {{- $jobName = printf "--name \"%s-`cat /var/lib/lily/uid`/%s\"" .instanceName .command -}}
-{{- end -}}
-{{- $jobName -}}
-{{- end -}}
-
-
-{{/*
-    resources" returns the minimal resource.requests for debug/init containers/
+    returns the minimal resource.requests for debug/init containers/
 */}}
 {{- define "sentinel-lily.minimal-resources" }}
 requests:
+{{- if .requests }}
+  cpu: {{ .requests.cpu | default "1000m" }}
+  memory: {{ .requests.memory | default "4Gi" }}
+{{- else }}
   cpu: "1000m"
   memory: "4Gi"
+{{- end }}
 limits:
+{{- if .limits }}
+  cpu: {{ .limits.cpu | default "1000m" }}
+  memory: {{ .limits.memory | default "4Gi" }}
+{{- else }}
   cpu: "1000m"
   memory: "4Gi"
+{{- end }}
+{{- end }}
+
+
+{{/*
+    returns a default of resource for lily daemon containers to run all tasks
+*/}}
+{{- define "sentinel-lily.app-resources" }}
+requests:
+{{- if .requests }}
+  cpu: {{ .requests.cpu | default "16000m" }}
+  memory: {{ .requests.memory | default "225Gi" }}
+{{- else }}
+  cpu: "16000m"
+  memory: "225Gi"
+{{- end }}
+limits:
+{{- if .limits }}
+  cpu: {{ .limits.cpu | default "16000m" }}
+  memory: {{ .limits.memory | default "225Gi" }}
+{{- else }}
+  cpu: "16000m"
+  memory: "225Gi"
+{{- end }}
 {{- end }}
 
 
@@ -312,6 +316,7 @@ tolerations:
 {{- required "(root).image.repo expected" .Values.image.repo }}:{{ default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
 {{- end -}}
 
+
 {{/*
     return lily environment variables
 */}}
@@ -346,18 +351,15 @@ tolerations:
     common volume mount values for all deployment types
 */}}
 {{- define "sentinel-lily.common-volume-mounts" }}
-- name: repo-volume
-  mountPath: /var/lib/lily
-- name: config-volume
-  mountPath: /var/lib/lily/config.toml
-  subPath: config.toml
+- name: "repo-volume"
+  mountPath: "/var/lib/lily"
+- name: "config-volume"
+  mountPath: "/var/lib/lily/config.toml"
+  subPath: "config.toml"
   readOnly: true
-- name: waitjob-script-volume
-  mountPath: /var/lib/lily/waitjob.sh
-  subPath: waitjob.sh
 {{- if .Values.daemon.volumes.datastore.enabled }}
-- name: datastore-volume
-  mountPath: /var/lib/lily/datastore
+- name: "datastore-volume"
+  mountPath: "/var/lib/lily/datastore"
 {{- end }}
 {{- end -}}
 
@@ -453,16 +455,16 @@ tolerations:
 {{- define "sentinel-lily.volume-claim-templates" }}
 {{- if .enabled }}
 - apiVersion: v1
-  kind: PersistentVolumeClaim
+  kind: "PersistentVolumeClaim"
   metadata:
-    name: datastore-volume
+    name: "datastore-volume"
   spec:
     accessModes:
     {{- range .accessModes }}
     - {{ . | quote }}
     {{- end }}
     storageClassName: {{ .storageClassName }}
-    volumeMode: Filesystem
+    volumeMode: "Filesystem"
     resources:
       requests:
         storage: {{ .size | quote }}
@@ -478,19 +480,12 @@ tolerations:
     common volume mount configuration
 */}}
 {{- define "sentinel-lily.volume-mounts" }}
-- name: repo-volume
+- name: "repo-volume"
   emptyDir: {}
-- name: config-volume
+- name: "config-volume"
   configMap:
-    name: {{ .Release.Name }}-lily-config
+    name: {{ list .Release.Name "lily-config" | join "-" | quote }}
     items:
-    - key: config.toml
-      path: config.toml
-- name: waitjob-script-volume
-  configMap:
-    name: {{ .Release.Name }}-lily-waitjob-script
-    items:
-    - key: waitjob.sh
-      path: waitjob.sh
-      mode: 0755
+    - key: "config.toml"
+      path: "config.toml"
 {{- end -}}

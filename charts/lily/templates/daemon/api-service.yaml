@@ -1,4 +1,3 @@
 {{- if ne .Values.deploymentType "cluster" }}
----
 {{- include "sentinel-lily.daemon-api-service-template" . }}
 {{- end }}
