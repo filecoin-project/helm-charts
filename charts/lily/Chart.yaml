@@ -2,5 +2,9 @@ apiVersion: v2
 name: lily
 description: A Helm chart for Kubernetes to run Sentinel Lily
 type: application
-version: "0.0.8"
-appVersion: "0.8.6"
+version: "0.1.0"
+appVersion: "0.11.0"
+dependencies:
+  - name: "redis"
+    version: "17.0.x"
+    repository: "https://charts.bitnami.com/bitnami"

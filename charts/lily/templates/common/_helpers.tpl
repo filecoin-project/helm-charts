@@ -118,7 +118,7 @@ app.kubernetes.io/instance: {{ list ( include "sentinel-lily.short-instance-name
 - name: LILY_JAEGER_TRACING
   value: "true"
 - name: LILY_JAEGER_SERVICE_NAME
-  value: {{ .Values.jaeger.serviceName | default (include "sentinel-lily.instanceName" . ) | quote }}
+  value: {{ .Values.jaeger.serviceName | default (include "sentinel-lily.instance-name" . ) | quote }}
 - name: LILY_JAEGER_PROVIDER_URL
 {{- include "sentinel-lily.jaegerProviderUrl" .Values.jaeger }}
 - name: LILY_JAEGER_SAMPLER_RATIO
@@ -176,15 +176,6 @@ spec:
     protocol: "TCP"
     port: 1234
 {{- end -}}
-
-
-{{/*
-    returns the full service name of the Lily daemon API endpoint.
-    This is useful for DNS lookup of the API service.
-*/}}
-{{- define "sentinel-lily.service-name-redis-api" -}}
-  {{- printf "%s-%s" .Release.Name "redis-api" }}
-{{- end }}
 
 
 {{/*
@@ -334,6 +325,11 @@ tolerations:
 - name: LILY_CONFIG
   value: "/var/lib/lily/config.toml"
 {{- range .Values.daemon.storage.postgresql }}
+- name: LILY_REDIS_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Release.Name }}-redis
+      key: "redis-password"
 - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
   valueFrom:
     secretKeyRef:
