@@ -3,45 +3,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-lily-notifier-config
+  name: {{ include "sentinel-lily.short-instance-name" $ }}-notifier-config
   labels:
     {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 data:
-  {{- if .Values.cluster.notifier.inlineEnabled }}
   config.toml: |
-{{ .Values.cluster.notifier.inlineConfig | indent 4 }}
+  {{- if .Values.cluster.notifier.configOverrideEnabled }}
+    {{- .Values.cluster.notifier.configOverride | indent 4 }}
   {{- else }}
-  config.toml: |
-    [API]
-      ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
-    [Libp2p]
-      ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
-      ConnMgrLow = 400
-      ConnMgrHigh = 500
-      ConnMgrGrace = "5m0s"
-    {{- if .Values.cluster.notifier.pubsub.ipwhitelist }}
-    [Pubsub]
-      IPColocationWhitelist = ["{{ join "\", \"" .Values.cluster.notifier.pubsub.ipwhitelist }}"]
-    {{- end }}
-    [Storage]
-      {{- if .Values.cluster.notifier.storage.postgresql }}
-      [Storage.Postgresql]
-        {{- range .Values.cluster.notifier.storage.postgresql }}
-        [Storage.Postgresql.{{ .name }}]
-          SchemaName = {{ .schema | default "lily" | quote }}
-          URLEnv = "LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL"
-          ApplicationName = {{ .applicationName | default (include "sentinel-lily.instanceName" $ ) | quote }}
-          PoolSize = {{ .poolSize | default 20 }}
-          AllowUpsert = {{ .allowUpsert | default false }}
-        {{- end }}
-      {{- end }}
-      {{- if .Values.cluster.notifier.storage.file }}
-      [Storage.File]
-        {{- range .Values.cluster.notifier.storage.file }}
-        [Storage.File.{{ .name }}]
-          Format = {{ .format | default "CSV" | upper | quote }}
-          Path = {{ .path  | quote }}
-        {{- end }}
-      {{- end }}
+    {{- include "sentinel-lily.notifier-config" . | nindent 4 }}
   {{- end }}
 {{- end }}

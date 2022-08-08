@@ -3,45 +3,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-lily-worker-config
+  name: {{ list ( include "sentinel-lily.short-instance-name" $ ) "worker-config" | join "-" | quote }}
   labels:
     {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 data:
-  {{- if .Values.cluster.worker.inlineEnabled }}
   config.toml: |
-{{ .Values.cluster.worker.inlineConfig | indent 4 }}
-  {{- else }}
-  config.toml: |
-    [API]
-      ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
-    [Libp2p]
-      ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
-      ConnMgrLow = 400
-      ConnMgrHigh = 500
-      ConnMgrGrace = "5m0s"
-    {{- if .Values.cluster.worker.pubsub.ipwhitelist }}
-    [Pubsub]
-      IPColocationWhitelist = ["{{ join "\", \"" .Values.cluster.worker.pubsub.ipwhitelist }}"]
-    {{- end }}
-    [Storage]
-      {{- if .Values.cluster.worker.storage.postgresql }}
-      [Storage.Postgresql]
-        {{- range .Values.cluster.worker.storage.postgresql }}
-        [Storage.Postgresql.{{ .name }}]
-          SchemaName = {{ .schema | default "lily" | quote }}
-          URLEnv = "LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL"
-          ApplicationName = {{ .applicationName | default (include "sentinel-lily.instanceName" $ ) | quote }}
-          PoolSize = {{ .poolSize | default 20 }}
-          AllowUpsert = {{ .allowUpsert | default false }}
-        {{- end }}
-      {{- end }}
-      {{- if .Values.cluster.worker.storage.file }}
-      [Storage.File]
-        {{- range .Values.cluster.worker.storage.file }}
-        [Storage.File.{{ .name }}]
-          Format = {{ .format | default "CSV" | upper | quote }}
-          Path = {{ .path  | quote }}
-        {{- end }}
-      {{- end }}
-  {{- end }}
-{{- end }}
+  {{- if .Values.cluster.worker.configOverrideEnabled -}}
+    {{- .Values.cluster.worker.configOverride | indent 4 }}
+  {{- else -}}
+    {{- include "sentinel-lily.worker-config" . | nindent 4 }}
+  {{- end -}}
+{{- end -}}

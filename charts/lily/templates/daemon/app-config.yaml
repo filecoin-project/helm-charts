@@ -3,45 +3,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-lily-config
+  name: {{ list ( include "sentinel-lily.short-instance-name" $ ) "daemon-config" | join "-" | quote }}
   labels:
     {{- include "sentinel-lily.allLabels" . | nindent 4 }}
 data:
-  {{- if .Values.daemon.inlineEnabled }}
   config.toml: |
-{{ .Values.daemon.inlineConfig | indent 4 }}
+  {{- if .Values.daemon.configOverrideEnabled }}
+    {{ .Values.daemon.configOverride | nindent 4 }}
   {{- else }}
-  config.toml: |
-    [API]
-      ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
-    [Libp2p]
-      ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
-      ConnMgrLow = 400
-      ConnMgrHigh = 500
-      ConnMgrGrace = "5m0s"
-    {{- if .Values.daemon.pubsub.ipwhitelist }}
-    [Pubsub]
-      IPColocationWhitelist = ["{{ join "\", \"" .Values.daemon.pubsub.ipwhitelist }}"]
-    {{- end }}
-    [Storage]
-      {{- if .Values.daemon.storage.postgresql }}
-      [Storage.Postgresql]
-        {{- range .Values.daemon.storage.postgresql }}
-        [Storage.Postgresql.{{ .name }}]
-          SchemaName = {{ .schema | default "lily" | quote }}
-          URLEnv = "LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL"
-          ApplicationName = {{ .applicationName | default (include "sentinel-lily.instanceName" $ ) | quote }}
-          PoolSize = {{ .poolSize | default 20 }}
-          AllowUpsert = {{ .allowUpsert | default false }}
-        {{- end }}
-      {{- end }}
-      {{- if .Values.daemon.storage.file }}
-      [Storage.File]
-        {{- range .Values.daemon.storage.file }}
-        [Storage.File.{{ .name }}]
-          Format = {{ .format | default "CSV" | upper | quote }}
-          Path = {{ .path  | quote }}
-        {{- end }}
-      {{- end }}
+    {{- include "sentinel-lily.daemon-config" . | nindent 4 }}
   {{- end }}
 {{- end }}

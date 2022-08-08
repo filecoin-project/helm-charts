@@ -497,3 +497,127 @@ tolerations:
     - key: "config.toml"
       path: "config.toml"
 {{- end -}}
+
+
+{{/*
+    daemon config
+*/}}
+{{- define "sentinel-lily.daemon-config" -}}
+{{- include "sentinel-lily.config-common" .Values.daemon }}
+{{- include "sentinel-lily.config-storage" ( list ( include "sentinel-lily.instance-name" . ) .Values.daemon.storage ) }}
+{{- end -}}
+
+
+{{/*
+    cluster notifier config
+*/}}
+{{- define "sentinel-lily.notifier-config" -}}
+{{- include "sentinel-lily.config-common" .Values.cluster.notifier }}
+{{- include "sentinel-lily.config-notifier-queue" ( list ( include "sentinel-lily.instance-name" . ) .Values.cluster.storage .Release.Name ) }}
+{{- end -}}
+
+
+{{/*
+    cluster worker config
+*/}}
+{{- define "sentinel-lily.worker-config" -}}
+{{- include "sentinel-lily.config-common" .Values.cluster.worker }}
+{{- include "sentinel-lily.config-worker-queue" ( list ( include "sentinel-lily.instance-name" . ) .Values.cluster.worker .Release.Name ) }}
+{{- include "sentinel-lily.config-storage" ( list ( include "sentinel-lily.instance-name" . ) .Values.cluster.storage ) }}
+{{- end -}}
+
+
+{{/*
+    lily common config shared by al deployment types
+*/}}
+{{- define "sentinel-lily.config-common" -}}
+[API]
+  ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
+[Libp2p]
+  ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
+  ConnMgrLow = 400
+  ConnMgrHigh = 500
+  ConnMgrGrace = "5m0s"
+{{- if .pubsub.ipwhitelist }}
+[Pubsub]
+  IPColocationWhitelist = {{ .pubsub.ipwhitelist | toJson }}
+{{- end -}}
+{{- end -}}
+
+
+{{/*
+    lily config for storage
+*/}}
+{{- define "sentinel-lily.config-storage" -}}
+{{- $instanceName := index . 0 -}}
+{{- $storageValues := index . 1 -}}
+{{- if or $storageValues.postgresql $storageValues.file }}
+[Storage]
+{{- end }}
+{{- if $storageValues.postgresql }}
+  [Storage.Postgresql]
+    {{- range $storageValues.postgresql }}
+    [Storage.Postgresql.{{ .name }}]
+      SchemaName = {{ .schema | default "lily" | quote }}
+      URLEnv = "LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL"
+      ApplicationName = {{ .applicationName | default $instanceName | quote }}
+      PoolSize = {{ .poolSize | default 20 }}
+      AllowUpsert = {{ .allowUpsert | default false }}
+    {{- end }}
+{{- end -}}
+{{- if $storageValues.file }}
+  [Storage.File]
+    {{- range $storageValues.file }}
+    [Storage.File.{{ .name }}]
+      Format = {{ .format | default "CSV" | quote }}
+      Path = {{ .path | default "/tmp" | quote }}
+    {{- end }}
+{{- end }}
+{{- end -}}
+
+{{/*
+    lily config for notifier queues
+*/}}
+{{- define "sentinel-lily.config-notifier-queue" -}}
+{{- $instanceName := index . 0 -}}
+{{- $storageValues := index . 1 -}}
+{{- $releaseName := index . 2 -}}
+[Queue]
+  [Queue.Notifiers]
+    [Queue.Notifiers.Notifier1]
+        Network = "tcp"
+        Addr = "{{ $releaseName }}-redis-master:6379"
+        Username = "default"
+        PasswordEnv = "LILY_REDIS_PASSWORD"
+        DB = 0
+        PoolSize = 0
+{{- end -}}
+
+
+{{/*
+    lily config for worker queues
+*/}}
+{{- define "sentinel-lily.config-worker-queue" -}}
+{{- $instanceName := index . 0 -}}
+{{- $storageValues := index . 1 -}}
+{{- $releaseName := index . 2 -}}
+[Queue]
+  [Queue.Workers]
+    [Queue.Workers.Worker1]
+      [Queue.Workers.Worker1.RedisConfig]
+        Network = "tcp"
+        Addr = "{{ $releaseName }}-redis-master:6379"
+        Username = "default"
+        PasswordEnv = "LILY_REDIS_PASSWORD"
+        DB = 0
+        PoolSize = 0
+      [Queue.Workers.Worker1.WorkerConfig]
+        Concurrency = 1
+        LoggerLevel = "debug"
+        WatchQueuePriority = 5
+        FillQueuePriority = 3
+        IndexQueuePriority = 1
+        WalkQueuePriority = 1
+        StrictPriority = false
+        ShutdownTimeout = 30000000000
+{{- end -}}
