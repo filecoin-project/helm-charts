@@ -1,5 +1,5 @@
 # Default values for Sentinel Lily
-replicaCount: 1
+replicaCount: 2
 image:
   repo: "filecoin/lily"
   pullPolicy: "IfNotPresent"
@@ -52,7 +52,7 @@ jaeger:
 
 # debug feature config
 debug:
-  enabled: true
+  enabled: false
   resources: {}
     #requests:
       #cpu: "8000m"
@@ -67,26 +67,31 @@ logLevel: "warn"
 logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
 
 # deploymentType may be either `cluster` or `daemon`
-deploymentType: "daemon"
+deploymentType: "cluster"
 
 cluster:
-  queues: []
+  # Specify the name of the Queue configuration header to be used
+  # by each component. Keep these defaults unless you're providing
+  # your own configuration with custom queue names defined.
+  queue:
+    notifier: "Notifier1"
+    worker: "Worker1"
 
   # storage is a list of storage configurations that will be added to
   # the lily config and used when starting jobs
   storage:
-    postgresql:
-    - name: "db"
-      secretName: "postgresql-secret"
-      secretKey: "url"
-      schema: "lily"
-      applicationName: "lily"
-      poolSize: 20
-      allowUpsert: false
-    file:
-    - name: "csv"
-      format: "CSV"
-      path: "/tmp"
+    postgresql: []
+    #- name: "postgres-storage-config-name"
+      #secretName: "postgresql-secret"
+      #secretKey: "url"
+      #schema: "lily"
+      #applicationName: "lily"
+      #poolSize: 20
+      #allowUpsert: false
+    file: []
+    #- name: "csv"
+      #format: "CSV"
+      #path: "/tmp"
 
   # jobs is a list of jobs to start on the daemon
   # as a single daemon queueing the jobs in parallel.
@@ -118,13 +123,13 @@ cluster:
     env: []
 
     # configuration is generally derived from other values. if you'd like to
-    # override the generated configuration, set `inlineEnabled` to `true`
-    # and provide the multiline config in `inlineConfig`
+    # override the generated configuration, set `configOverrideEnabled` to `true`
+    # and provide the multiline config in `configOverride`
     # configuration is derived from the following fields:
     # - .Values.cluster.storage[]
-    # - .Values.cluster.queues[]
-    inlineEnabled: true
-    inlineConfig: |
+    # - .Values.cluster.queue.notifier
+    configOverrideEnabled: false
+    configOverride: |
       # config read by lily
       [Queue]
         [Queue.Workers]
@@ -134,7 +139,7 @@ cluster:
               Addr = "127.0.0.1:6379"
               Username = ""
               Password = ""
-              PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+              PasswordEnv = "LILY_REDIS_PASSWORD"
               DB = 0
               PoolSize = 0
             [Queue.Workers.Worker1.WorkerConfig]
@@ -155,18 +160,6 @@ cluster:
             PasswordEnv = "LILY_REDIS_PASSWORD"
             DB = 0
             PoolSize = 0
-
-    # jobs is a list of jobs to start on the cluster
-    # the notifier will enqueue these tasks for workers to complete
-    jobs: []
-    #- command: watch
-      #name: ""
-      #confidence: ""
-      #tasks:
-      #- "blocks"
-      #- "messages"
-      #args:
-      #- "--confidence=10"
 
     # Required resources to run daemon lily as a client (as is the case with the
     # notifier) requires much fewer resources than the indexing worker instances.
@@ -210,13 +203,13 @@ cluster:
     env: []
 
     # configuration is generally derived from other values. if you'd like to
-    # override the generated configuration, set `inlineEnabled` to `true`
-    # and provide the multiline config in `inlineConfig`
+    # override the generated configuration, set `configOverrideEnabled` to `true`
+    # and provide the multiline config in `configOverride`
     # configuration is derived from the following fields:
     # - .Values.cluster.storage[]
     # - .Values.cluster.queues[]
-    inlineEnabled: true
-    inlineConfig: |
+    configOverrideEnabled: false
+    configOverride: |
       # config read by lily
       [Queue]
         [Queue.Workers]
@@ -247,15 +240,6 @@ cluster:
             PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
             DB = 0
             PoolSize = 0
-
-    # jobs is a list of jobs to start on the cluster
-    # the notifier will enqueue these tasks for workers to complete
-    jobs: []
-    #- command: watch
-      #name: ""
-      #args:
-      #- --confidence=10
-      #- --tasks=blocks,messages,chaineconomics
 
     # Required resources to run daemon lily as a client (as is the case with the
     # notifier) requires much fewer resources than the indexing worker instances.
@@ -299,42 +283,19 @@ daemon:
   env: []
 
   # configuration is generally derived from other values. if you'd like to
-  # override the generated configuration, set `inlineEnabled` to `true`
-  # and provide the multiline config in `inlineConfig`
-  # configuration is derived from the following fields:
+  # override the generated configuration, set `configOverrideEnabled` to `true`
+  # and provide the multiline config in `configOverride`
+  # daemon configuration is derived from the following fields:
   # - .Values.daemon.storage[]
-  inlineEnabled: false
-  inlineConfig: |
-    # config read by lily
-    [Queue]
-      [Queue.Workers]
-        [Queue.Workers.Worker1]
-          [Queue.Workers.Worker1.RedisConfig]
-            Network = "tcp"
-            Addr = "127.0.0.1:6379"
-            Username = ""
-            Password = ""
-            PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
-            DB = 0
-            PoolSize = 0
-          [Queue.Workers.Worker1.WorkerConfig]
-            Concurrency = 1
-            LoggerLevel = "debug"
-            WatchQueuePriority = 5
-            FillQueuePriority = 3
-            IndexQueuePriority = 1
-            WalkQueuePriority = 1
-            StrictPriority = false
-            ShutdownTimeout = 30000000000
-      [Queue.Notifiers]
-        [Queue.Notifiers.Notifier1]
-          Network = "tcp"
-          Addr = "127.0.0.1:6379"
-          Username = ""
-          Password = ""
-          PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
-          DB = 0
-          PoolSize = 0
+  configOverrideEnabled: false
+  configOverride: |
+    [API]
+      ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
+    [Libp2p]
+      ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
+      ConnMgrLow = 400
+      ConnMgrHigh = 500
+      ConnMgrGrace = "5m0s"
 
   # jobs is a list of jobs to start on the daemon
   #jobs:

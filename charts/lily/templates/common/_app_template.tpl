@@ -101,7 +101,7 @@ spec:
           postStart:
             exec:
               command:
-                {{- include "sentinel-lily.common-job-start-script" (list $root.Values $instanceType ) | nindent 16 }}
+                {{- include "sentinel-lily.common-job-start-script" (list $root $instanceType ) | nindent 16 }}
         resources:
           {{- if eq $instanceType "daemon" -}}
           {{- include "sentinel-lily.app-resources" $root.Values.daemon.resources | indent 10 }}

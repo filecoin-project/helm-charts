@@ -18,8 +18,8 @@
 {{- printf "%s-%s-%s-%s"
       .Chart.Name
       .Release.Name
-      (required "(root).release.environment expected" .Values.release.environment)
-      (required "(root).release.network expected" .Values.release.network)
+      (required "(root).Values.release.environment expected" .Values.release.environment)
+      (required "(root).Values.release.network expected" .Values.release.network)
  | lower }}
 {{- end }}
 {{- end }}
@@ -370,11 +370,25 @@ tolerations:
 
 
 {{/*
+    list of job names for notes
+*/}}
+{{- define "sentinel-lily.job-list" }}
+{{/* range over job definitions */}}
+{{- range . }}
+{{ .name }}:        {{ .command }}
+    - job args:     {{ .jobArgs | join " " | quote }}
+    - command args: {{ .commandArgs | join " " | quote }}
+    - storage dest: {{ .storage | quote }}
+{{- end }}
+{{- end -}}
+
+{{/*
     common script to start jobs on starting daemon
 */}}
 {{- define "sentinel-lily.common-job-start-script" }}
-{{- $values := index . 0 -}}
+{{- $values := ( index . 0 ).Values -}}
 {{- $instanceType := index . 1 -}}
+{{- $instanceName := include "sentinel-lily.instance-name" ( index . 0 ) -}}
 # lifecycle.postStart.exec.command doesn't accept args
 # so we execute this script as a multiline string
 - "/bin/sh"
@@ -398,7 +412,7 @@ tolerations:
     echo "Starting jobs..."
     {{- range $jobs }}
     echo "...starting job '{{ .name | default .command }}'"
-  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} {{ include "sentinel-lily.job-name-arg" (list $values.instanceName ( .name | default .command )) }} {{ .command }} {{ .commandArgs | join " " }}
+  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .command }} {{ .commandArgs | join " " }}
   status=$?
   if [ $status -ne 0 ]; then
     echo "exit with code $status"
@@ -413,8 +427,8 @@ tolerations:
     {{- if $jobs }}
   echo "Starting jobs..."
     {{- range $jobs }}
-    echo "...starting job '{{ .name | default .command }}'"
-  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list .Values.instanceName ( .name | default .command )) }} {{ .jobArgs | join " " }} {{ .command }} {{ .commandArgs | join " " }} notify --queue={{ .queue | quote }}
+  echo "...starting job '{{ .name | default .command }}'"
+  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .jobArgs | join " " }} {{ required "missing .Values.cluster.jobs[].command" .command }} {{ .commandArgs | join " " }} notify --queue={{ .queue | default "Notifier1" | quote }}
   status=$?
   if [ $status -ne 0 ]; then
     echo "exit with code $status"
@@ -425,12 +439,12 @@ tolerations:
 
 
   {{- else if eq $instanceType "worker" }}
-    {{- $jobs := $values.daemon.jobs -}}
+    {{- $jobs := $values.cluster.jobs -}}
     {{- if $jobs }}
   echo "Starting jobs..."
     {{- range $jobs }}
-    echo "...starting job '{{ .name | default .command }}'"
-  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list .Values.instanceName ( .name | default .command )) }} {{ .jobArgs | join " " }} tipset-worker --queue={{ .queue | quote }}
+  echo "...starting job '{{ .name | default .command }}'"
+  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .commandArgs | join " " }} tipset-worker --queue={{ .queue | default "Worker1" | quote }}
   status=$?
   if [ $status -ne 0 ]; then
     echo "exit with code $status"
@@ -469,7 +483,6 @@ tolerations:
     {{- end }}
 {{- end }}
 {{- end -}}
-
 
 {{/*
     common volume mount configuration
