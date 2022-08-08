@@ -12,7 +12,11 @@ metadata:
   labels:
     {{- include "sentinel-lily.allLabels" $root | nindent 4 }}
 spec:
-  replicas: {{ $root.Values.replicaCount }}
+  {{- if eq $instanceType "notifier" }}
+  replicas: 1
+  {{- else }}
+  replicas: {{ $root.Values.replicaCount | default 1 }}
+  {{- end }}
   serviceName: {{ include "sentinel-lily.short-instance-name" $root }}-{{ $instanceType }}-lily-api
   podManagementPolicy: {{ $root.Values.podManagementPolicy | default "Parallel" | quote }}
   selector:
