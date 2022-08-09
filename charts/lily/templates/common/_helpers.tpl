@@ -488,11 +488,13 @@ tolerations:
     common volume mount configuration
 */}}
 {{- define "sentinel-lily.volume-mounts" }}
+{{- $root := index . 0 -}}
+{{- $instanceType := index . 1 -}}
 - name: "repo-volume"
   emptyDir: {}
 - name: "config-volume"
   configMap:
-    name: {{ list .Release.Name "lily-config" | join "-" | quote }}
+    name: {{ list ( include "sentinel-lily.short-instance-name" $root ) $instanceType "config" | join "-" | quote }}
     items:
     - key: "config.toml"
       path: "config.toml"

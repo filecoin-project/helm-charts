@@ -110,7 +110,7 @@ spec:
             memory: "225Gi"
           {{- end }}
       volumes:
-      {{- include "sentinel-lily.volume-mounts" $root | indent 6 }}
+      {{- include "sentinel-lily.volume-mounts" ( list $root $instanceType ) | nindent 6 }}
   volumeClaimTemplates:
   {{- if eq $instanceType "daemon" }}
   {{- include "sentinel-lily.volume-claim-templates" $root.Values.daemon.volumes.datastore | indent 4 }}
