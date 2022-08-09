@@ -44,19 +44,7 @@ spec:
         resources:
           # resources required to initialize the datastore are small
           {{- include "sentinel-lily.minimal-resources" $root.Values.debug.resources | indent 10 }}
-      - name: init-sync
-        image: {{ include "sentinel-lily.docker-image" $root | quote }}
-        imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
-        command: ["/bin/sh", "-c"]
-        args:
 
-        env:
-        {{- include "sentinel-lily.common-envvars" $root | indent 8 }}
-        volumeMounts:
-        {{- include "sentinel-lily.common-volume-mounts" $root | indent 8 }}
-        resources:
-          # resources required to initialize the datastore are small
-          {{- include "sentinel-lily.minimal-resources" $root | indent 10 }}
       containers:
       {{- if $root.Values.debug.enabled }}
       - name: debug
