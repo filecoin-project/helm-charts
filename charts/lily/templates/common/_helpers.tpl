@@ -311,7 +311,7 @@ tolerations:
     return lily environment variables
 */}}
 {{- define "sentinel-lily.common-envvars" -}}
-{{- include "sentinel-lily.jaegerTracingEnvvars" . | indent 8 }}
+{{- include "sentinel-lily.jaegerTracingEnvvars" . }}
 - name: GOLOG_LOG_FMT
   value: {{ .Values.logFormat | default "json" | quote }}
 - name: GOLOG_LOG_LEVEL
