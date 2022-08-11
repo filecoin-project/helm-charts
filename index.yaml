@@ -169,6 +169,16 @@ entries:
   filecoin-chain-archiver:
   - apiVersion: v2
     appVersion: 0.0.0
+    created: "2022-08-11T17:56:28.752475046Z"
+    description: filecoin-chain-archiver
+    digest: f0bdb25faf7d74ce81949e8d3bcbdaf4339918666de64a8ee3c3a8b36272b096
+    name: filecoin-chain-archiver
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/filecoin-chain-archiver-1.0.0/filecoin-chain-archiver-1.0.0.tgz
+    version: 1.0.0
+  - apiVersion: v2
+    appVersion: 0.0.0
     created: "2022-06-10T17:19:45.370392787Z"
     description: filecoin-chain-archiver
     digest: 33eef74a06d4e226cceecf0237d4985983c2f313ec0841d459742e0ae1d9c8a6
@@ -263,9 +273,9 @@ entries:
     version: 0.0.7
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-27T02:48:50.199016426Z"
+    created: "2022-04-01T23:01:12.462401223Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 1a1213d8730ff3cba4b2128a2398436a02aebfda570a19c28dcc057564717327
+    digest: 28c768d268918447495d1bff7ed96086d8b56be6f6899d30082134825a0ad9c1
     name: lily
     type: application
     urls:
@@ -343,9 +353,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-04-01T23:01:12.462401223Z"
+    created: "2022-05-13T03:52:33.595343827Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 28c768d268918447495d1bff7ed96086d8b56be6f6899d30082134825a0ad9c1
+    digest: e70af21543a40f336acdef12bff9cd9ce039324ebfa93da922ddb5c4016ffbc4
     name: lily
     type: application
     urls:
@@ -403,9 +413,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-13T03:52:33.595343827Z"
+    created: "2022-05-27T02:48:50.199016426Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: e70af21543a40f336acdef12bff9cd9ce039324ebfa93da922ddb5c4016ffbc4
+    digest: 1a1213d8730ff3cba4b2128a2398436a02aebfda570a19c28dcc057564717327
     name: lily
     type: application
     urls:
