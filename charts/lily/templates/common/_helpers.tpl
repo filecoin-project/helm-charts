@@ -343,23 +343,6 @@ tolerations:
 
 
 {{/*
-    common volume mount values for all deployment types
-*/}}
-{{- define "sentinel-lily.common-volume-mounts" }}
-- name: "repo-volume"
-  mountPath: "/var/lib/lily"
-- name: "config-volume"
-  mountPath: "/var/lib/lily/config.toml"
-  subPath: "config.toml"
-  readOnly: true
-{{- if .Values.daemon.volumes.datastore.enabled }}
-- name: "datastore-volume"
-  mountPath: "/var/lib/lily/datastore"
-{{- end }}
-{{- end -}}
-
-
-{{/*
     returns the name of a specific job defined within .Values.daemon.jobs
 */}}
 {{- define "sentinel-lily.job-name-arg" -}}
@@ -482,6 +465,37 @@ tolerations:
       {{- toYaml . | nindent 10 }}
     {{- end }}
 {{- end }}
+{{- end -}}
+
+
+{{/*
+    common volume mount values for all deployment types
+*/}}
+{{- define "sentinel-lily.common-volume-mounts" }}
+{{- $values := ( index . 0 ).Values -}}
+{{- $instanceType := index . 1 -}}
+- name: "repo-volume"
+  mountPath: "/var/lib/lily"
+- name: "config-volume"
+  mountPath: "/var/lib/lily/config.toml"
+  subPath: "config.toml"
+  readOnly: true
+{{- if eq $instanceType "daemon" -}}
+  {{- if $values.daemon.volumes.datastore.enabled }}
+- name: "datastore-volume"
+  mountPath: "/var/lib/lily/datastore"
+  {{- end }}
+{{- else if eq $instanceType "notifier" -}}
+  {{- if $values.cluster.notifier.volumes.datastore.enabled }}
+- name: "datastore-volume"
+  mountPath: "/var/lib/lily/datastore"
+  {{- end }}
+{{- else if eq $instanceType "worker" -}}
+  {{- if $values.cluster.worker.volumes.datastore.enabled }}
+- name: "datastore-volume"
+  mountPath: "/var/lib/lily/datastore"
+  {{- end }}
+{{- end -}}
 {{- end -}}
 
 {{/*
