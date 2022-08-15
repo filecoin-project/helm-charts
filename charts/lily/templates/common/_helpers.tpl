@@ -474,28 +474,14 @@ tolerations:
 {{- define "sentinel-lily.common-volume-mounts" }}
 {{- $values := ( index . 0 ).Values -}}
 {{- $instanceType := index . 1 -}}
-- name: "repo-volume"
-  mountPath: "/var/lib/lily"
 - name: "config-volume"
   mountPath: "/var/lib/lily/config.toml"
   subPath: "config.toml"
   readOnly: true
-{{- if eq $instanceType "daemon" -}}
-  {{- if $values.daemon.volumes.datastore.enabled }}
+- name: "repo-volume"
+  mountPath: "/var/lib/lily"
 - name: "datastore-volume"
   mountPath: "/var/lib/lily/datastore"
-  {{- end }}
-{{- else if eq $instanceType "notifier" -}}
-  {{- if $values.cluster.notifier.volumes.datastore.enabled }}
-- name: "datastore-volume"
-  mountPath: "/var/lib/lily/datastore"
-  {{- end }}
-{{- else if eq $instanceType "worker" -}}
-  {{- if $values.cluster.worker.volumes.datastore.enabled }}
-- name: "datastore-volume"
-  mountPath: "/var/lib/lily/datastore"
-  {{- end }}
-{{- end -}}
 {{- end -}}
 
 {{/*
@@ -504,14 +490,26 @@ tolerations:
 {{- define "sentinel-lily.volume-mappings" }}
 {{- $root := index . 0 -}}
 {{- $instanceType := index . 1 -}}
-- name: "repo-volume"
-  emptyDir: {}
 - name: "config-volume"
   configMap:
     name: {{ list ( include "sentinel-lily.short-instance-name" $root ) $instanceType "config" | join "-" | quote }}
     items:
     - key: "config.toml"
       path: "config.toml"
+- name: "repo-volume"
+  emptyDir: {}
+{{- if eq $root.Values.deploymentType "cluster" -}}
+  {{- if and ( eq $instanceType "notifier" ) ( not $root.Values.cluster.notifier.volumes.datastore.enabled ) }}
+- name: "datastore-volume"
+  emptyDir: {}
+  {{- else if and (eq $instanceType "worker" ) ( not $root.Values.cluster.worker.volumes.datastore.enabled ) }}
+- name: "datastore-volume"
+  emptyDir: {}
+  {{- end -}}
+{{- else if and ( eq $root.Values.deploymentType "daemon" ) ( not $root.Values.daemon.volumes.datastore.enabled ) }}
+- name: "datastore-volume"
+  emptyDir: {}
+{{- end -}}
 {{- end -}}
 
 

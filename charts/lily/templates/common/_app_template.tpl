@@ -40,7 +40,7 @@ spec:
         env:
         {{- include "sentinel-lily.common-envvars" $root | indent 8 }}
         volumeMounts:
-        {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | indent 8 }}
+        {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
         resources:
           # resources required to initialize the datastore are small
           {{- include "sentinel-lily.minimal-resources" $root.Values.debug.resources | indent 10 }}
@@ -54,7 +54,7 @@ spec:
         env:
         {{- include "sentinel-lily.common-envvars" $root | indent 8 }}
         volumeMounts:
-        {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | indent 8 }}
+        {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
         resources:
         {{- if $root.Values.debug.resources }}
           {{- include "sentinel-lily.minimal-resources" $root.Values.debug.resources | nindent 10 }}
@@ -88,7 +88,7 @@ spec:
           name: metrics
         {{- end }}
         volumeMounts:
-        {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | indent 8 }}
+        {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
         lifecycle:
           postStart:
             exec:
