@@ -501,7 +501,7 @@ tolerations:
 {{/*
     common volume mount configuration
 */}}
-{{- define "sentinel-lily.volume-mounts" }}
+{{- define "sentinel-lily.volume-mappings" }}
 {{- $root := index . 0 -}}
 {{- $instanceType := index . 1 -}}
 - name: "repo-volume"
