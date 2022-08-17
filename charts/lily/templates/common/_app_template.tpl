@@ -42,9 +42,8 @@ spec:
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
         resources:
-          # resources required to initialize the datastore are small
-          {{- include "sentinel-lily.minimal-resources" $root.Values.debug.resources | indent 10 }}
-
+          {{- /* empty dict to use defaults */ -}}
+          {{- include "sentinel-lily.resources" dict | indent 10 }}
       containers:
       {{- if $root.Values.debug.enabled }}
       - name: debug
@@ -56,16 +55,7 @@ spec:
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
         resources:
-        {{- if $root.Values.debug.resources }}
-          {{- include "sentinel-lily.minimal-resources" $root.Values.debug.resources | nindent 10 }}
-        {{- else }}
-          requests:
-            cpu: "1000m"
-            memory: "4Gi"
-          limits:
-            cpu: "1000m"
-            memory: "4Gi"
-        {{- end }}
+          {{- include "sentinel-lily.resources" $root.Values.debug.resources | indent 10 }}
       {{- end }}
       - name: daemon
         image: {{ include "sentinel-lily.docker-image" $root | quote }}

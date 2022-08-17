@@ -181,7 +181,7 @@ spec:
 {{/*
     returns the minimal resource.requests for debug/init containers/
 */}}
-{{- define "sentinel-lily.minimal-resources" }}
+{{- define "sentinel-lily.resources" }}
 requests:
 {{- if .requests }}
   cpu: {{ .requests.cpu | default "4000m" }}
