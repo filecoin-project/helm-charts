@@ -184,19 +184,19 @@ spec:
 {{- define "sentinel-lily.minimal-resources" }}
 requests:
 {{- if .requests }}
-  cpu: {{ .requests.cpu | default "1000m" }}
-  memory: {{ .requests.memory | default "4Gi" }}
+  cpu: {{ .requests.cpu | default "4000m" }}
+  memory: {{ .requests.memory | default "16Gi" }}
 {{- else }}
-  cpu: "1000m"
-  memory: "4Gi"
+  cpu: "4000m"
+  memory: "16Gi"
 {{- end }}
 limits:
 {{- if .limits }}
-  cpu: {{ .limits.cpu | default "1000m" }}
-  memory: {{ .limits.memory | default "4Gi" }}
+  cpu: {{ .limits.cpu | default "4000m" }}
+  memory: {{ .limits.memory | default "16Gi" }}
 {{- else }}
-  cpu: "1000m"
-  memory: "4Gi"
+  cpu: "4000m"
+  memory: "16Gi"
 {{- end }}
 {{- end }}
 
