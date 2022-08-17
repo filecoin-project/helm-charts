@@ -593,9 +593,9 @@ tolerations:
     lily config for notifier queues
 */}}
 {{- define "sentinel-lily.config-notifier-queue" -}}
-{{- $instanceName := index . 0 -}}
-{{- $storageValues := index . 1 -}}
-{{- $releaseName := index . 2 -}}
+{{- $instanceName := index . 0 }}
+{{- $storageValues := index . 1 }}
+{{- $releaseName := index . 2 }}
 [Queue]
   [Queue.Notifiers]
     [Queue.Notifiers.Notifier1]
@@ -614,7 +614,7 @@ tolerations:
 {{- define "sentinel-lily.config-worker-queue" -}}
 {{- $instanceName := index . 0 -}}
 {{- $storageValues := index . 1 -}}
-{{- $releaseName := index . 2 -}}
+{{- $releaseName := index . 2 }}
 [Queue]
   [Queue.Workers]
     [Queue.Workers.Worker1]
