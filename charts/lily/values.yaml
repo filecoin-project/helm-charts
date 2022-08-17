@@ -33,7 +33,8 @@ affinity: {}
 # out of sync for a long period of time.
 importSnapshot:
   enabled: true
-  url: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
+  url: https://snapshots.mainnet.filops.net/minimal/latest
+
 
 # How long to wait for lily to start before failing
 # Used for all instances
