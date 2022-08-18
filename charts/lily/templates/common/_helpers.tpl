@@ -560,7 +560,7 @@ tolerations:
 */}}
 {{- define "sentinel-lily.notifier-config" -}}
 {{- include "sentinel-lily.config-common" .Values.cluster.notifier }}
-{{- include "sentinel-lily.config-notifier-queue" ( list ( include "sentinel-lily.instance-name" . ) .Values.cluster.storage .Release.Name ) }}
+{{- include "sentinel-lily.config-notifier-queue" . }}
 {{- end -}}
 
 
@@ -569,7 +569,7 @@ tolerations:
 */}}
 {{- define "sentinel-lily.worker-config" -}}
 {{- include "sentinel-lily.config-common" .Values.cluster.worker }}
-{{- include "sentinel-lily.config-worker-queue" ( list ( include "sentinel-lily.instance-name" . ) .Values.cluster.worker .Release.Name ) }}
+{{- include "sentinel-lily.config-worker-queue" . }}
 {{- include "sentinel-lily.config-storage" ( list ( include "sentinel-lily.instance-name" . ) .Values.cluster.storage ) }}
 {{- end -}}
 
@@ -626,14 +626,15 @@ tolerations:
     lily config for notifier queues
 */}}
 {{- define "sentinel-lily.config-notifier-queue" -}}
-{{- $instanceName := index . 0 }}
-{{- $storageValues := index . 1 }}
-{{- $releaseName := index . 2 }}
 [Queue]
   [Queue.Notifiers]
     [Queue.Notifiers.Notifier1]
         Network = "tcp"
-        Addr = "{{ $releaseName }}-redis-master:6379"
+        {{- if not (empty .Values.cluster.redis.host) }}
+        Addr = {{ .Values.cluster.redis.host | quote }}
+        {{- else }}
+        Addr = {{ printf "%s-redis-master:6379" .Release.Name | quote }}
+        {{- end }}
         Username = "default"
         PasswordEnv = "LILY_REDIS_PASSWORD"
         DB = 0
@@ -645,15 +646,16 @@ tolerations:
     lily config for worker queues
 */}}
 {{- define "sentinel-lily.config-worker-queue" -}}
-{{- $instanceName := index . 0 -}}
-{{- $storageValues := index . 1 -}}
-{{- $releaseName := index . 2 }}
 [Queue]
   [Queue.Workers]
     [Queue.Workers.Worker1]
       [Queue.Workers.Worker1.RedisConfig]
         Network = "tcp"
-        Addr = "{{ $releaseName }}-redis-master:6379"
+        {{- if not (empty .Values.cluster.redis.host) }}
+        Addr = {{ .Values.cluster.redis.host | quote }}
+        {{- else }}
+        Addr = {{ printf "%s-redis-master:6379" .Release.Name | quote }}
+        {{- end }}
         Username = "default"
         PasswordEnv = "LILY_REDIS_PASSWORD"
         DB = 0

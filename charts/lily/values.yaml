@@ -77,8 +77,10 @@ cluster:
     # when redis is enabled, the secret is derived automatically and
     #   overrides below are ignored
     # when redis is disabled, the seret name and key should be provided
+    # defaults are indicated
     #secretName: "releasename-redis"
     #secretKey: "redis-password"
+    #host: "releasename-redis-master:6379"
 
   # Specify the name of the Queue configuration header to be used
   # by each component. Keep these defaults unless you're providing
