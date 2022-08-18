@@ -38,7 +38,7 @@ spec:
         args:
         {{- include "sentinel-lily.initialize-datastore-script" $root | nindent 10 }}
         env:
-        {{- include "sentinel-lily.common-envvars" $root | indent 8 }}
+        {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
         resources:
@@ -51,7 +51,7 @@ spec:
         imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
         command: ["/bin/sh", "-c", "tail -f /dev/null"]
         env:
-        {{- include "sentinel-lily.common-envvars" $root | indent 8 }}
+        {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
         resources:
@@ -67,7 +67,7 @@ spec:
         - {{ $root }}
         {{- end }}
         env:
-        {{- include "sentinel-lily.common-envvars" $root | indent 8 }}
+        {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
         ports:
         - containerPort: 1234
           name: api

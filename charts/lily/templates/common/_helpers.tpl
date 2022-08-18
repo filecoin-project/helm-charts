@@ -311,33 +311,55 @@ tolerations:
     return lily environment variables
 */}}
 {{- define "sentinel-lily.common-envvars" -}}
-{{- include "sentinel-lily.jaegerTracingEnvvars" . }}
+{{- $instanceType := index . 0 -}}
+{{- $root := index . 1 -}}
+{{- include "sentinel-lily.jaegerTracingEnvvars" $root }}
 - name: GOLOG_LOG_FMT
-  value: {{ .Values.logFormat | default "json" | quote }}
+  value: {{ $root.Values.logFormat | default "json" | quote }}
 - name: GOLOG_LOG_LEVEL
-  value: {{ .Values.logLevel | default "info" | quote }}
-{{- if .Values.logLevelNamed }}
+  value: {{ $root.Values.logLevel | default "info" | quote }}
+{{- if $root.Values.logLevelNamed }}
 - name: LILY_LOG_LEVEL_NAMED
-  value: {{ .Values.logLevelNamed | quote }}
+  value: {{ $root.Values.logLevelNamed | quote }}
 {{- end }}
 - name: LILY_REPO
   value: "/var/lib/lily"
 - name: LILY_CONFIG
   value: "/var/lib/lily/config.toml"
-{{- range .Values.daemon.storage.postgresql }}
+{{- if eq $root.Values.deploymentType "cluster" }}
 - name: LILY_REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ .Release.Name }}-redis
+      name: {{ $root.Release.Name }}-redis
       key: "redis-password"
+  {{- range $root.Values.cluster.storage.postgresql }}
 - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
   valueFrom:
     secretKeyRef:
       name: {{ required "expected secret name which holds postgres connection url" .secretName }}
       key: {{ .secretKey | default "url" }}
+  {{- end }}
+{{- else if eq $root.Values.deploymentType "daemon" }}
+  {{- range $root.Values.daemon.storage.postgresql }}
+- name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ required "expected secret name which holds postgres connection url" .secretName }}
+      key: {{ .secretKey | default "url" }}
+  {{- end }}
 {{- end }}
-{{- with .Values.daemon.env }}
-  {{- toYaml . | nindent 8 }}
+{{- if eq $instanceType "notifier" }}
+  {{- with $root.Values.cluster.notifier.env }}
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+{{- else if eq $instanceType "worker" }}
+  {{- with $root.Values.cluster.worker.env }}
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+{{- else if eq $instanceType "daemon" }}
+  {{- with $root.Values.daemon.env }}
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
 {{- end }}
 {{- end -}}
 
