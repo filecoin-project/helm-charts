@@ -71,6 +71,15 @@ logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
 deploymentType: "cluster"
 
 cluster:
+  redis:
+    # deploy redis for use by the clsuter along with lily
+    enabled: true
+    # when redis is enabled, the secret is derived automatically and
+    #   overrides below are ignored
+    # when redis is disabled, the seret name and key should be provided
+    #secretName: "releasename-redis"
+    #secretKey: "redis-password"
+
   # Specify the name of the Queue configuration header to be used
   # by each component. Keep these defaults unless you're providing
   # your own configuration with custom queue names defined.

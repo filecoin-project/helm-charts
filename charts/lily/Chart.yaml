@@ -8,3 +8,4 @@ dependencies:
   - name: "redis"
     version: "17.0.x"
     repository: "https://charts.bitnami.com/bitnami"
+    condition: cluster.redis.enabled

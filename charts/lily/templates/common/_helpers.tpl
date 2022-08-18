@@ -6,6 +6,9 @@
 {{- fail ".Values.deploymentType must be defined as `cluster` or `daemon`" }}
 {{- end }}
 
+{{- if and (not .Values.cluster.redis.enabled) (or (empty .Values.cluster.redis.secretName) (empty .Values.cluster.redis.secretKey)) }}
+{{- fail "Redis is disabled and must have secret provided in .Values.cluster.redis.secret* keys" }}
+{{- end }}
 
 
 {{/*
@@ -330,22 +333,30 @@ tolerations:
 - name: LILY_REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ $root.Release.Name }}-redis
+{{- if not (empty $root.Values.cluster.redis.secretName) }}
+      name: {{ $root.Values.cluster.redis.secretName | quote }}
+{{- else }}
+      name: "{{ $root.Release.Name }}-redis"
+{{- end }}
+{{- if not (empty $root.Values.cluster.redis.secretKey) }}
+      key: {{ $root.Values.cluster.redis.secretKey | quote }}
+{{- else }}
       key: "redis-password"
+{{- end }}
   {{- range $root.Values.cluster.storage.postgresql }}
 - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
   valueFrom:
     secretKeyRef:
-      name: {{ required "expected secret name which holds postgres connection url" .secretName }}
-      key: {{ .secretKey | default "url" }}
+      name: {{ required "expected secret name which holds postgres connection url" .secretName | quote }}
+      key: {{ .secretKey | default "url" | quote }}
   {{- end }}
 {{- else if eq $root.Values.deploymentType "daemon" }}
   {{- range $root.Values.daemon.storage.postgresql }}
 - name: LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL
   valueFrom:
     secretKeyRef:
-      name: {{ required "expected secret name which holds postgres connection url" .secretName }}
-      key: {{ .secretKey | default "url" }}
+      name: {{ required "expected secret name which holds postgres connection url" .secretName | quote }}
+      key: {{ .secretKey | default "url" | quote }}
   {{- end }}
 {{- end }}
 {{- if eq $instanceType "notifier" }}
