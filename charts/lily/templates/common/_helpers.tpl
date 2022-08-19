@@ -625,7 +625,7 @@ tolerations:
 {{/*
     lily config for notifier queues
 */}}
-{{- define "sentinel-lily.config-notifier-queue" -}}
+{{- define "sentinel-lily.config-notifier-queue" }}
 [Queue]
   [Queue.Notifiers]
     [Queue.Notifiers.Notifier1]
@@ -645,7 +645,7 @@ tolerations:
 {{/*
     lily config for worker queues
 */}}
-{{- define "sentinel-lily.config-worker-queue" -}}
+{{- define "sentinel-lily.config-worker-queue" }}
 [Queue]
   [Queue.Workers]
     [Queue.Workers.Worker1]
