@@ -402,9 +402,9 @@ entries:
     version: 0.0.7
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-04-01T23:01:12.462401223Z"
+    created: "2022-05-27T02:48:50.199016426Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 28c768d268918447495d1bff7ed96086d8b56be6f6899d30082134825a0ad9c1
+    digest: 1a1213d8730ff3cba4b2128a2398436a02aebfda570a19c28dcc057564717327
     name: lily
     type: application
     urls:
@@ -432,9 +432,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-27T02:48:50.199016426Z"
+    created: "2022-05-16T14:36:12.931282764Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 1a1213d8730ff3cba4b2128a2398436a02aebfda570a19c28dcc057564717327
+    digest: 136bb5ed433a329125ee984ec3802efca350b62419e9a5f2f63efc7bd7393966
     name: lily
     type: application
     urls:
@@ -542,9 +542,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-16T14:36:12.931282764Z"
+    created: "2022-04-01T23:01:12.462401223Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 136bb5ed433a329125ee984ec3802efca350b62419e9a5f2f63efc7bd7393966
+    digest: 28c768d268918447495d1bff7ed96086d8b56be6f6899d30082134825a0ad9c1
     name: lily
     type: application
     urls:
@@ -1417,6 +1417,16 @@ entries:
     - https://github.com/filecoin-project/helm-charts/releases/download/visor-0.1.0/visor-0.1.0.tgz
     version: 0.1.0
   volume-snapshotter:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2022-08-25T16:31:05.807017078Z"
+    description: A Helm chart to rotate volumesnapshots of a pvc
+    digest: f0f66b93d1bbbb13e8922578f74ba0ff8672f9f730423a94a00d415847d218fb
+    name: volume-snapshotter
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/volume-snapshotter-0.1.1/volume-snapshotter-0.1.1.tgz
+    version: 0.1.1
   - apiVersion: v2
     appVersion: 1.0.0
     created: "2020-12-11T21:31:47.264784055Z"
