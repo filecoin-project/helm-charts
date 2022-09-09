@@ -417,9 +417,9 @@ entries:
     version: 0.0.7
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-13T03:52:33.595343827Z"
+    created: "2022-05-09T20:25:45.687801925Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: e70af21543a40f336acdef12bff9cd9ce039324ebfa93da922ddb5c4016ffbc4
+    digest: fa84933780998d0de4582350ba6e4ec7640e6c4b20e33925c444a50336f0bd9b
     name: lily
     type: application
     urls:
@@ -447,9 +447,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-09T20:25:45.687801925Z"
+    created: "2022-04-26T18:38:57.196751163Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: fa84933780998d0de4582350ba6e4ec7640e6c4b20e33925c444a50336f0bd9b
+    digest: baa70ff89ccbc21bd8c8c2bb60ff946fb5c375cb294c852a565a1cdfa3efe075
     name: lily
     type: application
     urls:
@@ -557,9 +557,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-04-26T18:38:57.196751163Z"
+    created: "2022-05-13T03:52:33.595343827Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: baa70ff89ccbc21bd8c8c2bb60ff946fb5c375cb294c852a565a1cdfa3efe075
+    digest: e70af21543a40f336acdef12bff9cd9ce039324ebfa93da922ddb5c4016ffbc4
     name: lily
     type: application
     urls:
@@ -626,6 +626,16 @@ entries:
     - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.1/lily-0.0.1.tgz
     version: 0.0.1
   lotus-bundle:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2022-09-09T15:20:07.683941077Z"
+    description: bundle your application with lotus or IPFS
+    digest: 39bc091a15aef809db375a709b4a9fd48668cdfb5a3ec37c5c8fd5eecc91218e
+    name: lotus-bundle
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-bundle-0.0.17/lotus-bundle-0.0.17.tgz
+    version: 0.0.17
   - apiVersion: v2
     appVersion: 0.0.1
     created: "2022-05-23T17:12:03.001588076Z"
