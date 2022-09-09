@@ -63,6 +63,7 @@ spec:
     spec:
       securityContext:
         fsGroup: 532
+      restartPolicy: Always
       volumes:
         # The wallet, mounted by the wallet importer
         - name: wallets-secret-volume
@@ -156,6 +157,59 @@ spec:
             - name: {{ $vol.name }}
               mountPath: {{ $st.mount }}
             {{- end }}
+        {{- if .Values.lotus.reset.enabled }}
+        - name: reset-datastore
+          image: {{ .Values.lotus.image }}
+          imagePullPolicy: {{ .Values.lotus.imagePullPolicy }}
+          command: [ "bash", "-c" ]
+          args:
+            - |
+              pct=$(df -h $LOTUS_PATH | awk '/[0-9]+%/ {print substr($5, 1, length($5)-1)}')
+              echo "reset percentage is $RESET_PERCENTAGE"
+              echo "The datastore is $pct% full"
+              if [[ "$pct" -lt "$RESET_PERCENTAGE" ]]
+              then
+                echo "not resetting"
+              else
+                echo "resetting datastore."
+                rm -rf "${LOTUS_PATH}/datastore" || echo "datastore does not exist"
+                rm "${LOTUS_PATH}/date_initialized" || echo "snapshot has not been initialized yet"
+              fi
+          env:
+            - name: LOTUS_PATH
+              value: /var/lib/lotus
+            - name: RESET_PERCENTAGE
+              value: "{{ toString .Values.lotus.reset.percent }}"
+          volumeMounts:
+            - name: lotus-path
+              mountPath: /var/lib/lotus
+        {{- end }}
+        {{- if not .Values.lotus.lite.enabled }}
+        - name: snapshot-importer
+          image: {{ .Values.lotus.image }}
+          imagePullPolicy: {{ .Values.lotus.imagePullPolicy }}
+          command: [ "bash", "-c" ]
+          args:
+            - |
+              GATE="$LOTUS_PATH"/date_initialized
+              # Don't init if already initialized.
+              if [ ! -f "$GATE" ]; then
+                echo importing minimal snapshot
+                /usr/local/bin/lotus daemon --import-snapshot "$DOCKER_LOTUS_IMPORT_SNAPSHOT" --halt-after-import
+                # Block future inits
+                date > "$GATE"
+              fi
+          env:
+            - name: LOTUS_PATH
+              value: /var/lib/lotus
+            - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
+              value: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
+          volumeMounts:
+            - name: lotus-path
+              mountPath: /var/lib/lotus
+            - name: parameter-cache
+              mountPath: /var/tmp/filecoin-proof-parameters
+        {{- end }}
       {{- end }}
       containers:
         - name: {{ .Values.application.container.name }}
@@ -239,11 +293,6 @@ spec:
             {{- if .Values.lotus.lite.enabled }}
             - name: FULLNODE_API_INFO
               value: {{ .Values.lotus.lite.backend }}
-            - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
-              value: ""
-            {{- else }}
-            - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
-              value: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
             {{- end }}
             - name: GOLOG_FORMAT
               value: json
@@ -296,7 +345,7 @@ spec:
               chmod -R o-w $LOTUS_PATH
               chmod -R g-r $LOTUS_PATH
               chmod -R g-w $LOTUS_PATH
-              /docker-lotus-entrypoint.sh daemon
+              /usr/local/bin/lotus daemon
 
         # wallet importer
         # TODO: switch to a wallet server

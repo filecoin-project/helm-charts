@@ -131,12 +131,15 @@ wallets: []
 # It provides a limited set of lotus API endpoints.
 lotus:
   enabled: true
-  image: filecoin/lotus:nightly
+  image: filecoin/lotus-all-in-one:nightly
   imagePullPolicy: Always
   lite:
     enabled: false
     backend: wss://api.chain.love
   jaeger: true
+  reset:
+    enabled: false
+    percent: 90
 
 
 # ipfs configuration

@@ -1,6 +1,6 @@
 apiVersion: v2
 name: lotus-bundle
-description: bundle your application with lotus
+description: bundle your application with lotus or IPFS
 type: application
-version: 0.0.16
+version: 0.0.17
 appVersion: 0.0.1

@@ -1,9 +1,14 @@
 {{ .Values.application.name }} with lotus sidecars
 
-Release ---------- {{ .Release.Name }}
-Namespace -------- {{ .Release.Namespace }}
-Application ------ {{ .Values.application.container.image }}
-Bundled with ----- {{ .Values.lotus.image }}
+Release ------------------ {{ .Release.Name }}
+Namespace -------------- {{ .Release.Namespace }}
+Application ------------ {{ .Values.application.container.image }}
+{{ if .Values.lotus.enabled }}
+Bundled with Lotus ----- {{ .Values.lotus.image }}
+{{ end }}
+{{ if .Values.ipfs.enabled }}
+Bundled with IPFS ------ {{ .Values.ipfs.image }}
+{{ end }}
 
 The following following initial wallets will be imported:
 
