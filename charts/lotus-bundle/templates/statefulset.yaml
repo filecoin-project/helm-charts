@@ -280,11 +280,6 @@ spec:
         - name: lotus
           image: {{ .Values.lotus.image }}
           imagePullPolicy: {{ .Values.lotus.imagePullPolicy }}
-          args:
-            - daemon
-            {{- if .Values.lotus.lite.enabled }}
-            - "--lite"
-            {{- end }}
           env:
             - name: FILECOIN_PARAMETER_CACHE
               value: /var/tmp/filecoin-proof-parameters
@@ -345,7 +340,7 @@ spec:
               chmod -R o-w $LOTUS_PATH
               chmod -R g-r $LOTUS_PATH
               chmod -R g-w $LOTUS_PATH
-              /usr/local/bin/lotus daemon
+              /usr/local/bin/lotus daemon {{ if .Values.lotus.lite.enabled }}--lite {{ end }}
 
         # wallet importer
         # TODO: switch to a wallet server
