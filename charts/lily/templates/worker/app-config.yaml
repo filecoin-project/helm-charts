@@ -1,0 +1,16 @@
+{{- if eq .Values.deploymentType "cluster" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ list ( include "sentinel-lily.short-instance-name" $ ) "worker-config" | join "-" | quote }}
+  labels:
+    {{- include "sentinel-lily.allLabels" . | nindent 4 }}
+data:
+  config.toml: |
+  {{- if .Values.cluster.worker.configOverrideEnabled -}}
+    {{- .Values.cluster.worker.configOverride | indent 4 }}
+  {{- else -}}
+    {{- include "sentinel-lily.worker-config" . | nindent 4 }}
+  {{- end -}}
+{{- end -}}

@@ -1,0 +1,16 @@
+{{- if ne .Values.deploymentType "cluster" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ list ( include "sentinel-lily.short-instance-name" $ ) "daemon-config" | join "-" | quote }}
+  labels:
+    {{- include "sentinel-lily.allLabels" . | nindent 4 }}
+data:
+  config.toml: |
+  {{- if .Values.daemon.configOverrideEnabled }}
+    {{ .Values.daemon.configOverride | nindent 4 }}
+  {{- else }}
+    {{- include "sentinel-lily.daemon-config" . | nindent 4 }}
+  {{- end }}
+{{- end }}

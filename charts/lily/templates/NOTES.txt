@@ -7,15 +7,33 @@
                                              \    /\    |
                                               `,_;  \_./
                                                 `    `
-Release ---------- {{ .Release.Name }}
-Namespace -------- {{ .Release.Namespace }}
-Application ------ {{ .Values.image.repo }}:{{ .Values.image.tag }}
-Instance Name ---- {{ include "sentinel-lily.instanceName" . }}
+Release ------- {{ .Release.Name }}
+Namespace ----- {{ .Release.Namespace }}
+Application --- {{ .Values.image.repo }}:{{ .Values.image.tag }}
+Instance Name - {{ include "sentinel-lily.instance-name" . }}
+
+=== Installation Details ===
+
+Started Jobs --------
+
+{{- if eq .Values.deploymentType "cluster" }}
+{{- include "sentinel-lily.job-list" .Values.cluster.jobs }}
+{{- else -}}
+{{- include "sentinel-lily.job-list" .Values.daemon.jobs }}
+
+Configured Queues ---
+
+notifier: {{ .Values.cluster.queue.notifier | quote }}
+worker:   {{ .Values.cluster.queue.worker | quote }}
+{{- end -}}
+
+Prometheus Scraping - {{ .Values.prometheusOperatorServiceMonitor }}
+Debugging Enabled --- {{ .Values.debug.enabled }}
 
 {{ if .Values.jaeger.enabled }}
-Jaeger Tracing --- enabled
+Jaeger Tracing --- true
 Jaeger Settings --
 {{ include "sentinel-lily.jaegerTracingEnvvars" . }}
 {{- else }}
-Jaeger Tracing --- disabled
+Jaeger Tracing --- false
 {{- end }}

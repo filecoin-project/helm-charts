@@ -1,0 +1,6 @@
+{{- if eq .Values.deploymentType "cluster" }}
+{{ include "sentinel-lily.lily-app-template" (list "notifier" .) }}
+{{ include "sentinel-lily.lily-app-template" (list "worker" .) }}
+{{- else }}
+{{ include "sentinel-lily.lily-app-template" (list "daemon" .) }}
+{{- end }}
