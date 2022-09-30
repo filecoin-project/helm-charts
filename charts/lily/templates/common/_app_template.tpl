@@ -37,7 +37,13 @@ spec:
   template:
     metadata:
       labels:
+        {{- if eq $instanceType "notifier" -}}
+        {{- include "sentinel-lily.notifierAllLabels" $root | nindent 8 }}
+        {{- else if eq $instanceType "worker" -}}
+        {{- include "sentinel-lily.workerAllLabels" $root | nindent 8 }}
+        {{- else -}}
         {{- include "sentinel-lily.allLabels" $root | nindent 8 }}
+        {{- end }}
     spec:
       {{- include "sentinel-lily.common-lily-affinity-selectors" $root | indent 6 }}
       imagePullSecrets:
@@ -75,15 +81,15 @@ spec:
         command: ["lily"]
         args:
         - daemon
-        {{- if eq $instanceType "daemon" -}}
+        {{- if eq $instanceType "daemon" }}
         {{- range $root.Values.daemon.args }}
         - {{ . }}
         {{- end }}
-        {{- else if eq $instanceType "notifier" -}}
+        {{- else if eq $instanceType "notifier" }}
         {{- range $root.Values.cluster.notifier.args }}
         - {{ . }}
         {{- end }}
-        {{- else if eq $instanceType "worker" -}}
+        {{- else if eq $instanceType "worker" }}
         {{- range $root.Values.cluster.worker.args }}
         - {{ . }}
         {{- end }}
