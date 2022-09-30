@@ -10,7 +10,13 @@ kind: StatefulSet
 metadata:
   name: {{ list ( include "sentinel-lily.short-instance-name" $root ) $instanceType | join "-" | quote }}
   labels:
+    {{- if eq $instanceType "notifier" -}}
+    {{- include "sentinel-lily.notifierAllLabels" $root | nindent 4 }}
+    {{- else if eq $instanceType "worker" -}}
+    {{- include "sentinel-lily.workerAllLabels" $root | nindent 4 }}
+    {{- else -}}
     {{- include "sentinel-lily.allLabels" $root | nindent 4 }}
+    {{- end }}
 spec:
   {{- if eq $instanceType "notifier" }}
   replicas: 1
@@ -21,7 +27,13 @@ spec:
   podManagementPolicy: {{ $root.Values.podManagementPolicy | default "Parallel" | quote }}
   selector:
     matchLabels:
+      {{- if eq $instanceType "notifier" -}}
+      {{- include "sentinel-lily.notifierSelectorLabels" $root | nindent 6 }}
+      {{- else if eq $instanceType "worker" -}}
+      {{- include "sentinel-lily.workerSelectorLabels" $root | nindent 6 }}
+      {{- else -}}
       {{- include "sentinel-lily.selectorLabels" $root | nindent 6 }}
+      {{- end }}
   template:
     metadata:
       labels:
@@ -63,8 +75,18 @@ spec:
         command: ["lily"]
         args:
         - daemon
+        {{- if eq $instanceType "daemon" -}}
         {{- range $root.Values.daemon.args }}
-        - {{ $root }}
+        - {{ . }}
+        {{- end }}
+        {{- else if eq $instanceType "notifier" -}}
+        {{- range $root.Values.cluster.notifier.args }}
+        - {{ . }}
+        {{- end }}
+        {{- else if eq $instanceType "worker" -}}
+        {{- range $root.Values.cluster.worker.args }}
+        - {{ . }}
+        {{- end }}
         {{- end }}
         env:
         {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
