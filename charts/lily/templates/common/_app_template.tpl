@@ -75,8 +75,18 @@ spec:
         command: ["lily"]
         args:
         - daemon
+        {{- if eq $instanceType "daemon" -}}
         {{- range $root.Values.daemon.args }}
-        - {{ $root }}
+        - {{ . }}
+        {{- end }}
+        {{- else if eq $instanceType "notifier" -}}
+        {{- range $root.Values.cluster.notifier.args }}
+        - {{ . }}
+        {{- end }}
+        {{- else if eq $instanceType "worker" -}}
+        {{- range $root.Values.cluster.worker.args }}
+        - {{ . }}
+        {{- end }}
         {{- end }}
         env:
         {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
