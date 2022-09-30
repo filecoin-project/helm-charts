@@ -264,7 +264,7 @@ tolerations:
     chmod -R 0600 /var/lib/lily/keystore
   fi
 
-  # import snapshot if enabled
+  {{/* import snapshot if enabled */}}
   {{- if .Values.importSnapshot.enabled }}
   if [ -f "/var/lib/lily/datastore/_imported" ]; then
     echo "Skipping import, found /var/lib/lily/datastore/_imported file."
@@ -422,13 +422,17 @@ tolerations:
   echo "Waiting for datastore to settle... (3m)"
   sleep 180
 
+  {{- $conditionalNetworkSyncWait := "lily sync wait && " }}
+  {{- if $values.debug.disableNetworkSync }}
+  {{- $conditionalNetworkSyncWait = "" }}
+  {{- end }}
   {{- if eq $instanceType "daemon" }}
     {{- $jobs := $values.daemon.jobs -}}
     {{- if $jobs }}
     echo "Starting jobs..."
     {{- range $jobs }}
     echo "...starting job '{{ .name | default .command }}'"
-  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .command }} {{ .commandArgs | join " " }}
+  {{ $conditionalNetworkSyncWait }}sleep 10 && lily job run {{ .jobArgs | join " " }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .command }} {{ .commandArgs | join " " }}
   status=$?
   if [ $status -ne 0 ]; then
     echo "exit with code $status"
@@ -444,7 +448,7 @@ tolerations:
   echo "Starting jobs..."
     {{- range $jobs }}
   echo "...starting job '{{ .name | default .command }}'"
-  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .jobArgs | join " " }} {{ required "missing .Values.cluster.jobs[].command" .command }} {{ .commandArgs | join " " }} notify --queue={{ .queue | default "Notifier1" | quote }}
+  {{ $conditionalNetworkSyncWait }}sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .jobArgs | join " " }} {{ required "missing .Values.cluster.jobs[].command" .command }} {{ .commandArgs | join " " }} notify --queue={{ .queue | default "Notifier1" | quote }}
   status=$?
   if [ $status -ne 0 ]; then
     echo "exit with code $status"
@@ -460,7 +464,7 @@ tolerations:
   echo "Starting jobs..."
     {{- range $jobs }}
   echo "...starting job '{{ .name | default .command }}'"
-  lily sync wait && sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .commandArgs | join " " }} tipset-worker --queue={{ .queue | default "Worker1" | quote }}
+  {{ $conditionalNetworkSyncWait }}sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .commandArgs | join " " }} tipset-worker --queue={{ .queue | default "Worker1" | quote }}
   status=$?
   if [ $status -ne 0 ]; then
     echo "exit with code $status"

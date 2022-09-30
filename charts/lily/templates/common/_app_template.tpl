@@ -57,7 +57,7 @@ spec:
           {{- /* empty dict to use defaults */ -}}
           {{- include "sentinel-lily.resources" dict | indent 10 }}
       containers:
-      {{- if $root.Values.debug.enabled }}
+      {{- if $root.Values.debug.sidecar.enabled }}
       - name: debug
         image: {{ include "sentinel-lily.docker-image" $root | quote }}
         imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
@@ -67,7 +67,7 @@ spec:
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
         resources:
-          {{- include "sentinel-lily.resources" $root.Values.debug.resources | indent 10 }}
+          {{- include "sentinel-lily.resources" $root.Values.debug.sidecar.resources | indent 10 }}
       {{- end }}
       - name: daemon
         image: {{ include "sentinel-lily.docker-image" $root | quote }}
@@ -87,6 +87,9 @@ spec:
         {{- range $root.Values.cluster.worker.args }}
         - {{ . }}
         {{- end }}
+        {{- end }}
+        {{- if $root.Values.debug.disableNetworkSync }}
+        - --bootstrap=false
         {{- end }}
         env:
         {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}

@@ -52,15 +52,20 @@ jaeger:
   samplerRatio: "0.01"
 
 # debug feature config
+# debugSidecar.enabled - when true, adds a container identical to the daemon pod
+#   but tailing /dev/null for inspecting from within pod
+# disableNetworkSync - configures all nodes to disable connecting to the network which prevents it from syncing.
 debug:
-  enabled: false
-  resources: {}
-    #requests:
-      #cpu: "8000m"
-      #memory: "16Gi"
-    #limits:
-      #cpu: "8000m"
-      #memory: "16Gi"
+  sidecar:
+    enabled: false
+    resources: {}
+      #requests:
+        #cpu: "8000m"
+        #memory: "16Gi"
+      #limits:
+        #cpu: "8000m"
+        #memory: "16Gi"
+  disableNetworkSync: false
 
 # applied to all instances
 logFormat: "json"
