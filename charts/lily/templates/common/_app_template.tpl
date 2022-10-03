@@ -106,7 +106,7 @@ spec:
           name: p2p
         {{- if $root.Values.prometheusOperatorServiceMonitor }}
         - containerPort: 9991
-          name: metrics
+          name: {{ list $instanceType "metrics-port" | join "-" }}
         {{- end }}
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
