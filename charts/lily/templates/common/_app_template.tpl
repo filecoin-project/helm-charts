@@ -37,7 +37,13 @@ spec:
   template:
     metadata:
       labels:
+        {{- if eq $instanceType "notifier" -}}
+        {{- include "sentinel-lily.notifierAllLabels" $root | nindent 8 }}
+        {{- else if eq $instanceType "worker" -}}
+        {{- include "sentinel-lily.workerAllLabels" $root | nindent 8 }}
+        {{- else -}}
         {{- include "sentinel-lily.allLabels" $root | nindent 8 }}
+        {{- end }}
     spec:
       {{- include "sentinel-lily.common-lily-affinity-selectors" $root | indent 6 }}
       imagePullSecrets:
@@ -57,7 +63,7 @@ spec:
           {{- /* empty dict to use defaults */ -}}
           {{- include "sentinel-lily.resources" dict | indent 10 }}
       containers:
-      {{- if $root.Values.debug.enabled }}
+      {{- if $root.Values.debug.sidecar.enabled }}
       - name: debug
         image: {{ include "sentinel-lily.docker-image" $root | quote }}
         imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
@@ -67,7 +73,7 @@ spec:
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
         resources:
-          {{- include "sentinel-lily.resources" $root.Values.debug.resources | indent 10 }}
+          {{- include "sentinel-lily.resources" $root.Values.debug.sidecar.resources | indent 10 }}
       {{- end }}
       - name: daemon
         image: {{ include "sentinel-lily.docker-image" $root | quote }}
@@ -75,18 +81,21 @@ spec:
         command: ["lily"]
         args:
         - daemon
-        {{- if eq $instanceType "daemon" -}}
+        {{- if eq $instanceType "daemon" }}
         {{- range $root.Values.daemon.args }}
         - {{ . }}
         {{- end }}
-        {{- else if eq $instanceType "notifier" -}}
+        {{- else if eq $instanceType "notifier" }}
         {{- range $root.Values.cluster.notifier.args }}
         - {{ . }}
         {{- end }}
-        {{- else if eq $instanceType "worker" -}}
+        {{- else if eq $instanceType "worker" }}
         {{- range $root.Values.cluster.worker.args }}
         - {{ . }}
         {{- end }}
+        {{- end }}
+        {{- if $root.Values.debug.disableNetworkSync }}
+        - --bootstrap=false
         {{- end }}
         env:
         {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}

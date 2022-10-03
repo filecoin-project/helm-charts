@@ -25,7 +25,7 @@ Configured Queues ---
 
 notifier: {{ .Values.cluster.queue.notifier | quote }}
 worker:   {{ .Values.cluster.queue.worker | quote }}
-{{- end -}}
+{{- end }}
 
 Prometheus Scraping - {{ .Values.prometheusOperatorServiceMonitor }}
 Debugging Enabled --- {{ .Values.debug.enabled }}
