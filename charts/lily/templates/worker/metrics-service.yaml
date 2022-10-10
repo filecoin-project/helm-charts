@@ -18,4 +18,5 @@ spec:
     - name: "worker-metrics-service"
       protocol: "TCP"
       targetPort: "worker-metrics-port"
+      port: 9991
 {{- end }}

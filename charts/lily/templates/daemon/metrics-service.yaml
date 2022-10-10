@@ -18,4 +18,5 @@ spec:
     - name: "daemon-metrics-service"
       protocol: "TCP"
       targetPort: "daemon-metrics-port"
+      port: 9991
 {{- end }}

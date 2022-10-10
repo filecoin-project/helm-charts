@@ -18,4 +18,5 @@ spec:
     - name: "notifier-metrics-service"
       protocol: "TCP"
       targetPort: "notifier-metrics-port"
+      port: 9991
 {{- end }}
