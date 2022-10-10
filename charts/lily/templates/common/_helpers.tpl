@@ -342,6 +342,16 @@ tolerations:
 - name: LILY_CONFIG
   value: "/var/lib/lily/config.toml"
 {{- if eq $root.Values.deploymentType "cluster" }}
+- name: LILY_REDIS_ADDR
+{{- if not (empty $root.Values.cluster.redis.host) }}
+  value: {{ $root.Values.cluster.redis.host | quote }}
+{{- else }}
+  value: {{ list $root.Release.Name "redis-master:6379" | join "-" | quote }}
+{{- end }}
+- name: LILY_REDIS_DB
+  value: "0"
+- name: LILY_REDIS_USERNAME
+  value: "default"
 - name: LILY_REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
