@@ -101,12 +101,12 @@ spec:
         {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
         ports:
         - containerPort: 1234
-          name: api
+          name: "http-api"
         - containerPort: 1347
-          name: p2p
+          name: "tcp-p2p"
         {{- if $root.Values.prometheusOperatorServiceMonitor }}
         - containerPort: 9991
-          name: {{ list $instanceType "metrics-port" | join "-" }}
+          name: "http-metrics"
         {{- end }}
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}

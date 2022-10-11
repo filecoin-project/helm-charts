@@ -187,7 +187,7 @@ spec:
     {{- include "sentinel-lily.allLabels" $root | nindent 4 }}
     {{- end }}
   ports:
-  - name: "api-port"
+  - name: "http-api"
     protocol: "TCP"
     port: 1234
 {{- end -}}

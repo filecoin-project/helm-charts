@@ -15,8 +15,7 @@ spec:
   selector:
     {{- include "sentinel-lily.selectorLabels" . | nindent 4 }}
   ports:
-    - name: "daemon-metrics-service"
-      protocol: "TCP"
-      targetPort: "daemon-metrics-port"
+    - protocol: "TCP"
+      name: "http-metrics"
       port: 9991
 {{- end }}

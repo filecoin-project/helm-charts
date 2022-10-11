@@ -15,8 +15,7 @@ spec:
   selector:
     {{- include "sentinel-lily.notifierSelectorLabels" . | nindent 4 }}
   ports:
-    - name: "notifier-metrics-service"
-      protocol: "TCP"
-      targetPort: "notifier-metrics-port"
+    - protocol: "TCP"
+      name: "http-metrics"
       port: 9991
 {{- end }}

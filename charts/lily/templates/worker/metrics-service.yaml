@@ -15,8 +15,7 @@ spec:
   selector:
     {{- include "sentinel-lily.workerSelectorLabels" . | nindent 4 }}
   ports:
-    - name: "worker-metrics-service"
-      protocol: "TCP"
-      targetPort: "worker-metrics-port"
+    - protocol: "TCP"
+      name: "http-metrics"
       port: 9991
 {{- end }}

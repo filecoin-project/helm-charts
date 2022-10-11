@@ -13,7 +13,7 @@ spec:
     matchLabels:
       {{- include "sentinel-lily.selectorLabels" . | nindent 6 }}
   endpoints:
-  - port: "daemon-metrics-service"
+  - targetPort: 9991
     path: "/metrics"
     interval: "30s"
 {{- end }}
