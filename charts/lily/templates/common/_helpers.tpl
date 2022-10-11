@@ -383,15 +383,15 @@ tolerations:
 {{- end }}
 {{- if eq $instanceType "notifier" }}
   {{- with $root.Values.cluster.notifier.env }}
-    {{- toYaml . | nindent 8 }}
+{{ toYaml . }}
   {{- end }}
 {{- else if eq $instanceType "worker" }}
   {{- with $root.Values.cluster.worker.env }}
-    {{- toYaml . | nindent 8 }}
+{{ toYaml . }}
   {{- end }}
 {{- else if eq $instanceType "daemon" }}
   {{- with $root.Values.daemon.env }}
-    {{- toYaml . | nindent 8 }}
+{{ toYaml . }}
   {{- end }}
 {{- end }}
 {{- end -}}
