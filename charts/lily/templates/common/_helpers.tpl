@@ -587,6 +587,7 @@ tolerations:
 {{- define "sentinel-lily.notifier-config" -}}
 {{- include "sentinel-lily.config-common" .Values.cluster.notifier }}
 {{- include "sentinel-lily.config-notifier-queue" . }}
+{{- include "sentinel-lily.config-storage" ( list ( include "sentinel-lily.instance-name" . ) .Values.cluster.storage ) }}
 {{- end -}}
 
 
