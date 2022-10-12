@@ -187,7 +187,7 @@ spec:
     {{- include "sentinel-lily.allLabels" $root | nindent 4 }}
     {{- end }}
   ports:
-  - name: "api-port"
+  - name: "http-api"
     protocol: "TCP"
     port: 1234
 {{- end -}}
@@ -342,6 +342,16 @@ tolerations:
 - name: LILY_CONFIG
   value: "/var/lib/lily/config.toml"
 {{- if eq $root.Values.deploymentType "cluster" }}
+- name: LILY_REDIS_ADDR
+{{- if not (empty $root.Values.cluster.redis.host) }}
+  value: {{ $root.Values.cluster.redis.host | quote }}
+{{- else }}
+  value: {{ list $root.Release.Name "redis-master:6379" | join "-" | quote }}
+{{- end }}
+- name: LILY_REDIS_DB
+  value: "0"
+- name: LILY_REDIS_USERNAME
+  value: "default"
 - name: LILY_REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
@@ -373,15 +383,15 @@ tolerations:
 {{- end }}
 {{- if eq $instanceType "notifier" }}
   {{- with $root.Values.cluster.notifier.env }}
-    {{- toYaml . | nindent 8 }}
+{{ toYaml . }}
   {{- end }}
 {{- else if eq $instanceType "worker" }}
   {{- with $root.Values.cluster.worker.env }}
-    {{- toYaml . | nindent 8 }}
+{{ toYaml . }}
   {{- end }}
 {{- else if eq $instanceType "daemon" }}
   {{- with $root.Values.daemon.env }}
-    {{- toYaml . | nindent 8 }}
+{{ toYaml . }}
   {{- end }}
 {{- end }}
 {{- end -}}

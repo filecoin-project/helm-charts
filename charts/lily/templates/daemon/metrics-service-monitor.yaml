@@ -3,7 +3,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ list ( include "sentinel-lily.short-instance-name" $ ) "svc-monitor" | join "-" | quote }}
+  name: {{ list ( include "sentinel-lily.short-instance-name" $ ) "daemon-metrics-service-monitor" | join "-" | quote }}
   namespace: {{ .Release.Namespace | quote }}
 spec:
   namespaceSelector:
@@ -13,7 +13,7 @@ spec:
     matchLabels:
       {{- include "sentinel-lily.selectorLabels" . | nindent 6 }}
   endpoints:
-  - port: "metrics"
+  - targetPort: 9991
     path: "/metrics"
     interval: "30s"
 {{- end }}

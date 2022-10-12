@@ -1,0 +1,19 @@
+{{- if and .Values.prometheusOperatorServiceMonitor (eq .Values.deploymentType "cluster")}}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ list ( include "sentinel-lily.short-instance-name" $ ) "notifier-metrics-service-monitor" | join "-" | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace | quote }}
+  selector:
+    matchLabels:
+      {{- include "sentinel-lily.notifierSelectorLabels" . | nindent 6 }}
+  endpoints:
+  - targetPort: 9991
+    path: "/metrics"
+    interval: "30s"
+{{- end }}
