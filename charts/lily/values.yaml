@@ -148,35 +148,35 @@ cluster:
     configOverrideEnabled: false
     configOverride: |
       # config read by lily
-      [Queue]
-        [Queue.Workers]
-          [Queue.Workers.Worker1]
-            [Queue.Workers.Worker1.RedisConfig]
-              Network = "tcp"
-              Addr = "127.0.0.1:6379"
-              Username = ""
-              Password = ""
-              PasswordEnv = "LILY_REDIS_PASSWORD"
-              DB = 0
-              PoolSize = 0
-            [Queue.Workers.Worker1.WorkerConfig]
-              Concurrency = 1
-              LoggerLevel = "debug"
-              WatchQueuePriority = 5
-              FillQueuePriority = 3
-              IndexQueuePriority = 1
-              WalkQueuePriority = 1
-              StrictPriority = false
-              ShutdownTimeout = 30000000000
-        [Queue.Notifiers]
-          [Queue.Notifiers.Notifier1]
-            Network = "tcp"
-            Addr = "127.0.0.1:6379"
-            Username = ""
-            Password = ""
-            PasswordEnv = "LILY_REDIS_PASSWORD"
-            DB = 0
-            PoolSize = 0
+      #[Queue]
+        #[Queue.Workers]
+          #[Queue.Workers.Worker1]
+            #[Queue.Workers.Worker1.RedisConfig]
+              #Network = "tcp"
+              #Addr = "127.0.0.1:6379"
+              #Username = ""
+              #Password = ""
+              #PasswordEnv = "LILY_REDIS_PASSWORD"
+              #DB = 0
+              #PoolSize = 0
+            #[Queue.Workers.Worker1.WorkerConfig]
+              #Concurrency = 1
+              #LoggerLevel = "debug"
+              #WatchQueuePriority = 5
+              #FillQueuePriority = 3
+              #IndexQueuePriority = 1
+              #WalkQueuePriority = 1
+              #StrictPriority = false
+              #ShutdownTimeout = 30000000000
+        #[Queue.Notifiers]
+          #[Queue.Notifiers.Notifier1]
+            #Network = "tcp"
+            #Addr = "127.0.0.1:6379"
+            #Username = ""
+            #Password = ""
+            #PasswordEnv = "LILY_REDIS_PASSWORD"
+            #DB = 0
+            #PoolSize = 0
 
     # Required resources to run daemon lily as a client (as is the case with the
     # notifier) requires much fewer resources than the indexing worker instances.
@@ -228,35 +228,35 @@ cluster:
     configOverrideEnabled: false
     configOverride: |
       # config read by lily
-      [Queue]
-        [Queue.Workers]
-          [Queue.Workers.Worker1]
-            [Queue.Workers.Worker1.RedisConfig]
-              Network = "tcp"
-              Addr = "127.0.0.1:6379"
-              Username = ""
-              Password = ""
-              PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
-              DB = 0
-              PoolSize = 0
-            [Queue.Workers.Worker1.WorkerConfig]
-              Concurrency = 1
-              LoggerLevel = "debug"
-              WatchQueuePriority = 5
-              FillQueuePriority = 3
-              IndexQueuePriority = 1
-              WalkQueuePriority = 1
-              StrictPriority = false
-              ShutdownTimeout = 30000000000
-        [Queue.Notifiers]
-          [Queue.Notifiers.Notifier1]
-            Network = "tcp"
-            Addr = "127.0.0.1:6379"
-            Username = ""
-            Password = ""
-            PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
-            DB = 0
-            PoolSize = 0
+      #[Queue]
+        #[Queue.Workers]
+          #[Queue.Workers.Worker1]
+            #[Queue.Workers.Worker1.RedisConfig]
+              #Network = "tcp"
+              #Addr = "127.0.0.1:6379"
+              #Username = ""
+              #Password = ""
+              #PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+              #DB = 0
+              #PoolSize = 0
+            #[Queue.Workers.Worker1.WorkerConfig]
+              #Concurrency = 1
+              #LoggerLevel = "debug"
+              #WatchQueuePriority = 5
+              #FillQueuePriority = 3
+              #IndexQueuePriority = 1
+              #WalkQueuePriority = 1
+              #StrictPriority = false
+              #ShutdownTimeout = 30000000000
+        #[Queue.Notifiers]
+          #[Queue.Notifiers.Notifier1]
+            #Network = "tcp"
+            #Addr = "127.0.0.1:6379"
+            #Username = ""
+            #Password = ""
+            #PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+            #DB = 0
+            #PoolSize = 0
 
     # Required resources to run daemon lily as a client (as is the case with the
     # notifier) requires much fewer resources than the indexing worker instances.

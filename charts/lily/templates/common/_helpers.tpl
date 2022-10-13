@@ -187,8 +187,7 @@ spec:
     {{- include "sentinel-lily.allLabels" $root | nindent 4 }}
     {{- end }}
   ports:
-  - name: "http-api"
-    protocol: "TCP"
+  - name: "api"
     port: 1234
 {{- end -}}
 
@@ -263,8 +262,6 @@ tolerations:
 */}}
 {{- define "sentinel-lily.initialize-datastore-script" -}}
 - |
-  set -x
-
   # generate 6-char random uid to be used in job report names
   if [ ! -f "/var/lib/lily/uid" ]; then
     tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w ${1:-6} | head -n 1 > /var/lib/lily/uid
@@ -276,7 +273,6 @@ tolerations:
     chmod -R 0600 /var/lib/lily/keystore
   fi
 
-  {{/* import snapshot if enabled */}}
   {{- if .Values.importSnapshot.enabled }}
   if [ -f "/var/lib/lily/datastore/_imported" ]; then
     echo "Skipping import, found /var/lib/lily/datastore/_imported file."

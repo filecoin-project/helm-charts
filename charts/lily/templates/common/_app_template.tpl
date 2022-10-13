@@ -101,12 +101,12 @@ spec:
         {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
         ports:
         - containerPort: 1234
-          name: "http-api"
+          name: "api"
         - containerPort: 1347
-          name: "tcp-p2p"
+          name: "p2p"
         {{- if $root.Values.prometheusOperatorServiceMonitor }}
         - containerPort: 9991
-          name: "http-metrics"
+          name: "metrics"
         {{- end }}
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
@@ -114,7 +114,7 @@ spec:
           postStart:
             exec:
               command:
-                {{- include "sentinel-lily.common-job-start-script" (list $root $instanceType ) | nindent 16 }}
+                {{- include "sentinel-lily.common-job-start-script" (list $root $instanceType ) | indent 16 }}
         resources:
           {{- if eq $instanceType "daemon" -}}
           {{- include "sentinel-lily.app-resources" $root.Values.daemon.resources | indent 10 }}
