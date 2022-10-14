@@ -409,10 +409,11 @@ tolerations:
 {{- define "sentinel-lily.job-list" }}
 {{/* range over job definitions */}}
 {{- range . }}
-{{ .name }}:        {{ .command }}
-    - job args:     {{ .jobArgs | join " " | quote }}
-    - command args: {{ .commandArgs | join " " | quote }}
-    - storage dest: {{ .storage | quote }}
+{{ .name }}:
+    - command:      {{ .command }}
+    - job args:     {{ .jobArgs | join " " }}
+    - command args: {{ .commandArgs | join " " }}
+    - storage dest: {{ .storage }}
 {{- end }}
 {{- end -}}
 

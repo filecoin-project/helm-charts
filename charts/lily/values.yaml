@@ -146,7 +146,8 @@ cluster:
     # - .Values.cluster.storage[]
     # - .Values.cluster.queue.notifier
     configOverrideEnabled: false
-    configOverride: |
+    configOverride: ""
+    #configOverride: |
       # config read by lily
       #[Queue]
         #[Queue.Workers]
@@ -226,7 +227,8 @@ cluster:
     # - .Values.cluster.storage[]
     # - .Values.cluster.queues[]
     configOverrideEnabled: false
-    configOverride: |
+    configOverride: ""
+    #configOverride: |
       # config read by lily
       #[Queue]
         #[Queue.Workers]
@@ -305,14 +307,15 @@ daemon:
   # daemon configuration is derived from the following fields:
   # - .Values.daemon.storage[]
   configOverrideEnabled: false
-  configOverride: |
-    [API]
-      ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
-    [Libp2p]
-      ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
-      ConnMgrLow = 400
-      ConnMgrHigh = 500
-      ConnMgrGrace = "5m0s"
+  configOverride: ""
+  #configOverride: |
+    #[API]
+      #ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
+    #[Libp2p]
+      #ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
+      #ConnMgrLow = 400
+      #ConnMgrHigh = 500
+      #ConnMgrGrace = "5m0s"
 
   # jobs is a list of jobs to start on the daemon
   #jobs:
