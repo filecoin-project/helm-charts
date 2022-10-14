@@ -62,6 +62,46 @@ spec:
         resources:
           {{- /* empty dict to use defaults */ -}}
           {{- include "sentinel-lily.resources" dict | indent 10 }}
+      {{- if not $root.Values.debug.disableNetworkSync }}
+      - name: init-sync
+        image: {{ include "sentinel-lily.docker-image" $root | quote }}
+        imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "Starting daemon..."
+          lily daemon &
+          $daemonID=$!
+
+          echo "Waiting for network sync to complete..."
+          lily wait-api --timeout={{ $root.Values.apiWaitTimeout | quote }} > /dev/null 2>&1
+          status=$?
+          if [ $status -ne 0 ]; then
+            echo "exit with code $status
+            exit $status
+          fi
+
+          lily sync wait
+          status=$?
+          if [ $status -ne 0 ]; then
+            echo "exit with code $status
+            exit $status
+          fi
+
+          kill $daemonID
+          status=$?
+          if [ $status -ne 0 ]; then
+            echo "exit with code $status
+            exit $status
+          fi
+        env:
+        {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
+        volumeMounts:
+        {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
+        resources:
+          {{- /* empty dict to use defaults */ -}}
+          {{- include "sentinel-lily.resources" dict | indent 10 }}
+      {{- end }}
       containers:
       {{- if $root.Values.debug.sidecar.enabled }}
       - name: debug
