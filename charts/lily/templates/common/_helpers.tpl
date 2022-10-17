@@ -187,8 +187,7 @@ spec:
     {{- include "sentinel-lily.allLabels" $root | nindent 4 }}
     {{- end }}
   ports:
-  - name: "http-api"
-    protocol: "TCP"
+  - name: "api"
     port: 1234
 {{- end -}}
 
@@ -263,8 +262,6 @@ tolerations:
 */}}
 {{- define "sentinel-lily.initialize-datastore-script" -}}
 - |
-  set -x
-
   # generate 6-char random uid to be used in job report names
   if [ ! -f "/var/lib/lily/uid" ]; then
     tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w ${1:-6} | head -n 1 > /var/lib/lily/uid
@@ -276,7 +273,6 @@ tolerations:
     chmod -R 0600 /var/lib/lily/keystore
   fi
 
-  {{/* import snapshot if enabled */}}
   {{- if .Values.importSnapshot.enabled }}
   if [ -f "/var/lib/lily/datastore/_imported" ]; then
     echo "Skipping import, found /var/lib/lily/datastore/_imported file."
@@ -403,7 +399,7 @@ tolerations:
 {{- define "sentinel-lily.job-name-arg" -}}
 {{- $instanceName := index . 0 -}}
 {{- $jobName := index . 1 -}}
-{{- printf "--name=%s" (printf "%s/%s-`cat /var/lib/lily/uid`" $instanceName $jobName | quote ) -}}
+{{- printf "%s/%s-`cat /var/lib/lily/uid`" $instanceName $jobName -}}
 {{- end -}}
 
 
@@ -413,10 +409,11 @@ tolerations:
 {{- define "sentinel-lily.job-list" }}
 {{/* range over job definitions */}}
 {{- range . }}
-{{ .name }}:        {{ .command }}
-    - job args:     {{ .jobArgs | join " " | quote }}
-    - command args: {{ .commandArgs | join " " | quote }}
-    - storage dest: {{ .storage | quote }}
+{{ .name }}:
+    - command:      {{ .command }}
+    - job args:     {{ .jobArgs | join " " }}
+    - command args: {{ .commandArgs | join " " }}
+    - storage dest: {{ .storage }}
 {{- end }}
 {{- end -}}
 
@@ -427,8 +424,17 @@ tolerations:
 {{- $values := ( index . 0 ).Values -}}
 {{- $instanceType := index . 1 -}}
 {{- $instanceName := include "sentinel-lily.instance-name" ( index . 0 ) -}}
-# lifecycle.postStart.exec.command doesn't accept args
-# so we execute this script as a multiline string
+{{/*
+    job filtering by type of instance (daemon, notifier, or worker)
+*/}}
+{{- $validJobs := list "walk" "watch" "survey" "find" "fill" "index tipset" "index height" "tipset-worker" -}}
+{{- $daemonJobFilter := list "tipset-worker" -}}
+{{- $notifierJobFilter := list "tipset-worker" -}}
+{{- $workerJobFilter := list "survey" -}}
+{{/*
+    lifecycle.postStart.exec.command doesn't accept args
+    so we execute this script as a multiline string
+*/}}
 - "/bin/sh"
 - "-c"
 - |
@@ -440,42 +446,52 @@ tolerations:
     exit $status
   fi
 
+  {{- if not $values.debug.disableNetworkSync -}}
+  {{/* one last sync gate to make sure we don't start jobs without being up to date */}}
+
+  lily sync wait
+  {{- end }}
+
   # wait 3 minutes to let the node's datastore settle
   echo "Waiting for datastore to settle... (3m)"
   sleep 180
 
-  {{- $conditionalNetworkSyncWait := "lily sync wait && " }}
-  {{- if $values.debug.disableNetworkSync }}
-  {{- $conditionalNetworkSyncWait = "" }}
-  {{- end }}
   {{- if eq $instanceType "daemon" }}
     {{- $jobs := $values.daemon.jobs -}}
     {{- if $jobs }}
-    echo "Starting jobs..."
-    {{- range $jobs }}
-    echo "...starting job '{{ .name | default .command }}'"
-  {{ $conditionalNetworkSyncWait }}sleep 10 && lily job run {{ .jobArgs | join " " }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .command }} {{ .commandArgs | join " " }}
+  echo "Starting jobs..."
+    {{ range $jobs }}
+    {{- $jobName := include "sentinel-lily.job-name-arg" (list $instanceName (.name | default .command)) -}}
+    {{- if and (mustHas .command $validJobs) (not (has .command $daemonJobFilter)) }}
+  echo "...starting {{ .command | squote }} job which is named {{ $jobName | squote }}"
+  sleep 10 && lily job run {{ .jobArgs | join " " }} --name={{ $jobName | quote }} {{ .command }} {{ .commandArgs | join " " }}
   status=$?
   if [ $status -ne 0 ]; then
     echo "exit with code $status"
     exit $status
   fi
+    {{ else }}
+  echo "...skipping {{ .command | squote }} job which is named {{ $jobName | squote }}."
     {{- end }}
     {{- end }}
-
-
+    {{- end }}
   {{- else if eq $instanceType "notifier" }}
     {{- $jobs := $values.cluster.jobs -}}
     {{- if $jobs }}
   echo "Starting jobs..."
-    {{- range $jobs }}
-  echo "...starting job '{{ .name | default .command }}'"
-  {{ $conditionalNetworkSyncWait }}sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .jobArgs | join " " }} {{ required "missing .Values.cluster.jobs[].command" .command }} {{ .commandArgs | join " " }} notify --queue={{ .queue | default "Notifier1" | quote }}
+    {{ range $jobs }}
+    {{- $jobName := include "sentinel-lily.job-name-arg" (list $instanceName (.name | default .command)) -}}
+    {{- if and (mustHas .command $validJobs) (not (has .command $notifierJobFilter)) }}
+  echo "...starting {{ .command | squote }} job which is named {{ $jobName | squote }}"
+  sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} --name={{ $jobName | quote }} {{ .jobArgs | join " " }} {{ required "missing .Values.cluster.jobs[].command" .command }} {{ .commandArgs | join " " }} notify --queue={{ .queue | default "Notifier1" | quote }}
   status=$?
   if [ $status -ne 0 ]; then
     echo "exit with code $status"
     exit $status
   fi
+    {{ else }}
+  echo "...skipping {{ .command | squote }} job which is named {{ $jobName | squote }}."
+    {{- end }}
     {{- end }}
     {{- end }}
 
@@ -484,14 +500,19 @@ tolerations:
     {{- $jobs := $values.cluster.jobs -}}
     {{- if $jobs }}
   echo "Starting jobs..."
-    {{- range $jobs }}
-  echo "...starting job '{{ .name | default .command }}'"
-  {{ $conditionalNetworkSyncWait }}sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} {{ include "sentinel-lily.job-name-arg" (list $instanceName ( .name | default .command )) }} {{ .commandArgs | join " " }} tipset-worker --queue={{ .queue | default "Worker1" | quote }}
+    {{ range $jobs }}
+    {{- $jobName := include "sentinel-lily.job-name-arg" (list $instanceName (.name | default .command)) -}}
+    {{- if and (mustHas .command $validJobs) (not (has .command $workerJobFilter)) }}
+  echo "...starting {{ .command | squote }} job which is named {{ $jobName | squote }}"
+  sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} --name={{ $jobName | quote }} {{ .commandArgs | join " " }} tipset-worker --queue={{ .queue | default "Worker1" | quote }}
   status=$?
   if [ $status -ne 0 ]; then
     echo "exit with code $status"
     exit $status
   fi
+    {{ else }}
+  echo "...skipping {{ .command | squote }} job which is named {{ $jobName | squote }}."
+    {{- end }}
     {{- end }}
     {{- end }}
   {{- else }}
@@ -587,6 +608,7 @@ tolerations:
 {{- define "sentinel-lily.notifier-config" -}}
 {{- include "sentinel-lily.config-common" .Values.cluster.notifier }}
 {{- include "sentinel-lily.config-notifier-queue" . }}
+{{- include "sentinel-lily.config-storage" ( list ( include "sentinel-lily.instance-name" . ) .Values.cluster.storage ) }}
 {{- end -}}
 
 

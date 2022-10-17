@@ -62,6 +62,46 @@ spec:
         resources:
           {{- /* empty dict to use defaults */ -}}
           {{- include "sentinel-lily.resources" dict | indent 10 }}
+      {{- if not $root.Values.debug.disableNetworkSync }}
+      - name: init-sync
+        image: {{ include "sentinel-lily.docker-image" $root | quote }}
+        imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "Starting daemon..."
+          lily daemon &
+          $daemonID=$!
+
+          echo "Waiting for network sync to complete..."
+          lily wait-api --timeout={{ $root.Values.apiWaitTimeout | quote }} > /dev/null 2>&1
+          status=$?
+          if [ $status -ne 0 ]; then
+            echo "exit with code $status
+            exit $status
+          fi
+
+          lily sync wait
+          status=$?
+          if [ $status -ne 0 ]; then
+            echo "exit with code $status
+            exit $status
+          fi
+
+          kill $daemonID
+          status=$?
+          if [ $status -ne 0 ]; then
+            echo "exit with code $status
+            exit $status
+          fi
+        env:
+        {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
+        volumeMounts:
+        {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
+        resources:
+          {{- /* empty dict to use defaults */ -}}
+          {{- include "sentinel-lily.resources" dict | indent 10 }}
+      {{- end }}
       containers:
       {{- if $root.Values.debug.sidecar.enabled }}
       - name: debug
@@ -101,12 +141,12 @@ spec:
         {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
         ports:
         - containerPort: 1234
-          name: "http-api"
+          name: "api"
         - containerPort: 1347
-          name: "tcp-p2p"
+          name: "p2p"
         {{- if $root.Values.prometheusOperatorServiceMonitor }}
         - containerPort: 9991
-          name: "http-metrics"
+          name: "metrics"
         {{- end }}
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
@@ -114,7 +154,7 @@ spec:
           postStart:
             exec:
               command:
-                {{- include "sentinel-lily.common-job-start-script" (list $root $instanceType ) | nindent 16 }}
+                {{- include "sentinel-lily.common-job-start-script" (list $root $instanceType ) | indent 16 }}
         resources:
           {{- if eq $instanceType "daemon" -}}
           {{- include "sentinel-lily.app-resources" $root.Values.daemon.resources | indent 10 }}
