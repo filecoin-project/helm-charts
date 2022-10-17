@@ -48,6 +48,7 @@ spec:
       {{- include "sentinel-lily.common-lily-affinity-selectors" $root | indent 6 }}
       imagePullSecrets:
       - name: regcred
+      terminationGracePeriodSeconds: 60
       initContainers:
       - name: init-datastore
         image: {{ include "sentinel-lily.docker-image" $root | quote }}
@@ -71,27 +72,27 @@ spec:
         - |
           echo "Starting daemon..."
           lily daemon &
-          $daemonID=$!
+          daemonID=$!
 
           echo "Waiting for network sync to complete..."
           lily wait-api --timeout={{ $root.Values.apiWaitTimeout | quote }} > /dev/null 2>&1
           status=$?
           if [ $status -ne 0 ]; then
-            echo "exit with code $status
+            echo "exit with code $status"
             exit $status
           fi
 
           lily sync wait
           status=$?
           if [ $status -ne 0 ]; then
-            echo "exit with code $status
+            echo "exit with code $status"
             exit $status
           fi
 
-          kill $daemonID
+          kill -15 $daemonID
           status=$?
           if [ $status -ne 0 ]; then
-            echo "exit with code $status
+            echo "exit with code $status"
             exit $status
           fi
         env:
