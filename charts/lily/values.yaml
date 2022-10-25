@@ -76,6 +76,11 @@ logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
 deploymentType: "cluster"
 
 cluster:
+  # defines the minAvailable nodes required to be in operation at all times
+  disruptionBudget:
+    notifier: 1
+    worker: 2
+
   redis:
     # deploy redis for use by the clsuter along with lily
     enabled: true
@@ -296,6 +301,8 @@ cluster:
       ipwhitelist: []
 
 daemon:
+  # defines the minAvailable nodes required to be in operation at all times
+  disruptionBudget: 1
   # args to apply to this daemon instance upon start
   args: []
   # env varaibles to include in this instance's environment

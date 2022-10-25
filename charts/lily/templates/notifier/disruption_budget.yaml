@@ -1,0 +1,14 @@
+{{- if eq .Values.deploymentType "cluster" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ list ( include "sentinel-lily.short-instance-name" $ ) "notifier-pdb" | join "-" | quote }}
+  labels:
+    {{- include "sentinel-lily.allLabels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+    {{- include "sentinel-lily.notifierSelectorLabels" . | nindent 6 }}
+  minAvailable: {{ .Values.cluster.disruptionBudget.notifier | default 1 }}
+{{- end }}
