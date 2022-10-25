@@ -1,0 +1,14 @@
+{{- if ne .Values.deploymentType "cluster" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ list ( include "sentinel-lily.short-instance-name" $ ) "daemon-pdb" | join "-" | quote }}
+  labels:
+    {{- include "sentinel-lily.allLabels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "sentinel-lily.selectorLabels" . | nindent 4 }}
+  minAvailable: {{ .Values.cluster.disruptionBudget.daemon | default 1 }}
+{{- end }}
