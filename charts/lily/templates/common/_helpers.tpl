@@ -504,7 +504,7 @@ tolerations:
     {{- $jobName := include "sentinel-lily.job-name-arg" (list $instanceName (.name | default .command)) -}}
     {{- if and (mustHas .command $validJobs) (not (has .command $workerJobFilter)) }}
   echo "...starting {{ .command | squote }} job which is named {{ $jobName | squote }}"
-  sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} --name={{ $jobName | quote }} {{ .commandArgs | join " " }} tipset-worker --queue={{ .queue | default "Worker1" | quote }}
+  sleep 10 && lily job run {{ .jobArgs | join " " }} --restart-on-failure --storage={{ required "missing .Values.cluster.jobs[].storage value" .storage | quote }} --name={{ $jobName | quote }} tipset-worker --queue={{ .queue | default "Worker1" | quote }}
   status=$?
   if [ $status -ne 0 ]; then
     echo "exit with code $status"
