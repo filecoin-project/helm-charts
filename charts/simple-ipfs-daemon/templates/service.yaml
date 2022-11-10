@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-ipfs-api
+spec:
+  type: ClusterIP
+  selector:
+    app: ipfs-daemon
+    release: {{ .Release.Name }}
+  ports:
+    - name: api
+      protocol: TCP
+      port: 5001
+      targetPort: 5001
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-ipfs
+spec:
+  type: ClusterIP
+  selector:
+    app: ipfs-daemon
+    release: {{ .Release.Name }}
+  ports:
+    - name: libp2p
+      protocol: TCP
+      port: 4001
+      targetPort: 4001
+    - name: libp2p-quic
+      protocol: UDP
+      port: 4001
+      targetPort: 4001
+    - name: gateway
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+{{- if .Values.ipfs.externalIPs.enabled }}
+  externalIPs:
+{{ toYaml .Values.ipfs.externalIPs.ip4s | indent 4 }}
+{{- end }}
+
+{{- if .Values.ipfs.externalDns.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-ipfs-{{ .Values.ipfs.externalDns.name }}
+  annotations:
+    external-dns.alpha.kubernetes.io/internal-hostname: {{ .Values.ipfsMiner.externalDns.name }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: ipfs-daemon
+    release: {{ .Release.Name }}
+  ports:
+    - name: libp2p
+      protocol: TCP
+      port: 4001
+      targetPort: 4001
+    - name: libp2p
+      protocol: UDP
+      port: 4001
+      targetPort: 4001
+    - name: gateway
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+{{- end }}
