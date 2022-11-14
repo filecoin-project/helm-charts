@@ -16,3 +16,14 @@ network: ""
 # this is the claimName of a pvc that will be used for chain exporting
 # this must support ReadWriteMany
 claimName: chain-exports
+
+# podResets
+# Schedule datastore resets for each pod.
+#
+#
+# podResets:
+#   - pod: pod1
+#     schedule: "* * * * 0"
+#   - pod: pod2
+#     schedule: "* * * * 1"
+podResets: []

@@ -1,0 +1,66 @@
+{{- range $index, $reset := .Values.podResets }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+  namespace: {{ $.Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    resourceNames: [ {{ $reset.pod }} ]
+    verbs: ["delete"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    resourceNames: [ {{ $reset.pod }} ]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+  namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+  namespace: {{ $.Release.Namespace }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+spec:
+  schedule: {{ $reset.schedule | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 532
+            runAsNonRoot: true
+            runAsUser: 532
+            runAsGroup: 532
+          containers:
+          - name: reset
+            image: bitnami/kubectl
+            command: ["bash", "-c"]
+            args:
+              - |
+                set -xe
+
+                kubectl exec {{ $reset.pod }} -- touch /var/lib/lotus/datastore/_reset
+                kubectl delete {{ $reset.pod }}
+{{- end }}
