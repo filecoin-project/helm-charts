@@ -1569,6 +1569,17 @@ entries:
     urls:
     - https://github.com/filecoin-project/helm-charts/releases/download/sentinel-tick-0.1.0/sentinel-tick-0.1.0.tgz
     version: 0.1.0
+  simple-ipfs-daemon:
+  - apiVersion: v2
+    appVersion: 0.0.0
+    created: "2022-11-14T03:52:37.132001901Z"
+    description: ipfs daemon
+    digest: af8020073e82fd654d8f9888bc1c5b59fc77cd9c1a21be86c972f91ebfff9c70
+    name: simple-ipfs-daemon
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/simple-ipfs-daemon-0.0.0/simple-ipfs-daemon-0.0.0.tgz
+    version: 0.0.0
   tweety:
   - apiVersion: v2
     appVersion: 0.0.1
