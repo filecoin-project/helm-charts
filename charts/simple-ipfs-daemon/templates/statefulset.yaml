@@ -1,0 +1,97 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-ipfs-daemon
+  labels:
+    app: ipfs-daemon
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  serviceName: {{ .Release.Name }}-ipfs-daemon
+  selector:
+    matchLabels:
+      app: ipfs-daemon
+      release: {{ .Release.Name }}
+  volumeClaimTemplates:
+    - metadata:
+        name: ipfs-path
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.ipfs.repoSize }}
+  template:
+    metadata:
+      labels:
+        app: ipfs-daemon
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        release: {{ .Release.Name }}
+    spec:
+      securityContext:
+        fsGroup: 532
+      volumes:
+        - name: ipfs-config-configmap-volume
+          configMap:
+            name: {{ .Release.Name }}-ipfs-config
+      containers:
+        - name: ipfs
+          image: {{ .Values.ipfs.image }}
+          imagePullPolicy: {{ .Values.ipfs.imagePullPolicy }}
+          ports:
+            - name: api
+              containerPort: 5001
+            - name: libp2p
+              protocol: TCP
+              containerPort: 4001
+            - name: libp2p-quic
+              protocol: UDP
+              containerPort: 4001
+            - name: gateway
+              containerPort: 8080
+          env:
+            - name: IPFS_PATH
+              value: /var/lib/ipfs
+            - name: GOLOG_FORMAT
+              value: json
+          startupProbe:
+            tcpSocket:
+              port: 5001
+            failureThreshold: 60
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 5001
+          resources:
+            {{- toYaml .Values.ipfs.resources | nindent 12 }}
+          volumeMounts:
+            - name: ipfs-path
+              mountPath: /var/lib/ipfs
+        # config watcher
+        - name: config-watcher
+          image: {{ .Values.ipfs.image }}
+          imagePullPolicy: IfNotPresent
+          command: [ "sh", "-c" ]
+          args:
+            - |
+              while sleep 60
+              do
+                diff $IPFS_PATH/config /config/config
+                if [ $? -ne 0 ]
+                then
+                  echo "difference detected. replacing config"
+                  ipfs config replace /config/config
+                fi
+              done
+          env:
+            - name: IPFS_PATH
+              value: /var/lib/ipfs
+          volumeMounts:
+            - name: ipfs-config-configmap-volume
+              mountPath: /config
+              readOnly: true
+            - name: ipfs-path
+              mountPath: /var/lib/ipfs
+              readOnly: false
