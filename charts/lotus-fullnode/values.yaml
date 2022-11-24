@@ -52,7 +52,9 @@ importSnapshot:
   network: ""
   # strategy "url" options:
   #
-  url: "https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car"
+  #OLD URL:
+  # url: "htps://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car"
+  url: "https://snapshots.mainnet.filops.net/minimal/latest"
 
 genesis:
   # when enabled, a config map can be provided that points to a genesis.car file. The genesis
