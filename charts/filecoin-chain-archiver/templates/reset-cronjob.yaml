@@ -53,14 +53,60 @@ spec:
             runAsNonRoot: true
             runAsUser: 532
             runAsGroup: 532
+          volumes:
+            - name: shared
+              emptydir:
+                sizeLimit: 1Mi
           containers:
+          - name: acquire-lock
+            image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+            env:
+              - name: FCA_NODELOCKER_OPERATOR_API
+                value: /dns/{{ include "filecoin-chain-archiver.nodelocker.fullname" $ }}/tcp/5101
+            command: ["bash", "-c"]
+            args:
+              - |
+                UNIQUE=$(printf "reset-%x-%x" $RANDOM $RANDOM)
+
+                echo acquiring lock for {{ $reset.pod }} with password $UNIQUE
+                filecoin-chain-archiver nodelocker operator lock --wait {{ $reset.pod }} $UNIQUE
+
+                echo lock acquired. Waiting for reset to complete.
+                touch /shared/locked
+                while sleep 10; do
+                  if [[ -f /shared/reset ]]; then
+                    echo reset complete. exiting.
+                    exit 0
+                  fi
+                  echo refreshing lock.
+                  filecoin-chain-archiver nodelocker operator lock {{ $reset.pod }} $UNIQUE
+                done
+            volumeMounts:
+              - name: shared
+                mountPath: /shared
+
           - name: reset
             image: bitnami/kubectl
             command: ["bash", "-c"]
             args:
               - |
-                set -xe
+                echo waiting for lock
+                until [[ -f /shared/locked ]]; do
+                  sleep 10
+                done
 
+                echo lock acquired. executing reset on {{ $reset.pod }}
                 kubectl exec {{ $reset.pod }} -- touch /var/lib/lotus/datastore/_reset
-                kubectl delete {{ $reset.pod }}
+                err1=$?
+                if [[ $err -eq 0 ]]; then
+                  kubectl delete pod {{ $reset.pod }}
+                  err2=$?
+                fi
+
+                echo reset executed on {{ $reset.pod }} with exit codes $err1 $err2
+                touch /shared/reset
+                exit $(( err1 + err2 ))
+            volumeMounts:
+              - name: shared
+                mountPath: /shared
 {{- end }}
