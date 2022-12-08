@@ -1,0 +1,135 @@
+{{- range $index, $reset := .Values.podResets }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+  namespace: {{ $.Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    resourceNames: [ {{ $reset.pod }} ]
+    verbs: 
+      - get
+      - list
+      - watch
+      - delete
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    resourceNames: [ {{ $reset.pod }} ]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+  namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+  namespace: {{ $.Release.Namespace }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+spec:
+  schedule: {{ $reset.schedule | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 14400
+      backoffLimit: 3
+      template:
+        spec:
+          serviceAccountName: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
+          restartPolicy: OnFailure
+          securityContext:
+            fsGroup: 532
+            runAsNonRoot: true
+            runAsUser: 532
+            runAsGroup: 532
+          volumes:
+            - name: shared
+              emptyDir:
+                sizeLimit: 1Mi
+          containers:
+          - name: acquire-lock
+            image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+            env:
+              - name: FCA_NODELOCKER_OPERATOR_API
+                value: /dns/{{ include "filecoin-chain-archiver.nodelocker.fullname" $ }}/tcp/5101
+            command: ["bash", "-c"]
+            args:
+              - |
+                UNIQUE=$(printf "reset-%x-%x" $RANDOM $RANDOM)
+
+                echo "waiting for peerid..."
+                while [[ ! -f /shared/peerid ]]; do
+                  sleep 10
+                done
+                PEERID=$(cat /shared/peerid)
+                echo acquiring lock for ${PEERID} with password $UNIQUE
+                filecoin-chain-archiver nodelocker operator lock --wait ${PEERID} $UNIQUE
+                if [[ $? != 0 ]]; then
+                  echo unable to acquire lock. Exiting with error.
+                  exit 1
+                fi
+                echo lock acquired. Waiting for reset to complete.
+                touch /shared/locked
+                while sleep 10; do
+                  if [[ -f /shared/reset ]]; then
+                    echo reset complete. exiting.
+                    exit 0
+                  fi
+                  echo refreshing lock.
+                  filecoin-chain-archiver nodelocker operator lock ${PEERID} $UNIQUE
+                done
+            volumeMounts:
+              - name: shared
+                mountPath: /shared
+
+          - name: reset
+            image: bitnami/kubectl
+            command: ["bash", "-c"]
+            args:
+              - |
+                echo discovering peerid
+                PEERID=$(kubectl exec {{ $reset.pod }} -c daemon -- lotus net id )
+                if [[ ! $? -eq 0 ]]; then 
+                  echo problem getting peerid
+                  exit 1
+                fi
+                echo discovered peerid $PEERID
+                echo $PEERID >/shared/peerid
+
+                echo waiting for lock
+                until [[ -f /shared/locked ]]; do
+                  sleep 10
+                done
+
+                echo lock acquired. executing reset on {{ $reset.pod }}
+                kubectl exec {{ $reset.pod }} -c daemon -- touch /var/lib/lotus/datastore/_reset
+                err1=$?
+                if [[ $err1 -eq 0 ]]; then
+                  kubectl delete pod {{ $reset.pod }}
+                  err2=$?
+                fi
+
+                echo reset executed on {{ $reset.pod }} with exit codes $err1 $err2
+                touch /shared/reset
+                exit $(( err1 + err2 ))
+            volumeMounts:
+              - name: shared
+                mountPath: /shared
+{{- end }}

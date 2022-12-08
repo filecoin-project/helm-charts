@@ -182,3 +182,15 @@ nodelocker:
   tolerations: []
 
   affinity: {}
+
+# podResets
+# Schedule datastore resets for each pod.
+# This is an optional feature intended to improve snapshot performance by resetting
+# the lotus datastore on a regular cadence.
+#
+# podResets:
+#   - pod: pod1
+#     schedule: "* * * * 0"
+#   - pod: pod2
+#     schedule: "* * * * 1"
+podResets: []
