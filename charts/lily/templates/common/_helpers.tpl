@@ -285,7 +285,12 @@ tolerations:
     dpkg -i ./aria2-1.36.0.deb
     rm ./aria2-1.36.0.deb
 
+  {{- if contains "car.zst" .Values.importSnapshot.url }}
+    apt-get install zstd -y
+    (cd /var/lib/lily/datastore && aria2c -x16 -k1M -o snapshot.car.zst {{ .Values.importSnapshot.url }})
+  {{- else }}
     (cd /var/lib/lily/datastore && aria2c -x16 -k1M -o snapshot.car {{ .Values.importSnapshot.url }})
+  {{- end }}
     status=$?
     if [ $status -ne 0 ]; then
       if [ -f /var/lib/lily/datastore/snapshot.car ]; then
@@ -297,7 +302,11 @@ tolerations:
   fi
 
   echo "*** Importing snapshot..."
+  {{- if contains "car.zst" .Values.importSnapshot.url }}
+  zstd -qdck /var/lib/lily/datastore/snapshot.car.zst | lily init --import-snapshot=/dev/stdin
+  {{- else }}
   lily init --import-snapshot=/var/lib/lily/datastore/snapshot.car
+  {{- end }}
   status=$?
   if [ $status -eq 0 ]; then
     touch "/var/lib/lily/datastore/_imported"
