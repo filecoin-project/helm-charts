@@ -14,7 +14,11 @@ rules:
   - apiGroups: [""]
     resources: ["pods"]
     resourceNames: [ {{ $reset.pod }} ]
-    verbs: ["delete"]
+    verbs: 
+      - get
+      - list
+      - watch
+      - delete
   - apiGroups: [""]
     resources: ["pods/exec"]
     resourceNames: [ {{ $reset.pod }} ]
@@ -55,7 +59,7 @@ spec:
             runAsGroup: 532
           volumes:
             - name: shared
-              emptydir:
+              emptyDir:
                 sizeLimit: 1Mi
           containers:
           - name: acquire-lock
@@ -68,9 +72,17 @@ spec:
               - |
                 UNIQUE=$(printf "reset-%x-%x" $RANDOM $RANDOM)
 
-                echo acquiring lock for {{ $reset.pod }} with password $UNIQUE
-                filecoin-chain-archiver nodelocker operator lock --wait {{ $reset.pod }} $UNIQUE
-
+                echo "waiting for peerid..."
+                while [[ ! -f /shared/peerid ]]; do
+                  sleep 10
+                done
+                PEERID=$(cat /shared/peerid)
+                echo acquiring lock for ${PEERID} with password $UNIQUE
+                filecoin-chain-archiver nodelocker operator lock --wait ${PEERID} $UNIQUE
+                if [[ $? != 0 ]]; then
+                  echo unable to acquire lock. Exiting with error.
+                  exit 1
+                fi
                 echo lock acquired. Waiting for reset to complete.
                 touch /shared/locked
                 while sleep 10; do
@@ -79,7 +91,7 @@ spec:
                     exit 0
                   fi
                   echo refreshing lock.
-                  filecoin-chain-archiver nodelocker operator lock {{ $reset.pod }} $UNIQUE
+                  filecoin-chain-archiver nodelocker operator lock ${PEERID} $UNIQUE
                 done
             volumeMounts:
               - name: shared
@@ -90,15 +102,24 @@ spec:
             command: ["bash", "-c"]
             args:
               - |
+                echo discovering peerid
+                PEERID=$(kubectl exec {{ $reset.pod }} -c daemon -- lotus net id )
+                if [[ ! $? -eq 0 ]]; then 
+                  echo problem getting peerid
+                  exit 1
+                fi
+                echo discovered peerid $PEERID
+                echo $PEERID >/shared/peerid
+
                 echo waiting for lock
                 until [[ -f /shared/locked ]]; do
                   sleep 10
                 done
 
                 echo lock acquired. executing reset on {{ $reset.pod }}
-                kubectl exec {{ $reset.pod }} -- touch /var/lib/lotus/datastore/_reset
+                kubectl exec {{ $reset.pod }} -c daemon -- touch /var/lib/lotus/datastore/_reset
                 err1=$?
-                if [[ $err -eq 0 ]]; then
+                if [[ $err1 -eq 0 ]]; then
                   kubectl delete pod {{ $reset.pod }}
                   err2=$?
                 fi
