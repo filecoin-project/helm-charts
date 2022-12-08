@@ -48,10 +48,12 @@ spec:
   startingDeadlineSeconds: 300
   jobTemplate:
     spec:
+      activeDeadlineSeconds: 14400
+      backoffLimit: 3
       template:
         spec:
           serviceAccountName: {{ $.Release.Name }}-chain-exporter-reset-{{ $reset.pod }}
-          restartPolicy: Never
+          restartPolicy: OnFailure
           securityContext:
             fsGroup: 532
             runAsNonRoot: true
