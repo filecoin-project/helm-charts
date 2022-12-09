@@ -13,11 +13,11 @@ data:
       }
       location  = / {
         expires 1h;
-        return 301 https://{{ .Values.domain }}/d/{{ .Values.main_dashboard_id }}/{{ .Values.main_dashboard_slug }}?orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk;
+        return 301 https://{{ .Values.domain }}/d/{{ .Values.mainDashboardID }}/{{ .Values.mainDashboardSlug }}?orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk;
       }
-      location ~ ^/({{ .Values.main_dashboard_slug }}|login|user) {
+      location ~ ^/({{ .Values.mainDashboardSlug }}|login|user) {
         expires 1h;
-        return 301 https://{{ .Values.domain }}/d/{{ .Values.main_dashboard_id }}/{{ .Values.main_dashboard_slug }}?orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk;
+        return 301 https://{{ .Values.domain }}/d/{{ .Values.mainDashboardID }}/{{ .Values.mainDashboardSlug }}?orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk;
       }
       location ~ ^/d/ {
         if ($args = "orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk") {
@@ -25,21 +25,10 @@ data:
         }
         if ($args != "orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk") {
           expires 1h;
-          return 301 https://{{ .Values.domain }}/d/{{ .Values.main_dashboard_id }}/{{ .Values.main_dashboard_slug }}?orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk;
+          return 301 https://{{ .Values.domain }}/d/{{ .Values.mainDashboardID }}/{{ .Values.mainDashboardSlug }}?orgId=1&refresh={{ .Values.metricsRefresh }}&from=now-{{ .Values.metricsRange }}&to=now&kiosk;
         }
       }
     }
-
-    server {
-      listen 8000;
-      server_name {{ .Values.domainInternal }};
-      location / {
-        auth_basic "Internal Dashboards";
-        auth_basic_user_file /opt/bitnami/nginx/htpasswd/.htpasswd;
-        proxy_pass http://localhost:3000;
-      }
-    }
-
 ---
 apiVersion: v1
 kind: ConfigMap
