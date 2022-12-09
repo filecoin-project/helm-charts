@@ -1,7 +1,7 @@
 image:
-  repository: travisperson/lotus
+  repository: filecoin/lotus-all-in-one
   pullPolicy: IfNotPresent
-  tag: v0.7.1
+  tag: v1.18.1
 
 # replicas will increase number of replicas for the statefulset of lotus daemons
 # it should never be used when supplying an external libp2p secret, or with wallets.
@@ -9,7 +9,7 @@ image:
 # to nonce issues.
 replicas: 1
 
-prometheusOperatorServiceMonitor: true
+prometheusOperatorServiceMonitor: false
 
 # daemonConfig allows for defining the config.toml for the lotus daemon
 # you MUST listen on 1234 for the api and 1347 for the libp2p address
@@ -139,22 +139,22 @@ persistence:
     size: "10Gi"
     accessModes:
       - ReadWriteOnce
-    storageClassName: "gp2"
+    storageClassName: "local-path"
   datastore:
     enabled: true
     # when easyReset is true, if `/var/lib/lotus/datastore/_reset` is present, all files under
     # /var/lib/lotus/datastore/ will be removed when the pod restarts.
-    easyReset: false
+    easyReset: true
     size: "10Gi"
     accessModes:
       - ReadWriteOnce
-    storageClassName: "gp2"
+    storageClassName: "local-path"
   parameters:
     enabled: true
     size: "10Gi"
     accessModes:
       - ReadWriteOnce
-    storageClassName: "gp2"
+    storageClassName: "local-path"
 
 additionalVolumes:
   enabled: false
