@@ -103,6 +103,34 @@ spec:
           {{- /* empty dict to use defaults */ -}}
           {{- include "sentinel-lily.resources" dict | indent 10 }}
       {{- end }}
+      {{- if or $root.Values.daemon.storage.postgresql $root.Values.cluster.storage.postgresql }}
+      - name: init-database
+        image: {{ include "sentinel-lily.docker-image" $root | quote }}
+        imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+        {{- if and ( eq $instanceType "daemon" ) -}}
+          {{- /* check all daemon storage targets */ -}}
+          {{- range $root.Values.daemon.storage.postgresql }}
+          echo "Checking for database readiness for {{ .name }}..."
+          LILY_DB=$LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL lily migrate --schema {{ .schema | quote }}
+          {{- end }}
+        {{- else }}
+          {{- /* check all cluster storage targets */ -}}
+          {{- range $root.Values.cluster.storage.postgresql }}
+          echo "Checking for database readiness for {{ .name }}..."
+          LILY_DB=$LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL lily migrate --schema {{ .schema | quote }}
+          {{- end }}
+        {{- end }}
+        env:
+        {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
+        volumeMounts:
+        {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
+        resources:
+          {{- /* empty dict to use defaults */ -}}
+          {{- include "sentinel-lily.resources" dict | indent 10 }}
+      {{- end }}
       containers:
       {{- if $root.Values.debug.sidecar.enabled }}
       - name: debug
