@@ -71,6 +71,11 @@ debug:
 logFormat: "json"
 logLevel: "warn"
 logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
+# logLevelRegex sets log level by their systems using a regex mask
+# see `lily log set-level-regex --help` for more info
+logLevelRegex: []
+  #- info:lily/*
+  #- debug:lily/tasks/*
 
 # deploymentType may be either `cluster` or `daemon`
 deploymentType: "cluster"
