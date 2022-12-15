@@ -69,7 +69,7 @@ debug:
 
 # applied to all instances
 logFormat: "json"
-logLevel: "warn"
+logLevel: "info"
 logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
 # logLevelRegex sets log level by their systems using a regex mask
 # see `lily log set-level-regex --help` for more info
