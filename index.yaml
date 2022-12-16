@@ -221,14 +221,14 @@ entries:
   lily:
   - apiVersion: v2
     appVersion: 0.13.0
-    created: "2022-12-16T16:30:34.208091934Z"
+    created: "2022-12-16T16:30:57.199756831Z"
     dependencies:
     - condition: cluster.redis.enabled
       name: redis
       repository: https://charts.bitnami.com/bitnami
       version: 17.0.x
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 230942880ff10dcf3757b2af9fc8443b69c3bc295618dab7aac312b2ca0ca5fe
+    digest: e867ec2a8c1bdd916ba69b655805122608e4aedf20dd7da620ec5f8cb2c64ee6
     name: lily
     type: application
     urls:
