@@ -34,6 +34,10 @@ metadata:
     {{- with $.Values.application.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- if gt (len $ing.annotations) 0 }}
+  annotations:
+    {{- toYaml $ing.annotations | nindent 4 }}
+  {{- end }}
 spec:
-  {{- toYaml $ing | nindent 2 }} 
+  {{- toYaml $ing.spec | nindent 2 }} 
 {{- end }}
