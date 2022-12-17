@@ -203,7 +203,7 @@ spec:
             - name: LOTUS_PATH
               value: /var/lib/lotus
             - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
-              value: https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car
+              value: https://snapshots.mainnet.filops.net/minimal/latest
           volumeMounts:
             - name: lotus-path
               mountPath: /var/lib/lotus
