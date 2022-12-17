@@ -1,7 +1,7 @@
 image:
-  repository: travisperson/lotus
+  repository: filecoin/lotus-all-in-one
   pullPolicy: IfNotPresent
-  tag: v0.7.1
+  tag: v1.18.1
 
 # replicas will increase number of replicas for the statefulset of lotus daemons
 # it should never be used when supplying an external libp2p secret, or with wallets.
