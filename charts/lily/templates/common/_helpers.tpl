@@ -455,6 +455,10 @@ tolerations:
     exit $status
   fi
 
+  {{- range $values.logLevelRegex }}
+  lily log set-level-regex {{ mustRegexSplit ":" . 2 | first }} {{ mustRegexSplit ":" . 2 | last }}
+  {{- end }}
+
   {{- if not $values.debug.disableNetworkSync -}}
   {{/* one last sync gate to make sure we don't start jobs without being up to date */}}
 

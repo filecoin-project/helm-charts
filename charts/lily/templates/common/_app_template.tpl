@@ -103,6 +103,72 @@ spec:
           {{- /* empty dict to use defaults */ -}}
           {{- include "sentinel-lily.resources" dict | indent 10 }}
       {{- end }}
+      {{- if or $root.Values.daemon.storage.postgresql $root.Values.cluster.storage.postgresql }}
+      - name: init-database
+        image: {{ include "sentinel-lily.docker-image" $root | quote }}
+        imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+        {{- if and ( eq $instanceType "daemon" ) -}}
+          {{- /* check all daemon storage targets */ -}}
+          {{- range $root.Values.daemon.storage.postgresql }}
+          echo "Checking for database readiness for {{ .name }}..."
+          LILY_DB=$LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL lily migrate --schema {{ .schema | quote }}
+          {{- end }}
+        {{- else }}
+          {{- /* check all cluster storage targets */ -}}
+          {{- range $root.Values.cluster.storage.postgresql }}
+          echo "Checking for database readiness for {{ .name }}..."
+          LILY_DB=$LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL lily migrate --schema {{ .schema | quote }}
+          {{- end }}
+        {{- end }}
+        env:
+        {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
+        volumeMounts:
+        {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "1Gi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+      {{- end }}
+      {{- /* only check redis readiness for cluster configurations */ -}}
+      {{- if ne $instanceType "daemon" }}
+      - name: init-redis
+        image: bitnami/redis:7.0
+        imagePullPolicy: {{ $root.Values.image.pullPolicy | quote }}
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          export REDISCLI_AUTH="$LILY_REDIS_PASSWORD"
+          response=$(
+            timeout -s 3 10 \
+            redis-cli \
+              -u redis://$LILY_REDIS_ADDR \
+              ping
+          )
+          if [ "$?" -eq "124" ]; then
+            echo "Timed out"
+            exit 1
+          fi
+          responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+          if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ] && [ "$responseFirstWord" != "MASTERDOWN" ]; then
+            echo "$response"
+            exit 1
+          fi
+        env:
+        {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "1Gi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+      {{- end }}
       containers:
       {{- if $root.Values.debug.sidecar.enabled }}
       - name: debug

@@ -1,6 +1,6 @@
 {{- if .Values.application.ingress.enabled }}
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Release.Name }}-{{ .Values.application.name }}
@@ -20,4 +20,24 @@ spec:
           serviceName: {{ $.Release.Name }}-{{ $.Values.application.name }}
           servicePort: {{ $rule.servicePort }}
   {{- end }}
+{{- end }}
+{{- range $i, $ing := .Values.application.ingresses }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $.Release.Name }}-{{ $.Values.application.name }}-{{ $i }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: {{ $.Values.application.name }}
+    release: {{ $.Release.Name }}
+    {{- with $.Values.application.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if gt (len $ing.annotations) 0 }}
+  annotations:
+    {{- toYaml $ing.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- toYaml $ing.spec | nindent 2 }} 
 {{- end }}

@@ -54,6 +54,9 @@ application:
   # a list of services
   # hint: https://github.com/kubernetes/api/blob/master/core/v1/types.go#L4093
   # services: []
+  # a list of ingresses
+  # hint: https://kubernetes.io/docs/concepts/services-networking/ingress/
+  # ingresses: []
   services: 
     - type: ClusterIP
       ports:
