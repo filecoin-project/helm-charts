@@ -120,13 +120,13 @@ spec:
         {{- if and ( eq $instanceType "daemon" ) -}}
           {{- /* check all daemon storage targets */ -}}
           {{- range $root.Values.daemon.storage.postgresql }}
-          echo "Checking for database readiness for {{ .name }}..."
+          echo "Checking schema compatibility for '{{ .name }}' database..."
           LILY_DB=$LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL lily migrate --schema {{ .schema | quote }}
           {{- end }}
         {{- else }}
           {{- /* check all cluster storage targets */ -}}
           {{- range $root.Values.cluster.storage.postgresql }}
-          echo "Checking for database readiness for {{ .name }}..."
+          echo "Checking schema compatibility for '{{ .name }}' database..."
           LILY_DB=$LILY_STORAGE_POSTGRESQL_{{ .name | upper }}_URL lily migrate --schema {{ .schema | quote }}
           {{- end }}
         {{- end }}
