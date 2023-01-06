@@ -34,7 +34,19 @@ affinity: {}
 importSnapshot:
   enabled: true
   url: https://snapshots.mainnet.filops.net/minimal/latest
-
+  # Archival snapshots for Filecoin mainnet are published to Google Cloud.
+  # Credentials may be provided when accessing non-public sources.
+  # Credentials for Google Cloud service account should be stored in a
+  # generic secret with the secret name and key provided below.
+  # The payload should be the contents of the KEY_FILE as used in
+  # `gcloud auth activate-service-account` described in
+  # https://cloud.google.com/sdk/gcloud/reference/auth/activate-service-account.
+  # See https://cloud.google.com/iam/docs/creating-managing-service-account-keys
+  # for additional information.
+  gcloudCredentials: {}
+    #serviceAccountKey:
+      #secretName: "gcloud-credentials"
+      #secretKey: "application_default_credentials.json"
 
 # How long to wait for lily to start before failing
 # Used for all instances

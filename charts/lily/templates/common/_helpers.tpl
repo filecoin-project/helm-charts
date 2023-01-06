@@ -285,9 +285,20 @@ tolerations:
     dpkg -i ./aria2-1.36.0.deb
     rm ./aria2-1.36.0.deb
 
-  {{- if contains "car.zst" .Values.importSnapshot.url }}
-    apt-get install zstd -y
+  {{- if hasSuffix "car.zst" .Values.importSnapshot.url }}
+    {{- if hasPrefix "gs://" .Values.importSnapshot.url }}
+    echo "Installing gcloud tools..."
+
+    apt-get install -y apt-transport-https ca-certificates gnupg
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+    apt-get update && apt-get install -y google-cloud-cli
+
+    gcloud auth activate-service-account --key-file=/root/.config/gcloud/application_default_credentials.json
+    (cd /var/lib/lily/datastore && gsutil cp -c {{ .Values.importSnapshot.url }} snapshot.car.zst)
+    {{- else }}
     (cd /var/lib/lily/datastore && aria2c -x16 -k1M -o snapshot.car.zst {{ .Values.importSnapshot.url }})
+    {{- end }}
   {{- else }}
     (cd /var/lib/lily/datastore && aria2c -x16 -k1M -o snapshot.car {{ .Values.importSnapshot.url }})
   {{- end }}
@@ -302,7 +313,8 @@ tolerations:
   fi
 
   echo "*** Importing snapshot..."
-  {{- if contains "car.zst" .Values.importSnapshot.url }}
+  {{- if hasSuffix "car.zst" .Values.importSnapshot.url }}
+  apt-get install zstd -y
   zstd -qdck /var/lib/lily/datastore/snapshot.car.zst | lily init --import-snapshot=/dev/stdin
   {{- else }}
   lily init --import-snapshot=/var/lib/lily/datastore/snapshot.car

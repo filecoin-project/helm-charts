@@ -60,6 +60,13 @@ spec:
         {{- include "sentinel-lily.common-envvars" ( list $instanceType $root ) | indent 8 }}
         volumeMounts:
         {{- include "sentinel-lily.common-volume-mounts" ( list $root $instanceType ) | nindent 8 }}
+        {{- if $root.Values.importSnapshot.gcloudCredentials }}
+        - name: "gcloud-config"
+          mountPath: "/root/.config/gcloud"
+        - name: "gcloud-credentials"
+          mountPath: "/root/.config/gcloud/application_default_credentials.json"
+          subPath: "application_default_credentials.json"
+        {{- end }}
         resources:
           {{- /* empty dict to use defaults */ -}}
           {{- include "sentinel-lily.resources" dict | indent 10 }}
@@ -239,6 +246,18 @@ spec:
           {{- end }}
       volumes:
       {{- include "sentinel-lily.volume-mappings" ( list $root $instanceType ) | nindent 6 }}
+      {{- if $root.Values.importSnapshot.gcloudCredentials }}
+      - name: "gcloud-config"
+        emptyDir: {}
+      - name: "gcloud-credentials"
+        secret:
+          secretName: {{ $root.Values.importSnapshot.gcloudCredentials.serviceAccountKey.secretName | default "gcloud-credentials" | quote }}
+          optional: false
+          items:
+          - key: {{ $root.Values.importSnapshot.gcloudCredentials.serviceAccountKey.secretKey | default "gcloud-credentials.json" | quote }}
+            path: "application_default_credentials.json"
+      {{- end }}
+
   volumeClaimTemplates:
   {{- if eq $instanceType "daemon" }}
   {{- include "sentinel-lily.volume-claim-templates" $root.Values.daemon.volumes.datastore | indent 4 }}
