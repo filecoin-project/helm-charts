@@ -241,14 +241,14 @@ entries:
   lily:
   - apiVersion: v2
     appVersion: 0.13.0
-    created: "2023-01-06T01:27:16.731853863Z"
+    created: "2023-01-10T14:49:26.145807693Z"
     dependencies:
     - condition: cluster.redis.enabled
       name: redis
       repository: https://charts.bitnami.com/bitnami
       version: 17.0.x
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 72492ffeb891113f69946f78820d2dd019da6fed4ade99cd9745b46e2841d454
+    digest: 9d443fb7e41fce67bb9430ba35da239e673a10a189c9ee5b5de0c4abe2e4de9a
     name: lily
     type: application
     urls:
@@ -1421,9 +1421,9 @@ entries:
   lotus-fullnode:
   - apiVersion: v2
     appVersion: 0.8.0
-    created: "2023-01-06T01:27:17.06033959Z"
+    created: "2023-01-10T14:49:26.559463508Z"
     description: Provision a fullnode lotus node
-    digest: 6a85be6e0f4a2511ea73db86f9ce87fe8928ae4ea5439450602cc6ea8e5bb428
+    digest: 0d3d25fba809061c7c2490a0404f9e897dd1be27a76ebb90be67b7561ca833ed
     name: lotus-fullnode
     type: application
     urls:
