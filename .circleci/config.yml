@@ -4,7 +4,7 @@ workflows:
   # If the branch isn't master, validate only the charts which were modified
   validate:
     jobs:
-    - lint-modified-charts-only:
+    - lint-modified-charts:
         filters:
           branches:
             ignore:
@@ -59,7 +59,7 @@ jobs:
     - add-helm-repos
     - run: |
         ct lint --all --validate-maintainers=false
-  lint-modified-charts-only:
+  lint-modified-charts:
     docker:
     - image: quay.io/helmpack/chart-testing:latest
     steps:
