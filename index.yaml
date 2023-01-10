@@ -3,17 +3,6 @@ entries:
   dealbot:
   - apiVersion: v2
     appVersion: 0.0.2
-    created: "2023-01-10T14:55:49.275882965Z"
-    description: A tool to test and analyze storage and retrieval deal capability
-      on the Filecoin network.
-    digest: e6585858399bdd802742a8eb0cc29601f1a964c7d19b063e6d86ec9e06d265b0
-    name: dealbot
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/dealbot-0.0.15/dealbot-0.0.15.tgz
-    version: 0.0.15
-  - apiVersion: v2
-    appVersion: 0.0.2
     created: "2022-03-01T19:04:16.589619109Z"
     description: A tool to test and analyze storage and retrieval deal capability
       on the Filecoin network.
@@ -252,14 +241,14 @@ entries:
   lily:
   - apiVersion: v2
     appVersion: 0.13.0
-    created: "2023-01-10T14:55:49.566190488Z"
+    created: "2023-01-10T14:57:57.582702325Z"
     dependencies:
     - condition: cluster.redis.enabled
       name: redis
       repository: https://charts.bitnami.com/bitnami
       version: 17.0.x
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 85603c79b763ebc5ee2d0a89896d55271730606a25846888e0ea57f01cee000a
+    digest: e0f3b8a9648ec574a631dcef41439bed696b71562c6576bb1d70f4762a194ac8
     name: lily
     type: application
     urls:
