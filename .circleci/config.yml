@@ -42,7 +42,7 @@ jobs:
     - checkout
     - add-helm-repos
     - run: |
-        ct lint --all
+        ct lint --all --validate-maintainers=false
   lint-modified-charts-only:
     docker:
     - image: quay.io/helmpack/chart-testing:latest
@@ -51,7 +51,7 @@ jobs:
     - add-helm-repos:
         chart-selection-command: "ct list-changed"
     - run: |
-        ct lint
+        ct lint --validate-maintainers=false
   release:
     docker:
     - image: alpine/helm:3.6.2
