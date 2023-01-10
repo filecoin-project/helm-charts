@@ -253,7 +253,7 @@ filebeat:
          - from: "log.file.path"
            to: "source"
         ignore_missing: true
-    
+
     ############################# Output ##########################################
     output:
       logstash:
