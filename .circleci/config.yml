@@ -25,7 +25,7 @@ commands:
         type: string
         default: "ls -d charts/*/"
     steps:
-    - run:
+    - run: |
         for dir in $(<<parameters.chart-selection-command>>); do
           helm dependency list ${dir} 2> /dev/null \
           | tail +2 \
