@@ -1,35 +1,81 @@
 version: 2.1
 
 workflows:
+  # If the branch isn't master, validate only the charts which were modified
+  validate:
+    jobs:
+    - lint-modified-charts:
+        filters:
+          branches:
+            ignore:
+            - master
+            - /.*-master$/
+  # Validate _all_ charts on master, since a change to a chart dependency
+  # in the same repository can break its parent
   publish:
     jobs:
-      - lint
-      - release:
-          requires:
-            - lint
-          filters:
-            branches:
-              only:
-                - master
-                - /.*-master$/
-jobs:
-  lint:
-    docker:
-      - image: alpine/helm:3.6.2
+    - lint-all-charts:
+        filters:
+          branches:
+            only:
+            - master
+            - /.*-master$/
+    - release:
+        requires:
+        - lint-all-charts
+        filters:
+          branches:
+            only:
+            - master
+            - /.*-master$/
+
+commands:
+  add-helm-repos:
+    parameters:
+      # chart-selection-command: can be used to inject a command to control
+      # how helm charts are discovered
+      chart-selection-command:
+        type: string
+        default: "ls -d charts/*/"
     steps:
-      - checkout
-      - run: |
-          apk --no-cache add bash
-          chmod +x scripts/lint.sh
-      - run: ./scripts/lint.sh
+    - run: |
+        for dir in $(<<parameters.chart-selection-command>>); do
+          helm dependency list ${dir} 2> /dev/null \
+          | tail +2 \
+          | head -n -1 \
+          | awk '{ print "helm repo add " $1 " " $3 }' \
+          | while read cmd; do ${cmd}; done
+        done
+
+jobs:
+  # If you're needing to run this locally you can run something like
+  # $ docker run -it --network host --workdir=/data --volume $(pwd):/data \
+  #   quay.io/helmpack/chart-testing:latest ct lint --all --validate-maintainers=false
+  lint-all-charts:
+    docker:
+    - image: quay.io/helmpack/chart-testing:latest
+    steps:
+    - checkout
+    - add-helm-repos
+    - run: |
+        ct lint --all --validate-maintainers=false
+  lint-modified-charts:
+    docker:
+    - image: quay.io/helmpack/chart-testing:latest
+    steps:
+    - checkout
+    - add-helm-repos:
+        chart-selection-command: "ct list-changed"
+    - run: |
+        ct lint --validate-maintainers=false
   release:
     docker:
-      - image: alpine/helm:3.6.2
+    - image: alpine/helm:3.6.2
     steps:
-      - checkout
-      - run: |
-          apk --no-cache add curl bash git
-          curl -sL https://github.com/helm/chart-releaser/releases/download/v1.0.0/chart-releaser_1.0.0_linux_amd64.tar.gz | tar xz
-          mv cr /usr/local/bin/cr
-          chmod +x ./scripts/helm-releases.sh
-      - run: ./scripts/helm-releases.sh
+    - checkout
+    - run: |
+        apk --no-cache add curl bash git
+        curl -sL https://github.com/helm/chart-releaser/releases/download/v1.0.0/chart-releaser_1.0.0_linux_amd64.tar.gz | tar xz
+        mv cr /usr/local/bin/cr
+        chmod +x ./scripts/helm-releases.sh
+    - run: ./scripts/helm-releases.sh

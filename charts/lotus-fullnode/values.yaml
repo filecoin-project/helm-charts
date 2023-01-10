@@ -52,7 +52,7 @@ importSnapshot:
   network: ""
   # strategy "url" options:
   #
-  #OLD URL:
+  # OLD URL:
   # url: "htps://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car"
   url: "https://snapshots.mainnet.filops.net/minimal/latest"
 

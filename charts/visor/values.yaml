@@ -9,7 +9,7 @@ release:
   # nameOverride is used to name the instance in external systems. If empty,
   # then the network, environment, and function values are used with the
   # chart name to generate a name.
-  #nameOverride:
+  # nameOverride:
   network: mainnet
   environment: dev
   function: indexer
@@ -50,31 +50,31 @@ daemon:
       accessModes:
       - ReadWriteOnce
       storageClassName: "gp2"
-      #dataSource: {}
+      # dataSource: {}
 
   # jobs is a list of jobs to start on the daemon
   jobs: []
-  #- command: watch
-    #name: ""
-    #args:
-    #- --confidence=10
-    #- --tasks=blocks,messages,chaineconomics
+  # - command: watch
+    # name: ""
+    # args:
+    # - --confidence=10
+    # - --tasks=blocks,messages,chaineconomics
 
   # daemon storage is a list of storage configurations that will be added to
   # the visor config and used when starting jobs
   storage:
     postgresql: []
-    #- name: db
-      #secretName: postgresql-secret
-      #secretKey: url
-      #schema: visor
-      #applicationName: visor
-      #poolSize: 20
-      #allowUpsert: false
+    # - name: db
+      # secretName: postgresql-secret
+      # secretKey: url
+      # schema: visor
+      # applicationName: visor
+      # poolSize: 20
+      # allowUpsert: false
     file: []
-    #- name: csv
-      #format: CSV
-      #path: /tmp
+    # - name: csv
+      # format: CSV
+      # path: /tmp
 
   # daemon pubsub-specific settings
   pubsub:
@@ -100,8 +100,8 @@ prometheusPort: ":9991"
 # service tracing
 jaeger:
   enabled: false
-  host: ""        # default: node.status.hostIP
-  serviceName: "" # default: include sentinel-visor.instanceName
+  host: ""         # default: node.status.hostIP
+  serviceName: ""  # default: include sentinel-visor.instanceName
   port: "6831"
   sampler:
     type: "probabilistic"

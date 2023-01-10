@@ -39,5 +39,5 @@ metadata:
     {{- toYaml $ing.annotations | nindent 4 }}
   {{- end }}
 spec:
-  {{- toYaml $ing.spec | nindent 2 }} 
+  {{- toYaml $ing.spec | nindent 2 }}
 {{- end }}
