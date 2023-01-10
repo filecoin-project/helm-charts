@@ -13,7 +13,7 @@ release:
   # nameOverride is used to name the instance in external systems. If empty,
   # then the network, environment, and release name values are used with the
   # chart name to generate a name.
-  #nameOverride: ""
+  # nameOverride: ""
   network: "mainnet"
   environment: "dev"
 
@@ -59,12 +59,12 @@ debug:
   sidecar:
     enabled: false
     resources: {}
-      #requests:
-        #cpu: "8000m"
-        #memory: "16Gi"
-      #limits:
-        #cpu: "8000m"
-        #memory: "16Gi"
+      # requests:
+        # cpu: "8000m"
+        # memory: "16Gi"
+      # limits:
+        # cpu: "8000m"
+        # memory: "16Gi"
   disableNetworkSync: false
 
 # applied to all instances
@@ -74,8 +74,8 @@ logLevelNamed: "vm:error,badgerbs:error,actors:warn,pubsub:warn"
 # logLevelRegex sets log level by their systems using a regex mask
 # see `lily log set-level-regex --help` for more info
 logLevelRegex: []
-  #- info:lily/*
-  #- debug:lily/tasks/*
+  # - info:lily/*
+  # - debug:lily/tasks/*
 
 # deploymentType may be either `cluster` or `daemon`
 deploymentType: "cluster"
@@ -93,9 +93,9 @@ cluster:
     #   overrides below are ignored
     # when redis is disabled, the seret name and key should be provided
     # defaults are indicated
-    #secretName: "releasename-redis"
-    #secretKey: "redis-password"
-    #host: "releasename-redis-master:6379"
+    # secretName: "releasename-redis"
+    # secretKey: "redis-password"
+    # host: "releasename-redis-master:6379"
 
   # Specify the name of the Queue configuration header to be used
   # by each component. Keep these defaults unless you're providing
@@ -108,17 +108,17 @@ cluster:
   # the lily config and used when starting jobs
   storage:
     postgresql: []
-    #- name: "postgres-storage-config-name"
-      #secretName: "postgresql-secret"
-      #secretKey: "url"
-      #schema: "lily"
-      #applicationName: "lily"
-      #poolSize: 20
-      #allowUpsert: false
+    # - name: "postgres-storage-config-name"
+      # secretName: "postgresql-secret"
+      # secretKey: "url"
+      # schema: "lily"
+      # applicationName: "lily"
+      # poolSize: 20
+      # allowUpsert: false
     file: []
-    #- name: "csv"
-      #format: "CSV"
-      #path: "/tmp"
+    # - name: "csv"
+      # format: "CSV"
+      # path: "/tmp"
 
   # jobs is a list of jobs to start on the daemon
   # as a single daemon queueing the jobs in parallel.
@@ -126,22 +126,22 @@ cluster:
   # it is highly recommended to execute them in the same job
   # so that local caching can optimize task execution performance.
   jobs: []
-  #- command: "watch"
-    ##  name of the job as it will be reported in processing reports
-    #name: ""
-    ##  name of the queue configuration to use for queueing up tasks with
-    ## this job's work
-    #queue: ""
-    ##  name of the storage configuration to use when persisting exported data
-    #storage: ""
-    ## args to apply to this specific job upon start
-    #jobArgs:
-    #- "--confidence=10"
-    #- "--tasks=blocks,messages,chaineconomics"
-    ## args to apply specific to the command being used
-    #commandArgs:
-    #- "--from=123"
-    #- "--to=123"
+  # - command: "watch"
+    # #  name of the job as it will be reported in processing reports
+    # name: ""
+    # #  name of the queue configuration to use for queueing up tasks with
+    # # this job's work
+    # queue: ""
+    # #  name of the storage configuration to use when persisting exported data
+    # storage: ""
+    # # args to apply to this specific job upon start
+    # jobArgs:
+    # - "--confidence=10"
+    # - "--tasks=blocks,messages,chaineconomics"
+    # # args to apply specific to the command being used
+    # commandArgs:
+    # - "--from=123"
+    # - "--to=123"
 
   notifier:
     # args to apply to this daemon instance upon start
@@ -157,37 +157,37 @@ cluster:
     # - .Values.cluster.queue.notifier
     configOverrideEnabled: false
     configOverride: ""
-    #configOverride: |
+    # configOverride: |
       # config read by lily
-      #[Queue]
-        #[Queue.Workers]
-          #[Queue.Workers.Worker1]
-            #[Queue.Workers.Worker1.RedisConfig]
-              #Network = "tcp"
-              #Addr = "127.0.0.1:6379"
-              #Username = ""
-              #Password = ""
-              #PasswordEnv = "LILY_REDIS_PASSWORD"
-              #DB = 0
-              #PoolSize = 0
-            #[Queue.Workers.Worker1.WorkerConfig]
-              #Concurrency = 1
-              #LoggerLevel = "debug"
-              #WatchQueuePriority = 5
-              #FillQueuePriority = 3
-              #IndexQueuePriority = 1
-              #WalkQueuePriority = 1
-              #StrictPriority = false
-              #ShutdownTimeout = 30000000000
-        #[Queue.Notifiers]
-          #[Queue.Notifiers.Notifier1]
-            #Network = "tcp"
-            #Addr = "127.0.0.1:6379"
-            #Username = ""
-            #Password = ""
-            #PasswordEnv = "LILY_REDIS_PASSWORD"
-            #DB = 0
-            #PoolSize = 0
+      # [Queue]
+        # [Queue.Workers]
+          # [Queue.Workers.Worker1]
+            # [Queue.Workers.Worker1.RedisConfig]
+              # Network = "tcp"
+              # Addr = "127.0.0.1:6379"
+              # Username = ""
+              # Password = ""
+              # PasswordEnv = "LILY_REDIS_PASSWORD"
+              # DB = 0
+              # PoolSize = 0
+            # [Queue.Workers.Worker1.WorkerConfig]
+              # Concurrency = 1
+              # LoggerLevel = "debug"
+              # WatchQueuePriority = 5
+              # FillQueuePriority = 3
+              # IndexQueuePriority = 1
+              # WalkQueuePriority = 1
+              # StrictPriority = false
+              # ShutdownTimeout = 30000000000
+        # [Queue.Notifiers]
+          # [Queue.Notifiers.Notifier1]
+            # Network = "tcp"
+            # Addr = "127.0.0.1:6379"
+            # Username = ""
+            # Password = ""
+            # PasswordEnv = "LILY_REDIS_PASSWORD"
+            # DB = 0
+            # PoolSize = 0
 
     # Required resources to run daemon lily as a client (as is the case with the
     # notifier) requires much fewer resources than the indexing worker instances.
@@ -210,7 +210,7 @@ cluster:
       # (or 6000Gi if running 'actorstatesminer' tasks) to make maximum available
       # IOPS.
       # Upgrade to storage class io1 for even additional IOPS headroom (up to 64kIOPS).
-      # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
+      # See https://kubernetes.io/docs/concepts/storage/storage-classes/# aws-ebs.
       # The datastore volume is mounted at /var/lib/lily/datastore
       datastore:
         enabled: false
@@ -218,7 +218,7 @@ cluster:
         accessModes:
         - "ReadWriteOnce"
         storageClassName: "gp2"
-        #dataSource: {}
+        # dataSource: {}
 
     pubsub:
       # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
@@ -238,37 +238,37 @@ cluster:
     # - .Values.cluster.queues[]
     configOverrideEnabled: false
     configOverride: ""
-    #configOverride: |
+    # configOverride: |
       # config read by lily
-      #[Queue]
-        #[Queue.Workers]
-          #[Queue.Workers.Worker1]
-            #[Queue.Workers.Worker1.RedisConfig]
-              #Network = "tcp"
-              #Addr = "127.0.0.1:6379"
-              #Username = ""
-              #Password = ""
-              #PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
-              #DB = 0
-              #PoolSize = 0
-            #[Queue.Workers.Worker1.WorkerConfig]
-              #Concurrency = 1
-              #LoggerLevel = "debug"
-              #WatchQueuePriority = 5
-              #FillQueuePriority = 3
-              #IndexQueuePriority = 1
-              #WalkQueuePriority = 1
-              #StrictPriority = false
-              #ShutdownTimeout = 30000000000
-        #[Queue.Notifiers]
-          #[Queue.Notifiers.Notifier1]
-            #Network = "tcp"
-            #Addr = "127.0.0.1:6379"
-            #Username = ""
-            #Password = ""
-            #PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
-            #DB = 0
-            #PoolSize = 0
+      # [Queue]
+        # [Queue.Workers]
+          # [Queue.Workers.Worker1]
+            # [Queue.Workers.Worker1.RedisConfig]
+              # Network = "tcp"
+              # Addr = "127.0.0.1:6379"
+              # Username = ""
+              # Password = ""
+              # PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+              # DB = 0
+              # PoolSize = 0
+            # [Queue.Workers.Worker1.WorkerConfig]
+              # Concurrency = 1
+              # LoggerLevel = "debug"
+              # WatchQueuePriority = 5
+              # FillQueuePriority = 3
+              # IndexQueuePriority = 1
+              # WalkQueuePriority = 1
+              # StrictPriority = false
+              # ShutdownTimeout = 30000000000
+        # [Queue.Notifiers]
+          # [Queue.Notifiers.Notifier1]
+            # Network = "tcp"
+            # Addr = "127.0.0.1:6379"
+            # Username = ""
+            # Password = ""
+            # PasswordEnv = "LILY_ASYNQ_REDIS_PASSWORD"
+            # DB = 0
+            # PoolSize = 0
 
     # Required resources to run daemon lily as a client (as is the case with the
     # notifier) requires much fewer resources than the indexing worker instances.
@@ -291,7 +291,7 @@ cluster:
       # (or 6000Gi if running 'actorstatesminer' tasks) to make maximum available
       # IOPS.
       # Upgrade to storage class io1 for even additional IOPS headroom (up to 64kIOPS).
-      # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
+      # See https://kubernetes.io/docs/concepts/storage/storage-classes/# aws-ebs.
       # The datastore volume is mounted at /var/lib/lily/datastore
       datastore:
         enabled: false
@@ -299,7 +299,7 @@ cluster:
         accessModes:
         - "ReadWriteOnce"
         storageClassName: "gp2"
-        #dataSource: {}
+        # dataSource: {}
 
     pubsub:
       # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml
@@ -320,46 +320,46 @@ daemon:
   # - .Values.daemon.storage[]
   configOverrideEnabled: false
   configOverride: ""
-  #configOverride: |
-    #[API]
-      #ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
-    #[Libp2p]
-      #ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
-      #ConnMgrLow = 400
-      #ConnMgrHigh = 500
-      #ConnMgrGrace = "5m0s"
+  # configOverride: |
+    # [API]
+      # ListenAddress = "/ip4/0.0.0.0/tcp/1234/http"
+    # [Libp2p]
+      # ListenAddresses = ["/ip4/0.0.0.0/tcp/1347"]
+      # ConnMgrLow = 400
+      # ConnMgrHigh = 500
+      # ConnMgrGrace = "5m0s"
 
   # jobs is a list of jobs to start on the daemon
-  #jobs:
-  #- command: "watch"
-    ##  name of the job as it will be reported in processing reports
-    #name: ""
-    ##  name of the storage configuration to use when persisting exported data
-    #storage: ""
-    ## args to apply to this specific job upon start
-    #jobArgs:
-    #- "--confidence=10"
-    #- "--tasks=blocks,messages,chaineconomics"
-    ## args to apply specific to the command being used
-    #commandArgs:
-    #- "--from=123"
-    #- "--to=123"
+  # jobs:
+  # - command: "watch"
+    # #  name of the job as it will be reported in processing reports
+    # name: ""
+    # #  name of the storage configuration to use when persisting exported data
+    # storage: ""
+    # # args to apply to this specific job upon start
+    # jobArgs:
+    # - "--confidence=10"
+    # - "--tasks=blocks,messages,chaineconomics"
+    # # args to apply specific to the command being used
+    # commandArgs:
+    # - "--from=123"
+    # - "--to=123"
 
   # storage is a list of storage configurations that will be added to
   # the lily config and used when starting jobs
   storage:
     postgresql: []
-    #- name: "db"
-      #secretName: "postgresql-secret"
-      #secretKey: "url"
-      #schema: "lily"
-      #applicationName: "lily"
-      #poolSize: 20
-      #allowUpsert: false
+    # - name: "db"
+      # secretName: "postgresql-secret"
+      # secretKey: "url"
+      # schema: "lily"
+      # applicationName: "lily"
+      # poolSize: 20
+      # allowUpsert: false
     file: []
-    #- name: "csv"
-      #format: "CSV"
-      #path: "/tmp"
+    # - name: "csv"
+      # format: "CSV"
+      # path: "/tmp"
 
   # Required resources to run daemon lily as a client (as is the case with the
   # notifier) requires much fewer resources than the indexing worker instances.
@@ -382,7 +382,7 @@ daemon:
     # (or 6000Gi if running 'actorstatesminer' tasks) to make maximum available
     # IOPS.
     # Upgrade to storage class io1 for even additional IOPS headroom (up to 64kIOPS).
-    # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
+    # See https://kubernetes.io/docs/concepts/storage/storage-classes/# aws-ebs.
     # The datastore volume is mounted at /var/lib/lily/datastore
     datastore:
       enabled: false
@@ -390,7 +390,7 @@ daemon:
       accessModes:
       - "ReadWriteOnce"
       storageClassName: "gp2"
-      #dataSource: {}
+      # dataSource: {}
 
   pubsub:
     # ipwhitelist maps to Pubsub.IPColocationWhitelist in daemon's config.toml

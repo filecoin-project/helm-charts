@@ -8,16 +8,16 @@ image:
   pullPolicy: Always
 
 # Custom labels
-#labels:
-  #name: foo
+# labels:
+  # name: foo
 
 # prometheus service monitor
 prometheusOperatorServiceMonitor: false
 prometheusPort: ":9991"
 
 logLevel: error
-#logFormat: json
-#logLevelNamed: "vm:error,badgerbs:error"
+# logFormat: json
+# logLevelNamed: "vm:error,badgerbs:error"
 
 jaeger:
   enabled: false
