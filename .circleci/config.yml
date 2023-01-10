@@ -1,9 +1,17 @@
 version: 2.1
 
 workflows:
+  # If the branch isn't master, validate only the charts which were modified
   validate:
     jobs:
-    - lint-modified-charts-only
+    - lint-modified-charts-only:
+        filters:
+          branches:
+            ignore:
+            - master
+            - /.*-master$/
+  # Validate _all_ charts on master, since a change to a chart dependency
+  # in the same repository can break its parent
   publish:
     jobs:
     - lint-all-charts
