@@ -14,7 +14,12 @@ workflows:
   # in the same repository can break its parent
   publish:
     jobs:
-    - lint-all-charts
+    - lint-all-charts:
+        filters:
+          branches:
+            only:
+            - master
+            - /.*-master$/
     - release:
         requires:
         - lint-all-charts
