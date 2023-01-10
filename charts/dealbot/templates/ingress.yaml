@@ -7,7 +7,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-spec:
+spec:  
 {{- if .Values.controller.ingress.tls }}
   tls:
   {{- range .Values.controller.ingress.tls }}
