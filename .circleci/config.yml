@@ -35,6 +35,9 @@ commands:
         done
 
 jobs:
+  # If you're needing to run this locally you can run something like
+  # $ docker run -it --network host --workdir=/data --volume $(pwd):/data \
+  #   quay.io/helmpack/chart-testing:latest ct lint --all --validate-maintainers=false
   lint-all-charts:
     docker:
     - image: quay.io/helmpack/chart-testing:latest
