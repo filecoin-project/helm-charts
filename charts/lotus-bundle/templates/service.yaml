@@ -35,5 +35,5 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- toYaml $svc | nindent 2 }} 
+  {{- toYaml $svc | nindent 2 }}
 {{- end }}

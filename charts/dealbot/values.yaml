@@ -1,10 +1,9 @@
 # Default values for filecoin dealbot
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-logLevel: info
 image:
   repo: filecoin/dealbot
-  tag: "latest" # required
+  tag: "latest"  # required
   pullPolicy: Always
 
 # Custom labels
@@ -74,7 +73,7 @@ daemon:
   config: "dealbot-daemon"
   lotusAPI:
     lotusAPITokenSecret: ""
-    lotusAPIMultiaddr: "" # required
+    lotusAPIMultiaddr: ""  # required
     wallet: ""
   persistence:
     enabled: false

@@ -100,8 +100,8 @@ prometheusPort: ":9991"
 # service tracing
 jaeger:
   enabled: false
-  host: ""        # default: node.status.hostIP
-  serviceName: "" # default: include sentinel-visor.instanceName
+  host: ""         # default: node.status.hostIP
+  serviceName: ""  # default: include sentinel-visor.instanceName
   port: "6831"
   sampler:
     type: "probabilistic"

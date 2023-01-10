@@ -18,7 +18,7 @@ spec:
       release: {{ .Release.Name }}
   ports:
     - protocol: TCP
-      port: 8764 
+      port: 8764
       targetPort: 8764
       name: metrics
 {{ end }}

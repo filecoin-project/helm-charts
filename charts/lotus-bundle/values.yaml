@@ -10,7 +10,7 @@ image:
 application:
   name: "nginx-example"
   labels: []
-  replicas: 
+  replicas:
   # a kubernetes container.
   # hint: https://github.com/kubernetes/api/blob/master/core/v1/types.go#L2227
   container:
@@ -24,14 +24,14 @@ application:
     readinessProbe: {}
     ports: []
   secrets:
-    - name: example-secret # helm will create this secret
+    - name: example-secret  # helm will create this secret
       keys:
         password: extraspecial
       mount: /here
-    - name: external-secret # a pre-existing secret
+    - name: external-secret  # a pre-existing secret
       external: true
       mount: /there
-  configMaps: [] # same format as secrets
+  configMaps: []  # same format as secrets
   # define a single service.
   # depreciated.
   # Instead, use services, []service.
@@ -57,7 +57,7 @@ application:
   # a list of ingresses
   # hint: https://kubernetes.io/docs/concepts/services-networking/ingress/
   # ingresses: []
-  services: 
+  services:
     - type: ClusterIP
       ports:
         - Protocol: TCP
@@ -70,7 +70,7 @@ application:
           port: 80
           targetPort: 80
           name: http
-  storage: # storage volume shared between application and lotus node or ipfs node, when enabled.
+  storage:  # storage volume shared between application and lotus node or ipfs node, when enabled.
       # This is the directory where the volume is mounted on your application and in the lotus container.
     - mount: /shared
       # when chownLotus is enabled, the mounted directory will have unix owner changed to "fc"
@@ -85,9 +85,9 @@ application:
       subdirPerRelease: true
       volume:
         # kubernetes volumes.
-        - name: shared-volume 
+        - name: shared-volume
           persistentVolumeClaim:
-              claimName: chain-exports 
+            claimName: chain-exports
 
 # Any containers in this list will be added to to the pod initContainers.
 # ex:
@@ -257,8 +257,8 @@ filebeat:
     ############################# Output ##########################################
     output:
       logstash:
-        hosts: 
+        hosts:
           - "listener.logz.io:5015"
         ssl:
-          certificate_authorities: 
+          certificate_authorities:
             - "/certs/SectigoRSADomainValidationSecureSerA.crt"
