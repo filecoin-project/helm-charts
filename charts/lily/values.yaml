@@ -210,7 +210,7 @@ cluster:
       # (or 6000Gi if running 'actorstatesminer' tasks) to make maximum available
       # IOPS.
       # Upgrade to storage class io1 for even additional IOPS headroom (up to 64kIOPS).
-      # See https://kubernetes.io/docs/concepts/storage/storage-classes/# aws-ebs.
+      # See https://kubernetes.io/docs/concepts/storage/storage-classes/#aws-ebs.
       # The datastore volume is mounted at /var/lib/lily/datastore
       datastore:
         enabled: false
