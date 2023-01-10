@@ -1,23 +1,22 @@
 # Default values for filecoin dealbot
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-logLevel: info
 image:
   repo: filecoin/dealbot
-  tag: "latest" # required
+  tag: "latest"  # required
   pullPolicy: Always
 
 # Custom labels
-#labels:
-  #name: foo
+# labels:
+  # name: foo
 
 # prometheus service monitor
 prometheusOperatorServiceMonitor: false
 prometheusPort: ":9991"
 
 logLevel: error
-#logFormat: json
-#logLevelNamed: "vm:error,badgerbs:error"
+# logFormat: json
+# logLevelNamed: "vm:error,badgerbs:error"
 
 jaeger:
   enabled: false
@@ -74,7 +73,7 @@ daemon:
   config: "dealbot-daemon"
   lotusAPI:
     lotusAPITokenSecret: ""
-    lotusAPIMultiaddr: "" # required
+    lotusAPIMultiaddr: ""  # required
     wallet: ""
   persistence:
     enabled: false

@@ -140,5 +140,5 @@ report:
     tag: latest
     pullPolicy: Always
   # secret that will contain the db.toml file
-  configSecret:  supersecret
+  configSecret: supersecret
   ipfs: /dns/ipfs-ipfs-api/tcp/5001

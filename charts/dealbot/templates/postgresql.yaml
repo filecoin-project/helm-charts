@@ -15,7 +15,7 @@ spec:
   numberOfInstances: {{ .Values.postgres.instances }}
   postgresql:
     version: "{{ .Values.postgres.version }}"
-  teamId: {{ .Values.postgres.teamid }} 
+  teamId: {{ .Values.postgres.teamid }}
   users:
     {{ .Values.postgres.user }}: []
   volume:

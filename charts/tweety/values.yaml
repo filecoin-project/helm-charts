@@ -4,7 +4,7 @@
 logLevel: info
 image:
   repo: coryschwartz/tweety
-  tag: "latest" # required
+  tag: "latest"  # required
   pullPolicy: IfNotPresent
 
 
