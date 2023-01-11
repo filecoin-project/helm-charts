@@ -310,6 +310,7 @@ tolerations:
       echo "...download failed: $status"
       exit $status
     fi
+  {{- end }}
   fi
 
   echo "*** Importing snapshot..."
@@ -324,7 +325,11 @@ tolerations:
     touch "/var/lib/lily/datastore/_imported"
   fi
   # always remove so we can do a fresh download on next start
+  {{- if hasSuffix "car.zst" .Values.importSnapshot.url }}
+  rm /var/lib/lily/datastore/snapshot.car.zst
+  {{- else }}
   rm /var/lib/lily/datastore/snapshot.car
+  {{- end }}
 
   exit $status
   {{- end }}
