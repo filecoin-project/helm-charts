@@ -92,7 +92,7 @@ Create truncated name for datastore reset cronjob
 */}}
 {{- define "filecoin-chain-archiver.podResets.name" -}}
 {{- if .i.Values.podResetName }}
-{{- .i.Values.podResetName }}
+{{- printf "%s-ds-reset-%s" .i.Values.podResetName .reset.pod | trunc -52 | trimPrefix "-" }}
 {{- else }}
 {{- printf "%s-ds-reset-%s" .i.Release.Name .reset.pod | trunc -52 | trimPrefix "-" }}
 {{- end }}
