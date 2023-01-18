@@ -85,3 +85,15 @@ Create the name of the secret to use for uploads
 {{- printf "%s-%s" (include "filecoin-chain-archiver.fullname" . ) "s3" }}
 {{- end }}
 {{- end }}
+
+
+{{/*
+Create truncated name for datastore reset cronjob
+*/}}
+{{- define "filecoin-chain-archiver.podResets.name" -}}
+{{- if .i.Values.podResetName }}
+{{- .i.Values.podResetName }}
+{{- else }}
+{{- printf "%s-ds-reset-%s" .i.Release.Name .reset.pod | trunc -52 | trimPrefix "-" }}
+{{- end }}
+{{- end }}
