@@ -194,3 +194,4 @@ nodelocker:
 #   - pod: pod2
 #     schedule: "* * * * 1"
 podResets: []
+podResetName: ""
