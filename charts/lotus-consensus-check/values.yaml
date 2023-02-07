@@ -1,7 +1,7 @@
 image:
-  repository: travisperson/lotus-shed
+  repository: filecoin/lotus-all-in-one
   pullPolicy: Always
-  tag: latest
+  tag: master
 
 schedule: "*/15 * * * *"
 lookback: 30

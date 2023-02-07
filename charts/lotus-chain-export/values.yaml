@@ -1,7 +1,7 @@
 image:
-  repository: travisperson/lotus-shed
+  repository: filecoin/lotus-all-in-one
   pullPolicy: Always
-  tag: ntwk-butterfly-9.22.0
+  tag: v1.18.0-butterflynet
 
 schedule: "* */4 * * *"
 # how many tipsets back from the head to export

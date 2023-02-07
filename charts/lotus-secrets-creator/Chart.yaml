@@ -2,5 +2,5 @@ apiVersion: v2
 name: lotus-secrets-creator
 description: Helm chart for creator valid libp2p and jwt secrets on cluster for lotus-fullnode charts
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: 1.1.2

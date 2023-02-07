@@ -1,7 +1,7 @@
 image:
-  repository: travisperson/lotus-shed
+  repository: filecoin/lotus-all-in-one
   pullPolicy: IfNotPresent
-  tag: mainnet-v1.10.0
+  tag: v1.18.0
 nameOverride: ""
 
 # The lotus api info is the multiaddr for the backing lotus daemon.
