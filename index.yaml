@@ -501,6 +501,21 @@ entries:
     - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.5-rc1/lily-0.1.5-rc1.tgz
     version: 0.1.5-rc1
   - apiVersion: v2
+    appVersion: 0.13.0
+    created: "2023-03-02T16:23:13.668427126Z"
+    dependencies:
+    - condition: cluster.redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 17.0.x
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: c3d67a249a285fec7b1d69c429fab695d8b6c2bb980fe605d7b3e5a17948008a
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.5-rc1/lily-0.1.5-rc1.tgz
+    version: 0.1.5-rc1
+  - apiVersion: v2
     appVersion: 0.12.0
     created: "2022-11-05T15:04:09.302768062Z"
     dependencies:
@@ -577,21 +592,6 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 0.12.0
-    created: "2022-10-17T16:20:30.231547771Z"
-    dependencies:
-    - condition: cluster.redis.enabled
-      name: redis
-      repository: https://charts.bitnami.com/bitnami
-      version: 17.0.x
-    description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: ab3b986d8d7f4e16313005ec6014b055e5c54955c3682a704ee1fa8cbae9b8e3
-    name: lily
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.3-rc3/lily-0.1.3-rc3.tgz
-    version: 0.1.3-rc3
-  - apiVersion: v2
-    appVersion: 0.12.0
     created: "2022-10-14T16:21:36.093575142Z"
     dependencies:
     - condition: cluster.redis.enabled
@@ -600,6 +600,21 @@ entries:
       version: 17.0.x
     description: A Helm chart for Kubernetes to run Sentinel Lily
     digest: c68802823f3054cf833fae5906c79f98d3368c4132d761c970b74e2c7d6cdc78
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.3-rc3/lily-0.1.3-rc3.tgz
+    version: 0.1.3-rc3
+  - apiVersion: v2
+    appVersion: 0.12.0
+    created: "2022-10-17T16:20:30.231547771Z"
+    dependencies:
+    - condition: cluster.redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 17.0.x
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: ab3b986d8d7f4e16313005ec6014b055e5c54955c3682a704ee1fa8cbae9b8e3
     name: lily
     type: application
     urls:
@@ -637,21 +652,6 @@ entries:
     version: 0.1.3-rc1
   - apiVersion: v2
     appVersion: 0.12.0
-    created: "2022-10-12T18:40:05.846225487Z"
-    dependencies:
-    - condition: cluster.redis.enabled
-      name: redis
-      repository: https://charts.bitnami.com/bitnami
-      version: 17.0.x
-    description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: ee15ae44bfe65d6b7431fd9e82cb9d7543a8e5fc3297bb0d780c7339cf32bbc6
-    name: lily
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.2-rc9/lily-0.1.2-rc9.tgz
-    version: 0.1.2-rc9
-  - apiVersion: v2
-    appVersion: 0.12.0
     created: "2022-10-11T23:16:52.228264008Z"
     dependencies:
     - condition: cluster.redis.enabled
@@ -660,6 +660,21 @@ entries:
       version: 17.0.x
     description: A Helm chart for Kubernetes to run Sentinel Lily
     digest: f6e5b56a3c15ab863285fadf22450742d6aa57e3e37cb3f0297feaf040755436
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.2-rc9/lily-0.1.2-rc9.tgz
+    version: 0.1.2-rc9
+  - apiVersion: v2
+    appVersion: 0.12.0
+    created: "2022-10-12T18:40:05.846225487Z"
+    dependencies:
+    - condition: cluster.redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 17.0.x
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: ee15ae44bfe65d6b7431fd9e82cb9d7543a8e5fc3297bb0d780c7339cf32bbc6
     name: lily
     type: application
     urls:
@@ -697,21 +712,6 @@ entries:
     version: 0.1.2-rc7
   - apiVersion: v2
     appVersion: 0.12.0
-    created: "2022-10-10T22:01:33.463119736Z"
-    dependencies:
-    - condition: cluster.redis.enabled
-      name: redis
-      repository: https://charts.bitnami.com/bitnami
-      version: 17.0.x
-    description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 2fdd0b81b5c1c6a10037e78b180a400234f9763cd80e2b1d67e6fba623ba063e
-    name: lily
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.2-rc6/lily-0.1.2-rc6.tgz
-    version: 0.1.2-rc6
-  - apiVersion: v2
-    appVersion: 0.12.0
     created: "2022-10-10T22:11:50.368112714Z"
     dependencies:
     - condition: cluster.redis.enabled
@@ -720,6 +720,21 @@ entries:
       version: 17.0.x
     description: A Helm chart for Kubernetes to run Sentinel Lily
     digest: f0ed8e72878fe3d104618ed8dff0af85d61d03a2be27a871dbafbc397c554194
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.2-rc6/lily-0.1.2-rc6.tgz
+    version: 0.1.2-rc6
+  - apiVersion: v2
+    appVersion: 0.12.0
+    created: "2022-10-10T22:01:33.463119736Z"
+    dependencies:
+    - condition: cluster.redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 17.0.x
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: 2fdd0b81b5c1c6a10037e78b180a400234f9763cd80e2b1d67e6fba623ba063e
     name: lily
     type: application
     urls:
@@ -1038,6 +1053,26 @@ entries:
     version: 0.0.7
   - apiVersion: v2
     appVersion: 0.8.6
+    created: "2022-03-30T15:21:16.962648684Z"
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: 9c8bc7c73a0d9c3bdcde2eba99373f9da1c66c0c429c0189c0597a3e1bc08713
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.7-alpha/lily-0.0.7-alpha.tgz
+    version: 0.0.7-alpha
+  - apiVersion: v2
+    appVersion: 0.8.6
+    created: "2022-03-22T18:04:04.560495883Z"
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: b0f1f035076d1392c600c3db0314dc1fc17918b749d66e499161b326583f4239
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.7-alpha/lily-0.0.7-alpha.tgz
+    version: 0.0.7-alpha
+  - apiVersion: v2
+    appVersion: 0.8.6
     created: "2022-05-09T20:25:45.687801925Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
     digest: fa84933780998d0de4582350ba6e4ec7640e6c4b20e33925c444a50336f0bd9b
@@ -1051,36 +1086,6 @@ entries:
     created: "2022-03-30T18:02:45.955643279Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
     digest: babdddf56c4419b932f85419fb048bde15dc942fb08904f6fd440156886b646d
-    name: lily
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.7-alpha/lily-0.0.7-alpha.tgz
-    version: 0.0.7-alpha
-  - apiVersion: v2
-    appVersion: 0.8.6
-    created: "2022-03-22T19:06:41.479276855Z"
-    description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: a157425f61edfba211e7f6e7b19b72540a7fd5e0ba2a722b20eb9ee6951b685d
-    name: lily
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.7-alpha/lily-0.0.7-alpha.tgz
-    version: 0.0.7-alpha
-  - apiVersion: v2
-    appVersion: 0.8.6
-    created: "2022-04-01T23:01:12.462401223Z"
-    description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 28c768d268918447495d1bff7ed96086d8b56be6f6899d30082134825a0ad9c1
-    name: lily
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.7-alpha/lily-0.0.7-alpha.tgz
-    version: 0.0.7-alpha
-  - apiVersion: v2
-    appVersion: 0.8.6
-    created: "2022-03-30T15:21:16.962648684Z"
-    description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 9c8bc7c73a0d9c3bdcde2eba99373f9da1c66c0c429c0189c0597a3e1bc08713
     name: lily
     type: application
     urls:
@@ -1158,9 +1163,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-11T17:06:43.307355008Z"
+    created: "2022-04-01T23:01:12.462401223Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 24b2cfa6366f3cd9ed6ad6435a84bf4956158ee504a2d533a8d7af486c21b0a2
+    digest: 28c768d268918447495d1bff7ed96086d8b56be6f6899d30082134825a0ad9c1
     name: lily
     type: application
     urls:
@@ -1188,9 +1193,19 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-03-22T18:04:04.560495883Z"
+    created: "2022-03-22T19:06:41.479276855Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: b0f1f035076d1392c600c3db0314dc1fc17918b749d66e499161b326583f4239
+    digest: a157425f61edfba211e7f6e7b19b72540a7fd5e0ba2a722b20eb9ee6951b685d
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.7-alpha/lily-0.0.7-alpha.tgz
+    version: 0.0.7-alpha
+  - apiVersion: v2
+    appVersion: 0.8.6
+    created: "2022-05-11T17:06:43.307355008Z"
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: 24b2cfa6366f3cd9ed6ad6435a84bf4956158ee504a2d533a8d7af486c21b0a2
     name: lily
     type: application
     urls:
@@ -1247,6 +1262,16 @@ entries:
     - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.1/lily-0.0.1.tgz
     version: 0.0.1
   lotus-bundle:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2023-03-02T16:23:13.742300704Z"
+    description: bundle your application with lotus or IPFS
+    digest: 9c33c36b40b56d2cab7cabe3c1741531392d197cdbef83899a42b5fb54465aeb
+    name: lotus-bundle
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-bundle-0.0.22/lotus-bundle-0.0.22.tgz
+    version: 0.0.22
   - apiVersion: v2
     appVersion: 0.0.1
     created: "2022-12-17T02:04:28.189709522Z"
