@@ -1,7 +1,7 @@
 image:
-  repository: travisperson/lotus-stats
+  repository: filecoin/lotus-all-in-one
   pullPolicy: IfNotPresent
-  tag: v1.1.2
+  tag: v1.18.0
 
 serviceAccountName: ""
 
