@@ -33,6 +33,6 @@ spec:
       release: {{ .Release.Name }}
   endpoints:
   - port: lotus-api
-    path: path: /debug/metrics
+    path: /debug/metrics
     interval: 30s
 {{- end }}
