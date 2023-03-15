@@ -19,7 +19,7 @@ spec:
     interval: 30s
 ---
 apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
+kind: PodMonitor
 metadata:
   name: {{ .Release.Name }}-{{ .Values.application.name }}-lotus
   namespace: {{ .Release.Namespace }}
