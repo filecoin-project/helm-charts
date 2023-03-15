@@ -17,4 +17,22 @@ spec:
   - port: {{ .Values.prometheus.port }}
     path: {{ .Values.prometheus.path }}
     interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.application.name }}-lotus
+  namespace: {{ .Release.Namespace }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app: {{ .Values.application.name }}
+      release: {{ .Release.Name }}
+  endpoints:
+  - port: lotus-api
+    path: path: /debug/metrics
+    interval: 30s
 {{- end }}
