@@ -342,7 +342,9 @@ spec:
               chmod -R g-r $LOTUS_PATH
               chmod -R g-w $LOTUS_PATH
               /usr/local/bin/lotus daemon {{ if .Values.lotus.lite.enabled }}--lite {{ end }}
-
+          ports:
+          - containerPort: 1234
+            name: lotus-api
         # wallet importer
         # TODO: switch to a wallet server
         - name: wallet-importer
