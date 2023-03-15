@@ -301,6 +301,10 @@ spec:
             - name: LOTUS_JAEGER_AGENT_PORT
               value: "6831"
             {{- end }}
+            {{- .Values.lotus.ethAPI.enabled }}
+            - name: LOTUS_FEVM_ENABLEETHRPC
+              value: "true"
+            {{- end }}
           resources:
             {{- if .Values.lotus.lite.enabled }}
             requests:

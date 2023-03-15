@@ -143,6 +143,10 @@ lotus:
   reset:
     enabled: false
     percent: 90
+  ethAPI:
+    enabled: false
+    persistence:
+
 
 
 # ipfs configuration
