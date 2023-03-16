@@ -281,26 +281,7 @@ spec:
         - name: lotus
           image: {{ .Values.lotus.image }}
           imagePullPolicy: {{ .Values.lotus.imagePullPolicy }}
-          env:
-            - name: FILECOIN_PARAMETER_CACHE
-              value: /var/tmp/filecoin-proof-parameters
-            - name: LOTUS_PATH
-              value: /var/lib/lotus
-            {{- if .Values.lotus.lite.enabled }}
-            - name: FULLNODE_API_INFO
-              value: {{ .Values.lotus.lite.backend }}
-            {{- end }}
-            - name: GOLOG_FORMAT
-              value: json
-            {{- if .Values.lotus.jaeger }}
-            - name: LOTUS_JAEGER_AGENT_HOST
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: status.hostIP
-            - name: LOTUS_JAEGER_AGENT_PORT
-              value: "6831"
-            {{- end }}
+          {{- include "lotus-bundle.env_vars" (dict "Values" .Values.lotus "Template" $.Template) | indent 10 }}
           resources:
             {{- if .Values.lotus.lite.enabled }}
             requests:
