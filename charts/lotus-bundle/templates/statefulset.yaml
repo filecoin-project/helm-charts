@@ -1,3 +1,4 @@
+{{- include "lotus-bundle.validate.sts" (dict "Values" .Values) }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet

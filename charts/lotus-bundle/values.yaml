@@ -134,6 +134,8 @@ wallets: []
 # It provides a limited set of lotus API endpoints.
 lotus:
   enabled: true
+  lite:
+    enabled: false
   image: filecoin/lotus-all-in-one:nightly
   imagePullPolicy: Always
   reset:
@@ -143,7 +145,7 @@ lotus:
   env:
     FILECOIN_PARAMETER_CACHE: "/var/tmp/filecoin-proof-parameters"
     LOTUS_PATH: "/var/lib/lotus"
-    ## Enable lotus-lite by setting FULLNODE_API_INFO to the address of a lotus fullnode.
+    ## FULLNODE_API_INFO: must be set when lotus.lite.enabled is true
     # FULLNODE_API_INFO: "wss://api.chain.love"
 
     ## Golang vars
