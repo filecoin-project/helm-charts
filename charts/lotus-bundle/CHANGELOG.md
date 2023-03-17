@@ -2,6 +2,8 @@
 
 ## 0.1.2
 * Added missing values.yaml updates from the previous change
+* Added validation function to ensure required env vars are set when
+  `lotus.lite.enabled` is `true`
 
 ## 0.1.1
 * Replaced the lotus containers switch-based env vars in favor of supplying
