@@ -136,10 +136,6 @@ lotus:
   enabled: true
   image: filecoin/lotus-all-in-one:nightly
   imagePullPolicy: Always
-  lite:
-    enabled: false
-    backend: wss://api.chain.love
-  jaeger: true
   reset:
     enabled: false
     percent: 90

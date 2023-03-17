@@ -42,5 +42,3 @@ Environment variables used by containers.
     {{- toYaml (dict "env" $result) | nindent 0 -}}
   {{- end -}}
 {{- end -}}
-
-
