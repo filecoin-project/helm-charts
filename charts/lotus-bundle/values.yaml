@@ -141,7 +141,6 @@ lotus:
   reset:
     enabled: false
     percent: 90
-    extraEnv: {}
   env:
     FILECOIN_PARAMETER_CACHE: "/var/tmp/filecoin-proof-parameters"
     LOTUS_PATH: "/var/lib/lotus"
@@ -158,6 +157,7 @@ lotus:
           apiVersion: v1
           fieldPath: status.hostIP
     LOTUS_JAEGER_AGENT_PORT: "6831"
+  extraEnv: {}
 
 # ipfs configuration
 # This is not enabled by default
