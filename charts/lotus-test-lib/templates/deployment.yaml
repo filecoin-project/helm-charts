@@ -1,0 +1,12 @@
+
+{{- include "lotus-lib.values.setup" . }}
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: depname
+spec:
+  template:
+    spec:
+      containers:
+{{ include "lotus-lib.container.lotus" . | indent 6 }}

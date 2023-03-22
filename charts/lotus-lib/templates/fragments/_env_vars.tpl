@@ -1,7 +1,7 @@
 {{/*
 Environment variables used by containers.
 */}}
-{{- define "lotus-bundle.env_vars" -}}
+{{- define "lotus-lib.fragments.env_vars" -}}
 
   {{- $values := mergeOverwrite .Values.env (default .Values.extraEnv dict) -}}
   {{- if hasKey . "ObjectValues" -}}
