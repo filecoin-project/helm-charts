@@ -4,9 +4,12 @@
 apiVersion: v1
 kind: Deployment
 metadata:
-  name: depname
+  name: mySillyChainIndexer
 spec:
   template:
     spec:
       containers:
-{{ include "lotus-lib.container.lotus" . | indent 6 }}
+      - image: foo/bar
+        name: mySillyChainIndexer
+{{ include "lotus-lib.container.lotus"           . | indent 6 }}
+{{ include "lotus-lib.container.reset-datastore" . | indent 6 }}
