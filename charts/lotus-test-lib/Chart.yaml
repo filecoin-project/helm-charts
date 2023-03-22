@@ -28,6 +28,4 @@ dependencies:
   - name: lotus-lib
     version: 0.1.0
     repository: file://../lotus-lib
-  # - name: common
-  #   repository: https://library-charts.k8s-at-home.com
-  #   version: 4.5.2
+

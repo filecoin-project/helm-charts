@@ -1,6 +1,0 @@
-dependencies:
-- name: lotus-lib
-  repository: file://../lotus-lib
-  version: 0.1.0
-digest: sha256:7b0888db5c9e3f4a2f0ad1c064f23b42e3283efb61a07dab57b3b4fe78579df4
-generated: "2023-03-22T20:54:02.73456713Z"
