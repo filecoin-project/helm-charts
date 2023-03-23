@@ -304,6 +304,9 @@ spec:
               mountPath: /var/lib/lotus
             - name: parameter-cache
               mountPath: /var/tmp/filecoin-proof-parameters
+            {{- if .Values.lotus.extraVolumeMounts -}}
+            {{ .Values.lotus.extraVolumeMounts | toYaml | nindent 12 }}
+            {{- end }}
             {{- range $st := $.Values.application.storage }}
             {{- $vol := index $st.volume 0 }}
             - name: {{ $vol.name }}
