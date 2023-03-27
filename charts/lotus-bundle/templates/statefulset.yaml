@@ -205,7 +205,7 @@ spec:
             - name: LOTUS_PATH
               value: /var/lib/lotus
             - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
-              value: https://snapshots.mainnet.filops.net/minimal/latest
+              value: "{{ .Values.snapshotImporter.snapshotUrl }}"
           volumeMounts:
             - name: lotus-path
               mountPath: /var/lib/lotus
