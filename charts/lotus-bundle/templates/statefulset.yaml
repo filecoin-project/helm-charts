@@ -284,6 +284,9 @@ spec:
           imagePullPolicy: {{ .Values.lotus.imagePullPolicy }}
           {{- include "lotus-bundle.env_vars" (dict "Values" .Values.lotus "Template" $.Template) | indent 10 }}
           resources:
+            {{- if .Values.lotus.resources }}
+            {{- toYaml .Values.lotus.resources | nindent 12 }}
+            {{- else }}
             {{- if .Values.lotus.lite.enabled }}
             requests:
               memory: 16Gi
@@ -298,6 +301,7 @@ spec:
             limits:
               memory: 96Gi
               cpu: 16
+            {{- end }}
             {{- end }}
           volumeMounts:
             - name: lotus-path
