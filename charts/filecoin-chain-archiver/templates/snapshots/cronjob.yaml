@@ -92,15 +92,15 @@ spec:
               readOnly: true
             resources:
               {{- toYaml .Values.snapshots.resources | nindent 14 }}
-        {{- with .Values.snapshots.nodeSelector }}
-        nodeSelector:
-          {{- toYaml . | nindent 10 }}
-        {{- end }}
-        {{- with .Values.snapshots.affinity }}
-        affinity:
-          {{- toYaml . | nindent 10 }}
-        {{- end }}
-        {{- with .Values.snapshots.tolerations }}
-        tolerations:
-          {{- toYaml . | nindent 10 }}
-        {{- end }}
+          {{- with .Values.snapshots.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.snapshots.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.snapshots.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
