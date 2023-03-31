@@ -1,4 +1,4 @@
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "filecoin-chain-archiver.snapshots.fullname" . }}
@@ -9,6 +9,10 @@ spec:
   concurrencyPolicy: Allow
   startingDeadlineSeconds: 300
   jobTemplate:
+    metadata:
+      labels:
+        {{- include "filecoin-chain-archiver.snapshots.labels" . | nindent 8 }}
+        cronjob: {{ include "filecoin-chain-archiver.snapshots.fullname" . }}
     spec:
       backoffLimit: 1
       activeDeadlineSeconds: {{ .Values.snapshots.activeDeadlineSeconds }}

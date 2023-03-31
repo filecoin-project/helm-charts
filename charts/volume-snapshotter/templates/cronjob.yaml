@@ -28,7 +28,7 @@ subjects:
   name: {{ .Release.Name }}-volume-snapshotter
   namespace: {{ .Release.Namespace }}
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Release.Name }}
@@ -37,6 +37,9 @@ spec:
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 60
   jobTemplate:
+    metadata:
+      labels:
+        cronjob: {{ .Release.Name }}
     spec:
       template:
         spec:

@@ -38,7 +38,7 @@ subjects:
   name: {{ include "filecoin-chain-archiver.podResets.name" (dict "i" $ "reset" $reset) }}
   namespace: {{ $.Release.Namespace }}
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "filecoin-chain-archiver.podResets.name" (dict "i" $ "reset" $reset) }}
@@ -47,6 +47,9 @@ spec:
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 300
   jobTemplate:
+    metadata:
+      labels:
+        cronjob: {{ include "filecoin-chain-archiver.podResets.name" (dict "i" $ "reset" $reset) }}
     spec:
       activeDeadlineSeconds: 14400
       backoffLimit: 3

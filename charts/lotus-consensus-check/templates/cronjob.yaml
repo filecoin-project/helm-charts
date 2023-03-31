@@ -28,13 +28,16 @@ subjects:
   name: {{ .Release.Name }}-consensus-check
   namespace: {{ .Release.Namespace }}
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Release.Name }}-consensus-check
 spec:
   schedule: {{ .Values.schedule | quote }}
   jobTemplate:
+    metadata:
+      labels:
+        cronjob: {{ .Release.Name }}-consensus-check
     spec:
       template:
         spec:

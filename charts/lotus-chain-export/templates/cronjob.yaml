@@ -28,7 +28,7 @@ subjects:
   name: {{ .Release.Name }}-chain-exporter
   namespace: {{ .Release.Namespace }}
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Release.Name }}-chain-exporter
@@ -37,6 +37,9 @@ spec:
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 300
   jobTemplate:
+    metadata:
+      labels:
+        cronjob: {{ .Release.Name }}-chain-exporter
     spec:
       template:
         spec:
