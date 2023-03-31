@@ -1,6 +1,6 @@
 # CRAWL
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Release.Name }}-crawl
@@ -67,13 +67,16 @@ spec:
 
 # PING
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Release.Name }}-ping
 spec:
   schedule: {{ quote .Values.ping.schedule }}
   jobTemplate:
+    metadata:
+      labels:
+        cronjob: {{ .Release.Name }}-ping
     spec:
       template:
         metadata:
@@ -132,7 +135,7 @@ spec:
 
 # RESOLVE
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Release.Name }}-resolve
@@ -183,13 +186,16 @@ spec:
 {{ toYaml .Values.resolve.resources | indent 16 }}
 
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Release.Name }}-report
 spec:
   schedule: {{ quote .Values.report.schedule }}
   jobTemplate:
+    metadata:
+      labels:
+        cronjob: {{ .Release.Name }}-report
     spec:
       template:
         spec:

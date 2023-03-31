@@ -1,4 +1,4 @@
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "sentinel-locations.fullname" . }}
@@ -12,6 +12,14 @@ spec:
   schedule: "{{ .Values.schedule }}"
   concurrencyPolicy: Forbid
   jobTemplate:
+    metadata:
+      labels:
+        app: "sentinel-locations"
+        suite: sentinel
+        chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+        cronjob: {{ include "sentinel-locations.fullname" . }}
     metadata:
       {{- with .Values.podAnnotations }}
       annotations:
