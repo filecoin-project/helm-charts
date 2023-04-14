@@ -510,7 +510,9 @@ spec:
         {{- range .Values.persistence.datastore.accessModes }}
         - {{ . | quote }}
         {{- end }}
+        {{- if .Values.persistence.datastore.storageClassName }}
         storageClassName: {{ .Values.persistence.datastore.storageClassName }}
+        {{- end }}
         resources:
           requests:
             storage: {{ .Values.persistence.datastore.size | quote }}
@@ -527,7 +529,9 @@ spec:
         {{- range .Values.persistence.journal.accessModes }}
         - {{ . | quote }}
         {{- end }}
+        {{- if .Values.persistence.journal.storageClassName }}
         storageClassName: {{ .Values.persistence.journal.storageClassName }}
+        {{- end }}
         resources:
           requests:
             storage: {{ .Values.persistence.journal.size | quote }}
@@ -540,7 +544,9 @@ spec:
         {{- range .Values.persistence.parameters.accessModes }}
         - {{ . | quote }}
         {{- end }}
+        {{- if .Values.persistence.parameters.storageClassName }}
         storageClassName: {{ .Values.persistence.parameters.storageClassName }}
+        {{- end }}
         resources:
           requests:
             storage: {{ .Values.persistence.parameters.size | quote }}
