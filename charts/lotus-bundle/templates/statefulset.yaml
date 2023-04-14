@@ -10,6 +10,9 @@ metadata:
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
+  {{- if .Values.podManagementPolicy }}
+  podManagementPolicy: {{ .Values.podManagementPolicy }}
+  {{- end }}
   replicas: {{ .Values.application.replicas }}
   serviceName: {{ .Values.application.name }}
   selector:
