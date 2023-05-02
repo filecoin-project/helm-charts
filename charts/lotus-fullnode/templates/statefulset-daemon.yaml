@@ -301,6 +301,13 @@ spec:
             echo importing snapshot from url {{ .Values.importSnapshot.url }}
             lotus daemon --bootstrap=false --halt-after-import --import-snapshot={{ .Values.importSnapshot.url }}
             status=$?
+  {{- else if eq .Values.importSnapshot.strategy "aria2" }}
+            ARIA_OUTFILE=snapshot.car.zst
+            apt update && DEBIAN_FRONTEND=noninteractive apt install -y aria2
+            aria2c -x5 --out ${ARIA_OUTFILE} {{ .Values.importSnapshot.url }}
+            lotus daemon --bootstrap=false --halt-after-import --import-snapshot=${ARIA_OUTFILE}
+            status=$?
+            rm ${ARIA_OUTFILE}
   {{- else }}
             echo "error: importSnapshot is enabled, but strategy is unknown."
             status=1
