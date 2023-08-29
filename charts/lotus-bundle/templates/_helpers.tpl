@@ -1,6 +1,14 @@
 {{/*
 Environment variables used by containers.
 */}}
+{{- define "lotus-bundle.lotus-configmap-name" -}}
+  {{- if .Values.lotus.config.configMapNameOverride -}}
+    {{- .Values.lotus.config.configMapNameOverride -}}
+  {{- else -}}
+    {{ $.Release.Name }}-lotus-config
+  {{- end -}}
+{{- end -}}
+
 {{- define "lotus-bundle.env_vars" -}}
 
   {{- $values := mergeOverwrite .Values.env (default .Values.extraEnv dict) -}}

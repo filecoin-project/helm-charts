@@ -1,3 +1,13 @@
+{{- if .Values.lotus.config.create }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "lotus-bundle.lotus-configmap-name" . }}
+data:
+  config.toml: | {{ .Values.lotus.config.content | nindent 4 }}
+{{- end }}
+
 {{- range $cm := .Values.application.configMaps }}
 {{- if not $cm.external }}
 ---

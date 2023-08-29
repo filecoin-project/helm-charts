@@ -164,6 +164,19 @@ lotus:
           fieldPath: status.hostIP
     LOTUS_JAEGER_AGENT_PORT: "6831"
   extraEnv: {}
+  config:
+    create: true
+    configMapNameOverride: "test-name-override"
+    content: |-
+      [API]
+        ListenAddress = "/ip4/127.0.0.1/tcp/1234/http"
+      [Chainstore]
+        EnableSplitstore = true
+        [Chainstore.Splitstore]
+          ColdStoreType = "discard"
+          HotStoreMessageRetention = 4
+      [Fevm]
+        EnableEthRPC = true
 
 # ipfs configuration
 # This is not enabled by default

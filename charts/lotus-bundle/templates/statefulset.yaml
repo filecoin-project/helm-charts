@@ -81,6 +81,11 @@ spec:
         fsGroup: 532
       restartPolicy: Always
       volumes:
+        {{- if .Values.lotus.config }}
+        - name: lotus-config
+          configMap:
+            name: {{ include "lotus-bundle.lotus-configmap-name" . -}}
+        {{- end }}
         # The wallet, mounted by the wallet importer
         - name: wallets-secret-volume
           secret:
@@ -319,6 +324,9 @@ spec:
             {{- end }}
             {{- end }}
           volumeMounts:
+            - name: lotus-config
+              mountPath: /var/lib/lotus/config.toml
+              subPath: config.toml
             - name: lotus-path
               mountPath: /var/lib/lotus
             - name: parameter-cache
