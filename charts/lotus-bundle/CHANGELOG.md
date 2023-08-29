@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.1.4
+* Added the ability to inject lotus.config.content to the lotus container's
+  /var/lib/lotus/config.toml file, allowing the config file to be overwritten.
+  This is it mitigate a
+  (bug)[https://github.com/filecoin-project/lotus/issues/11198] introduced in
+  lotus 1.23.3.
+
+## 0.1.3-rc4
+* Added podManagementPolicy support
+
+## 0.1.3-rc2
+* Added resource constraints for lotus container
+
+## 0.1.3-rc1
+* Support setting snapshot URL
+
+## 0.1.3-rc0
+* Support arbitrary extra volumes/volumeMounts for the lotus container
+
+## 0.1.2
+* Added missing values.yaml updates from the previous change
+* Added validation function to ensure required env vars are set when
+  `lotus.lite.enabled` is `true`
+
 ## 0.1.2
 * Added missing values.yaml updates from the previous change
 * Added validation function to ensure required env vars are set when
