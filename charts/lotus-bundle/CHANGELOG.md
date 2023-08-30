@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.1.4
+## 0.1.5
+* Fix errors in last release
+  - Don't enable FEVM by default
+  - Fix erroneous configmap name override in default values
+  - Remove inappropriate splitstore defaults
+
+## 0.1.4 - Erroneous release, please skip to 0.1.5+
 * Added the ability to inject lotus.config.content to the lotus container's
   /var/lib/lotus/config.toml file, allowing the config file to be overwritten.
   This is it mitigate a
