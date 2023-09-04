@@ -140,8 +140,13 @@ wallets: []
 # It provides a limited set of lotus API endpoints.
 lotus:
   enabled: true
+  # If lite.enabled is true, lite.storage will be used instead
+  storage: 500Gi
+
   lite:
     enabled: false
+    storage: 200Gi
+
   image: filecoin/lotus-all-in-one:nightly
   imagePullPolicy: Always
   reset:

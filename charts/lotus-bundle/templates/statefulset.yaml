@@ -29,9 +29,9 @@ spec:
         resources:
           requests:
             {{- if .Values.lotus.lite.enabled }}
-            storage: 200Gi
+            storage: {{ .Values.lotus.lite.storage }}
             {{- else }}
-            storage: 4000Gi
+            storage: {{ .Values.lotus.storage }}
             {{- end }}
     - metadata:
         name: parameter-cache

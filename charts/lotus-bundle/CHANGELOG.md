@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6
+* Parameterise lotus-path volume size
+  - Set default to 200Gi/500Gi for lite/full
+
 ## 0.1.5
 * Fix errors in last release
   - Don't enable FEVM by default
