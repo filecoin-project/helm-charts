@@ -1,8 +1,18 @@
 # Changelog
 
+## 0.1.7-rc0
+* Add snapshot-importer option to support using aria2c to download a snapshot.
+  - Allow user to pass USE_ARIA2C="true" to make the snapshot downloader use
+    aria2c, speediing up the download significantly. Note this will cause a
+    container runtime installation of aria2c before snapshot download. This
+    is less than ideal, but the snapshot downloader would require a lotus-based
+    image including aria2c which is nontrivial to produce.
+
 ## 0.1.6
 * Parameterise lotus-path volume size
-  - Set default to 200Gi/500Gi for lite/full
+  - Set default to 200Gi/500Gi for lite/full. This is more reasonable than
+    the existing 4Ti, since we can expect splitstore to be enabled for most
+    lotus deployments
 
 ## 0.1.5
 * Fix errors in last release

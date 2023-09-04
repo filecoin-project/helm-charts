@@ -12,6 +12,7 @@ snapshotImporter:
   # snapshotUrl controls where the snapshot is downloaded from.
   # You only need to set this if you want to use a non-mainnet network.
   snapshotUrl: "https://snapshots.mainnet.filops.net/minimal/latest"
+  useAria2c: "false"
 
 application:
   name: "nginx-example"

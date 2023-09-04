@@ -216,14 +216,33 @@ spec:
               GATE="$LOTUS_PATH"/datastore/date_initialized
               # Don't init if already initialized.
               if [ ! -f "$GATE" ]; then
-                echo importing minimal snapshot
-                /usr/local/bin/lotus daemon --import-snapshot "$DOCKER_LOTUS_IMPORT_SNAPSHOT" --halt-after-import
+                echo "Importing minimal snapshot"
+
+                if [ "${USE_ARIA2C,,}" == "true" ]; then
+                  SNAPSHOT_DIR="${LOTUS_PATH}/snapshot_downloads"
+                  mkdir -p "${SNAPSHOT_DIR}"
+                  SNAPSHOT_FILE=latest.zst
+                  echo "Installing aria2c..."
+                  apt update && cat /dev/null | apt install -y aria2 && apt-get clean
+                  aria2c -x5 "$DOCKER_LOTUS_IMPORT_SNAPSHOT" --dir $SNAPSHOT_DIR -o $SNAPSHOT_FILE
+                  /usr/local/bin/lotus daemon \
+                    --import-chain "${SNAPSHOT_DIR}/${SNAPSHOT_FILE}" \
+                    --halt-after-import
+                  rm -rf "${SNAPSHOT_DIR}"
+                else
+                  /usr/local/bin/lotus daemon \
+                    --import-snapshot "$DOCKER_LOTUS_IMPORT_SNAPSHOT" \
+                    --halt-after-import
+                fi
+
                 # Block future inits
                 date > "$GATE"
               fi
           env:
             - name: LOTUS_PATH
               value: /var/lib/lotus
+            - name: USE_ARIA2C
+              value: "{{ .Values.snapshotImporter.useAria2c }}"
             - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
               value: "{{ .Values.snapshotImporter.snapshotUrl }}"
           volumeMounts:
