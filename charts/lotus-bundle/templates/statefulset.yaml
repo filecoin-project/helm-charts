@@ -220,6 +220,7 @@ spec:
 
                 if [ "${USE_ARIA2C,,}" == "true" ]; then
                   SNAPSHOT_DIR="${LOTUS_PATH}/snapshot_downloads"
+                  rm -rf "${SNAPSHOT_DIR}"
                   mkdir -p "${SNAPSHOT_DIR}"
                   SNAPSHOT_FILE=latest.zst
                   echo "Installing aria2c..."
@@ -234,6 +235,7 @@ spec:
                   /usr/local/bin/lotus daemon \
                     --import-chain "${SNAPSHOT_DIR}/${SNAPSHOT_FILE}" \
                     --halt-after-import
+
                   rm -rf "${SNAPSHOT_DIR}"
                 else
                   /usr/local/bin/lotus daemon \
