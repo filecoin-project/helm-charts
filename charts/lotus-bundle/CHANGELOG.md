@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.7-rc1
+* Amend aria2c download command to overwrite existing files
+
 ## 0.1.7-rc0
 * Add snapshot-importer option to support using aria2c to download a snapshot.
   - Allow user to pass USE_ARIA2C="true" to make the snapshot downloader use

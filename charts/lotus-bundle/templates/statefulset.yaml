@@ -224,7 +224,13 @@ spec:
                   SNAPSHOT_FILE=latest.zst
                   echo "Installing aria2c..."
                   apt update && cat /dev/null | apt install -y aria2 && apt-get clean
-                  aria2c -x5 "$DOCKER_LOTUS_IMPORT_SNAPSHOT" --dir $SNAPSHOT_DIR -o $SNAPSHOT_FILE
+                  aria2c \
+                    --max-connection-per-server 5 \
+                    --allow-overwrite \
+                    --dir $SNAPSHOT_DIR \
+                    --out $SNAPSHOT_FILE \
+                    "$DOCKER_LOTUS_IMPORT_SNAPSHOT"
+
                   /usr/local/bin/lotus daemon \
                     --import-chain "${SNAPSHOT_DIR}/${SNAPSHOT_FILE}" \
                     --halt-after-import
