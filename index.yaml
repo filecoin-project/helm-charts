@@ -292,14 +292,14 @@ entries:
   lily:
   - apiVersion: v2
     appVersion: 0.13.0
-    created: "2023-08-30T14:31:50.71709435Z"
+    created: "2023-09-05T11:57:21.891614256Z"
     dependencies:
     - condition: cluster.redis.enabled
       name: redis
       repository: https://charts.bitnami.com/bitnami
       version: 17.0.x
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 048323b4ebb1caa8995ac43495c3e2d617dcc0438cde7d7fe2ae1c218f4f6c47
+    digest: d1502351b08a4defa3ee79ac130803bc1b6cf39ae61d8abe92a921e0cc441191
     name: lily
     type: application
     urls:
@@ -652,14 +652,14 @@ entries:
     version: 0.1.5-rc1
   - apiVersion: v2
     appVersion: 0.13.0
-    created: "2023-03-17T13:31:16.050481087Z"
+    created: "2023-08-30T14:31:50.71709435Z"
     dependencies:
     - condition: cluster.redis.enabled
       name: redis
       repository: https://charts.bitnami.com/bitnami
       version: 17.0.x
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 067b3c0cb5a43b123321fdb44ff36a8f1054d983eff616f3110b180b3ad56e0f
+    digest: 048323b4ebb1caa8995ac43495c3e2d617dcc0438cde7d7fe2ae1c218f4f6c47
     name: lily
     type: application
     urls:
@@ -855,6 +855,21 @@ entries:
       version: 17.0.x
     description: A Helm chart for Kubernetes to run Sentinel Lily
     digest: 28a7aca244fa5cd7fb2f13a9ebb025f5af1ca0a99c81202dc368ba9e0f261f7a
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.5-rc1/lily-0.1.5-rc1.tgz
+    version: 0.1.5-rc1
+  - apiVersion: v2
+    appVersion: 0.13.0
+    created: "2023-03-17T13:31:16.050481087Z"
+    dependencies:
+    - condition: cluster.redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 17.0.x
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: 067b3c0cb5a43b123321fdb44ff36a8f1054d983eff616f3110b180b3ad56e0f
     name: lily
     type: application
     urls:
@@ -1264,20 +1279,6 @@ entries:
     version: 0.1.0-rc6
   - apiVersion: v2
     appVersion: 0.11.0
-    created: "2022-08-17T02:59:48.535991766Z"
-    dependencies:
-    - name: redis
-      repository: https://charts.bitnami.com/bitnami
-      version: 17.0.x
-    description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: c3610e48add2c4bb49ba0fc3f930dd0fc2d34148434936a1b8e58d7fb404b62e
-    name: lily
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.0-rc5/lily-0.1.0-rc5.tgz
-    version: 0.1.0-rc5
-  - apiVersion: v2
-    appVersion: 0.11.0
     created: "2022-08-17T02:57:40.953487425Z"
     dependencies:
     - name: redis
@@ -1285,6 +1286,20 @@ entries:
       version: 17.0.x
     description: A Helm chart for Kubernetes to run Sentinel Lily
     digest: 06454bc931e4aba7bfdedcae9e4505564eee5c436e979ebdfbfa56726973d639
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.1.0-rc5/lily-0.1.0-rc5.tgz
+    version: 0.1.0-rc5
+  - apiVersion: v2
+    appVersion: 0.11.0
+    created: "2022-08-17T02:59:48.535991766Z"
+    dependencies:
+    - name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 17.0.x
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: c3610e48add2c4bb49ba0fc3f930dd0fc2d34148434936a1b8e58d7fb404b62e
     name: lily
     type: application
     urls:
@@ -1408,16 +1423,6 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-04-07T22:10:31.287601133Z"
-    description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: fd73e53c7b1e1c9d31ba567efd14ba73d7d1539032af3f273934f4b1dfb59da3
-    name: lily
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.7-alpha/lily-0.0.7-alpha.tgz
-    version: 0.0.7-alpha
-  - apiVersion: v2
-    appVersion: 0.8.6
     created: "2022-05-16T14:36:12.931282764Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
     digest: 136bb5ed433a329125ee984ec3802efca350b62419e9a5f2f63efc7bd7393966
@@ -1478,9 +1483,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-23T19:50:22.665992675Z"
+    created: "2022-04-04T16:58:58.674989445Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 9ae9634d841abc1877e0a14607aad292112e5eecec582b5b6cfba94615070308
+    digest: aec9307a432bf83f5e9ffde8877fa3fba17fa0b53ec13c071c8b146818a8404d
     name: lily
     type: application
     urls:
@@ -1488,9 +1493,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-27T02:48:50.199016426Z"
+    created: "2022-04-07T22:10:31.287601133Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: 1a1213d8730ff3cba4b2128a2398436a02aebfda570a19c28dcc057564717327
+    digest: fd73e53c7b1e1c9d31ba567efd14ba73d7d1539032af3f273934f4b1dfb59da3
     name: lily
     type: application
     urls:
@@ -1508,9 +1513,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-23T17:12:02.88471506Z"
+    created: "2022-05-09T20:25:45.687801925Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: f99b24b414661038fe6f6dc7f51422096a635936fd6e8507bb750ae2cf7a704b
+    digest: fa84933780998d0de4582350ba6e4ec7640e6c4b20e33925c444a50336f0bd9b
     name: lily
     type: application
     urls:
@@ -1538,9 +1543,9 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-05-09T20:25:45.687801925Z"
+    created: "2022-05-27T02:48:50.199016426Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: fa84933780998d0de4582350ba6e4ec7640e6c4b20e33925c444a50336f0bd9b
+    digest: 1a1213d8730ff3cba4b2128a2398436a02aebfda570a19c28dcc057564717327
     name: lily
     type: application
     urls:
@@ -1548,9 +1553,19 @@ entries:
     version: 0.0.7-alpha
   - apiVersion: v2
     appVersion: 0.8.6
-    created: "2022-04-04T16:58:58.674989445Z"
+    created: "2022-05-23T19:50:22.665992675Z"
     description: A Helm chart for Kubernetes to run Sentinel Lily
-    digest: aec9307a432bf83f5e9ffde8877fa3fba17fa0b53ec13c071c8b146818a8404d
+    digest: 9ae9634d841abc1877e0a14607aad292112e5eecec582b5b6cfba94615070308
+    name: lily
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lily-0.0.7-alpha/lily-0.0.7-alpha.tgz
+    version: 0.0.7-alpha
+  - apiVersion: v2
+    appVersion: 0.8.6
+    created: "2022-05-23T17:12:02.88471506Z"
+    description: A Helm chart for Kubernetes to run Sentinel Lily
+    digest: f99b24b414661038fe6f6dc7f51422096a635936fd6e8507bb750ae2cf7a704b
     name: lily
     type: application
     urls:
@@ -1609,6 +1624,16 @@ entries:
   lotus-bundle:
   - apiVersion: v2
     appVersion: 0.0.1
+    created: "2023-09-05T11:57:21.981405494Z"
+    description: bundle your application with lotus or IPFS
+    digest: d7b01c481cf681af46c4cc5122baa95e8faa884bd0fd3f9b91ce9c9a65de0c1a
+    name: lotus-bundle
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-bundle-0.1.7-rc1/lotus-bundle-0.1.7-rc1.tgz
+    version: 0.1.7-rc1
+  - apiVersion: v2
+    appVersion: 0.0.1
     created: "2023-09-04T14:52:35.02504311Z"
     description: bundle your application with lotus or IPFS
     digest: c8a956de48ffcf2273b60460c3262f975923de6bd197a5afde00f8e9fc78b4f8
@@ -1659,6 +1684,16 @@ entries:
     version: 0.1.3-rc4
   - apiVersion: v2
     appVersion: 0.0.1
+    created: "2023-04-14T12:07:06.284821642Z"
+    description: bundle your application with lotus or IPFS
+    digest: 7aac221f40495ce64022482be6ce1cd7380f07026a030e7c557e3a3e0bf7160c
+    name: lotus-bundle
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-bundle-0.1.3-rc3/lotus-bundle-0.1.3-rc3.tgz
+    version: 0.1.3-rc3
+  - apiVersion: v2
+    appVersion: 0.0.1
     created: "2023-03-31T17:32:12.053236181Z"
     description: bundle your application with lotus or IPFS
     digest: 88c6f2e7b5072d1e597f3c6af44363f012c3f2ad571d1503b6ce2927afd3ba40
@@ -1679,16 +1714,6 @@ entries:
     version: 0.1.3-rc3
   - apiVersion: v2
     appVersion: 0.0.1
-    created: "2023-04-14T12:07:06.284821642Z"
-    description: bundle your application with lotus or IPFS
-    digest: 7aac221f40495ce64022482be6ce1cd7380f07026a030e7c557e3a3e0bf7160c
-    name: lotus-bundle
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-bundle-0.1.3-rc3/lotus-bundle-0.1.3-rc3.tgz
-    version: 0.1.3-rc3
-  - apiVersion: v2
-    appVersion: 0.0.1
     created: "2023-03-30T22:49:49.185176177Z"
     description: bundle your application with lotus or IPFS
     digest: cb95d3b0d0453aeedb7ac484cf77b422e54cda3c9e8aa2b25cd26c54e189a585
@@ -1697,6 +1722,16 @@ entries:
     urls:
     - https://github.com/filecoin-project/helm-charts/releases/download/lotus-bundle-0.1.3-rc2/lotus-bundle-0.1.3-rc2.tgz
     version: 0.1.3-rc2
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2023-03-30T11:40:31.241821676Z"
+    description: bundle your application with lotus or IPFS
+    digest: 9bb5bd53f87ab17681e0fc993eb4d9d302e992ae0cea65182d98b33b0d96068a
+    name: lotus-bundle
+    type: application
+    urls:
+    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-bundle-0.1.3-rc1/lotus-bundle-0.1.3-rc1.tgz
+    version: 0.1.3-rc1
   - apiVersion: v2
     appVersion: 0.0.1
     created: "2023-03-27T10:37:45.453030297Z"
@@ -1712,16 +1747,6 @@ entries:
     created: "2023-03-30T09:42:36.782375611Z"
     description: bundle your application with lotus or IPFS
     digest: 20525f970be5e685ac894bba2886ddb3192f7e2cb9ecd6d4f11de730c95b5653
-    name: lotus-bundle
-    type: application
-    urls:
-    - https://github.com/filecoin-project/helm-charts/releases/download/lotus-bundle-0.1.3-rc1/lotus-bundle-0.1.3-rc1.tgz
-    version: 0.1.3-rc1
-  - apiVersion: v2
-    appVersion: 0.0.1
-    created: "2023-03-30T11:40:31.241821676Z"
-    description: bundle your application with lotus or IPFS
-    digest: 9bb5bd53f87ab17681e0fc993eb4d9d302e992ae0cea65182d98b33b0d96068a
     name: lotus-bundle
     type: application
     urls:
