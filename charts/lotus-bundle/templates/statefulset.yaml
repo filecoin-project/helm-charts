@@ -233,7 +233,7 @@ spec:
                     "$DOCKER_LOTUS_IMPORT_SNAPSHOT"
 
                   /usr/local/bin/lotus daemon \
-                    --import-chain "${SNAPSHOT_DIR}/${SNAPSHOT_FILE}" \
+                    --import-snapshot "${SNAPSHOT_DIR}/${SNAPSHOT_FILE}" \
                     --halt-after-import
 
                   rm -rf "${SNAPSHOT_DIR}"

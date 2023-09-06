@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.7-rc3
+* Amend snapshot import command
+
 ## 0.1.7-rc1
 * Amend aria2c download command to overwrite existing files
 
