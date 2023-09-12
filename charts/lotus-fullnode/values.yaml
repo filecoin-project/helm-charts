@@ -37,6 +37,8 @@ importSnapshot:
   # resulting in no further imports from occuring till the file is removed.
   enabled: false
   strategy: "volume"
+  # When using strategy=url, set to true to use aria2c to download the snapshot
+  useAria2c: false
 
   # strategy "volume" options:
   #
