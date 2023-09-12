@@ -281,6 +281,17 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["bash", "-c"]
+  {{- if and 
+    (eq .Values.importSnapshot.strategy "url")
+    (.Values.importSnapshot.useAria2c)
+  }}
+        # Modify the security context so we can install
+        # aria2c and curl at runtime :)
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          runAsGroup: 0
+  {{- end }}
         args:
           - |
             if [ -f "/var/lib/lotus/datastore/_imported" ]; then
@@ -298,9 +309,36 @@ spec:
             status=$?
             rm -f /chain-exports/{{ .Values.importSnapshot.exportRelease }}-read-{{ .Release.Namespace }}-{{ .Release.Name }}.lock
   {{- else if eq .Values.importSnapshot.strategy "url" }}
+    {{- if .Values.importSnapshot.useAria2c }}
+            set -xe
+            LOTUS_PATH=${LOTUS_PATH-/var/lib/lotus/}
+            SNAPSHOT_DIR="${LOTUS_PATH}/datastore/snapshot_downloads"
+            rm -rf "${SNAPSHOT_DIR}"
+            mkdir -p "${SNAPSHOT_DIR}"
+            SNAPSHOT_FILE=latest.zst
+            echo "Installing aria2c and curl..."
+            apt update && cat /dev/null | apt install -y aria2 curl && apt-get clean
+            # Resolve the redirects now so that aria2c doesn't redial to a newer artifact
+            # mid-download
+            SNAPSHOT_URL=$(curl -LsI -o /dev/null -w "%{url_effective}" {{ .Values.importSnapshot.url }})
+            aria2c \
+              --max-connection-per-server 5 \
+              --allow-overwrite \
+              --dir $SNAPSHOT_DIR \
+              --out $SNAPSHOT_FILE \
+              "$SNAPSHOT_URL"
+
+            /usr/local/bin/lotus daemon \
+              --import-snapshot "${SNAPSHOT_DIR}/${SNAPSHOT_FILE}" \
+              --halt-after-import
+            status=$?
+
+            rm -rf "${SNAPSHOT_DIR}"
+    {{- else }}
             echo importing snapshot from url {{ .Values.importSnapshot.url }}
             lotus daemon --bootstrap=false --halt-after-import --import-snapshot={{ .Values.importSnapshot.url }}
             status=$?
+    {{- end }}
   {{- else }}
             echo "error: importSnapshot is enabled, but strategy is unknown."
             status=1
