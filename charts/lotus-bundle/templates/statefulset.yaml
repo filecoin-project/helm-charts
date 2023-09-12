@@ -223,14 +223,18 @@ spec:
                   rm -rf "${SNAPSHOT_DIR}"
                   mkdir -p "${SNAPSHOT_DIR}"
                   SNAPSHOT_FILE=latest.zst
-                  echo "Installing aria2c..."
-                  apt update && cat /dev/null | apt install -y aria2 && apt-get clean
+                  echo "Installing aria2c and curl..."
+                  apt update && cat /dev/null | apt install -y aria2 curl && apt-get clean
+
+                  # Resolve the redirects now so that aria2c doesn't redial to a newer artifact
+                  # mid-download
+                  SNAPSHOT_URL=$(curl -LsI -o /dev/null -w "%{url_effective}" https://snapshots.mainnet.filops.net/minimal/latest)
                   aria2c \
                     --max-connection-per-server 5 \
                     --allow-overwrite \
                     --dir $SNAPSHOT_DIR \
                     --out $SNAPSHOT_FILE \
-                    "$DOCKER_LOTUS_IMPORT_SNAPSHOT"
+                    "$SNAPSHOT_URL"
 
                   /usr/local/bin/lotus daemon \
                     --import-snapshot "${SNAPSHOT_DIR}/${SNAPSHOT_FILE}" \
@@ -254,6 +258,10 @@ spec:
             - name: DOCKER_LOTUS_IMPORT_SNAPSHOT
               value: "{{ .Values.snapshotImporter.snapshotUrl }}"
           volumeMounts:
+            # Required due to https://github.com/filecoin-project/lotus/issues/11198
+            - name: lotus-config
+              mountPath: /var/lib/lotus/config.toml
+              subPath: config.toml
             - name: lotus-path
               mountPath: /var/lib/lotus
             - name: parameter-cache
