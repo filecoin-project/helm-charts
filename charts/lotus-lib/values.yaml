@@ -1,0 +1,303 @@
+common:
+  image: &lotusImage
+    repository: filecoin/lotus-all-in-one
+    tag: latest
+    imagePullPolicy: Always
+  lotusVolumeMounts: &lotusVolumeMounts
+    # XXX: Update this to lotus-data once this is stable
+  - &lotusPathVolumeMount
+    name: lotus-path
+    mountPath: /var/lib/lotus
+    # XXX: Update this to lotus-parameters once this is stable
+  - name: parameter-cache
+    mountPath: /var/tmp/filecoin-proof-parameters
+
+lotus:
+  name: lotus
+  image: *lotusImage
+  command: [ "bash", "-c" ]
+  ports:
+  - containerPort: 1234
+    name: lotus-api
+  resources:
+    requests:
+      memory: 64Gi
+      cpu: 8
+    limits:
+      memory: 96Gi
+      cpu: 16
+  lite:
+    enabled: false
+    resources:
+      requests:
+        memory: 16Gi
+        cpu: 8
+      limits:
+        memory: 32Gi
+        cpu: 16
+
+  volumeMounts: *lotusVolumeMounts
+
+reset-datastore:
+  name: reset-datastore
+  image: *lotusImage
+  command: [ "bash", "-c" ]
+  args:
+  - |
+    set -xeou pipefail
+    pct=$(df -h $LOTUS_PATH | awk '/[0-9]+%/ {print substr($5, 1, length($5)-1)}')
+    echo "reset percentage is $RESET_PERCENTAGE"
+    echo "The datastore is $pct% full"
+    if [[ "$pct" -lt "$RESET_PERCENTAGE" ]]
+    then
+      echo "not resetting"
+    else
+      echo "resetting datastore."
+      rm -rf "${LOTUS_PATH}/datastore" || echo "datastore does not exist"
+    fi
+  env:
+    LOTUS_PATH: /var/lib/lotus
+    RESET_PERCENTAGE: "90"
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 0.5
+  volumeMounts:
+  - *lotusPathVolumeMount
+
+#########3
+
+global:
+  # -- Set an override for the prefix of the fullname
+  nameOverride:
+  # -- Set the entire name definition
+  fullnameOverride:
+  # -- Set additional global labels. Helm templates can be used.
+  labels: {}
+  # -- Set additional global annotations. Helm templates can be used.
+  annotations: {}
+
+# image:
+#   # -- image repository
+#   repository:
+#   # -- image tag
+#   tag:
+#   # -- image pull policy
+#   pullPolicy:
+
+# # -- Set image pull secrets
+# imagePullSecrets: []
+
+# # -- Override the command(s) for the default container
+# command: []
+# # -- Override the args for the default container
+# args: []
+
+# # -- Set annotations on the pod
+# podAnnotations: {}
+
+# # -- Set labels on the pod
+# podLabels: {}
+
+# # -- Add a Horizontal Pod Autoscaler
+# # @default -- <disabled>
+# autoscaling:
+#   enabled: false
+#   target:  # deploymentname
+#   minReplicas:  # 1
+#   maxReplicas:  # 100
+#   targetCPUUtilizationPercentage:  # 80
+#   targetMemoryUtilizationPercentage:  # 80
+
+# serviceAccount:
+#   # -- Specifies whether a service account should be created
+#   create: false
+
+#   # -- Annotations to add to the service account
+#   annotations: {}
+
+#   # -- The name of the service account to use.
+#   # If not set and create is true, a name is generated using the fullname template
+#   name: ""
+
+# # -- Specifies whether a service account token should be automatically mounted.
+# automountServiceAccountToken: true
+
+# # -- Use this to populate a secret with the values you specify.
+# # Be aware that these values are not encrypted by default, and could therefore visible
+# # to anybody with access to the values.yaml file.
+# secret: {}
+#   # PASSWORD: my-password
+
+
+# # -- Main environment variables. Template enabled.
+# # Syntax options:
+# # A) TZ: UTC
+# # B) PASSWD: '{{ .Release.Name }}'
+# # C) PASSWD:
+# #      configMapKeyRef:
+# #        name: config-map-name
+# #        key: key-name
+# # D) PASSWD:
+# #      valueFrom:
+# #        secretKeyRef:
+# #          name: secret-name
+# #          key: key-name
+# #      ...
+# # E) - name: TZ
+# #      value: UTC
+# # F) - name: TZ
+# #      value: '{{ .Release.Name }}'
+# env:
+
+# # -- Secrets and/or ConfigMaps that will be loaded as environment variables.
+# # [[ref]](https://unofficial-kubernetes.readthedocs.io/en/latest/tasks/configure-pod-container/configmap/#use-case-consume-configmap-in-environment-variables)
+# envFrom: []
+# # - configMapRef:
+# #     name: config-map-name
+# # - secretRef:
+# #     name: secret-name
+
+# # -- Custom priority class for different treatment by the scheduler
+# priorityClassName:  # system-node-critical
+
+# # -- Allow specifying a runtimeClassName other than the default one (ie: nvidia)
+# runtimeClassName:  # nvidia
+
+# # -- Allows specifying a custom scheduler name
+# schedulerName:  # awkward-dangerous-scheduler
+
+# # -- Allows specifying explicit hostname setting
+# hostname:
+
+# # -- When using hostNetwork make sure you set dnsPolicy to `ClusterFirstWithHostNet`
+# hostNetwork: false
+
+# # -- Defaults to "ClusterFirst" if hostNetwork is false and "ClusterFirstWithHostNet" if hostNetwork is true.
+# dnsPolicy:  # ClusterFirst
+
+# # -- Optional DNS settings, configuring the ndots option may resolve nslookup issues on some Kubernetes setups.
+# dnsConfig: {}
+# #   options:
+# #     - name: ndots
+# #       value: "1"
+
+# # -- Enable/disable the generation of environment variables for services.
+# # [[ref]](https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/#accessing-the-service)
+# enableServiceLinks: true
+
+# # -- Configure the Security Context for the Pod
+# podSecurityContext: {}
+
+# # -- Configure the Security Context for the main container
+# securityContext: {}
+
+# # -- Configure the lifecycle for the main container
+# lifecycle: {}
+
+# # -- Specify any initContainers here as dictionary items. Each initContainer should have its own key.
+# # The dictionary item key will determine the order. Helm templates can be used.
+# initContainers: {}
+
+# # -- Specify any additional containers here as dictionary items. Each additional container should have its own key.
+# # Helm templates can be used.
+# additionalContainers: {}
+
+# # -- Probe configuration
+# # -- [[ref]](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
+# # @default -- See below
+# probes:
+#   # -- Liveness probe configuration
+#   # @default -- See below
+#   liveness:
+#     # -- Enable the liveness probe
+#     enabled: true
+#     # -- Set this to `true` if you wish to specify your own livenessProbe
+#     custom: false
+#     # -- The spec field contains the values for the default livenessProbe.
+#     # If you selected `custom: true`, this field holds the definition of the livenessProbe.
+#     # @default -- See below
+#     spec:
+#       initialDelaySeconds: 0
+#       periodSeconds: 10
+#       timeoutSeconds: 1
+#       failureThreshold: 3
+
+#   # -- Redainess probe configuration
+#   # @default -- See below
+#   readiness:
+#     # -- Enable the readiness probe
+#     enabled: true
+#     # -- Set this to `true` if you wish to specify your own readinessProbe
+#     custom: false
+#     # -- The spec field contains the values for the default readinessProbe.
+#     # If you selected `custom: true`, this field holds the definition of the readinessProbe.
+#     # @default -- See below
+#     spec:
+#       initialDelaySeconds: 0
+#       periodSeconds: 10
+#       timeoutSeconds: 1
+#       failureThreshold: 3
+
+#   # -- Startup probe configuration
+#   # @default -- See below
+#   startup:
+#     # -- Enable the startup probe
+#     enabled: true
+#     # -- Set this to `true` if you wish to specify your own startupProbe
+#     custom: false
+#     # -- The spec field contains the values for the default startupProbe.
+#     # If you selected `custom: true`, this field holds the definition of the startupProbe.
+#     # @default -- See below
+#     spec:
+#       initialDelaySeconds: 0
+#       timeoutSeconds: 1
+#       ## This means it has a maximum of 5*30=150 seconds to start up before it fails
+#       periodSeconds: 5
+#       failureThreshold: 30
+
+# termination:
+#   # -- Configure the path at which the file to which the main container's termination message will be written.
+#   # -- [[ref](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#lifecycle-1)]
+#   messagePath:
+
+#   # -- Indicate how the main container's termination message should be populated.
+#   # Valid options are `File` and `FallbackToLogsOnError`.
+#   # -- [[ref](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#lifecycle-1)]
+#   messagePolicy:
+
+#   # -- Duration in seconds the pod needs to terminate gracefully
+#   # -- [[ref](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#lifecycle)]
+#   gracePeriodSeconds:
+
+# # -- Configure the services for the chart here.
+# # Additional services can be added by adding a dictionary key similar to the 'main' service.
+# # @default -- See below
+
+
+# # -- Used in conjunction with `controller.type: statefulset` to create individual disks for each instance.
+# volumeClaimTemplates: []
+# # - name: data
+# #   mountPath: /data
+# #   accessMode: "ReadWriteOnce"
+# #   size: 1Gi
+# # - name: backup
+# #   mountPath: /backup
+# #   subPath: theSubPath
+# #   accessMode: "ReadWriteOnce"
+# #   size: 2Gi
+# #   storageClass: cheap-storage-class
+
+
+# # -- Set the resource requests / limits for the main container.
+# resources: {}
+#   ## We usually recommend not to specify default resources and to leave this as a conscious
+#   ## choice for the user. This also increases chances charts run on environments with little
+#   ## resources, such as Minikube. If you do want to specify resources, uncomment the following
+#   ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+#   # limits:
+#   #   cpu: 100m
+#   #   memory: 128Mi
+#   # requests:
+#   #   cpu: 100m
+#   #   memory: 128Mi
